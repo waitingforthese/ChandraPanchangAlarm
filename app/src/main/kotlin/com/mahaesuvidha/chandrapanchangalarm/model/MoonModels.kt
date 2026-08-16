@@ -1,31 +1,48 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
-enum class Rashi(val marathi: String, val english: String) {
-    MESHA("मेष", "Aries"), VRISHABHA("वृषभ", "Taurus"),
-    MITHUNA("मिथुन", "Gemini"), KARKA("कर्क", "Cancer"),
-    SIMHA("सिंह", "Leo"), KANYA("कन्या", "Virgo"),
-    TULA("तुला", "Libra"), VRISCHIKA("वृश्चिक", "Scorpio"),
-    DHANU("धनु", "Sagittarius"), MAKARA("मकर", "Capricorn"),
-    KUMBHA("कुंभ", "Aquarius"), MEENA("मीन", "Pisces")
+enum class Rashi(val marathi: String) {
+    MESHA("मेष"),
+    VRISHABHA("वृषभ"),
+    MITHUNA("मिथुन"),
+    KARKA("कर्क"),
+    SIMHA("सिंह"),
+    KANYA("कन्या"),
+    TULA("तुळ"),
+    VRISHCHIKA("वृश्चिक"),
+    DHANU("धनु"),
+    MAKARA("मकर"),
+    KUMBHA("कुंभ"),
+    MEENA("मीन")
 }
 
-enum class Nakshatra(val marathi: String, val english: String) {
-    ASHWINI("अश्विनी", "Ashwini"), BHARANI("भरणी", "Bharani"),
-    KRITTIKA("कृत्तिका", "Krittika"), ROHINI("रोहिणी", "Rohini"),
-    MRIGASHIRSHA("मृगशीर्ष", "Mrigashirsha"), ARDRA("आर्द्रा", "Ardra"),
-    PUNARVASU("पुनर्वसू", "Punarvasu"), PUSHYA("पुष्य", "Pushya"),
-    ASHLESHA("आश्लेषा", "Ashlesha"), MAGHA("मघा", "Magha"),
-    PURVA_PHALGUNI("पूर्वाफाल्गुनी", "Purva Phalguni"),
-    UTTARA_PHALGUNI("उत्तराफाल्गुनी", "Uttara Phalguni"),
-    HASTA("हस्त", "Hasta"), CHITRA("चित्रा", "Chitra"),
-    SWATI("स्वाती", "Swati"), VISHAKHA("विशाखा", "Vishakha"),
-    ANURADHA("अनुराधा", "Anuradha"), JYESHTHA("ज्येष्ठा", "Jyeshtha"),
-    MULA("मूळ", "Mula"), PURVA_ASHADHA("पूर्वाषाढा", "Purva Ashadha"),
-    UTTARA_ASHADHA("उत्तराषाढा", "Uttara Ashadha"),
-    SHRAVANA("श्रवण", "Shravana"), DHANISHTHA("धनिष्ठा", "Dhanishtha"),
-    SHATABHISHA("शतभिषा", "Shatabhisha"), PURVA_BHADRAPADA("पूर्वाभाद्रपदा", "Purva Bhadrapada"),
-    UTTARA_BHADRAPADA("उत्तराभाद्रपदा", "Uttara Bhadrapada"),
-    REVATI("रेवती", "Revati")
+enum class Nakshatra(val marathi: String) {
+    ASHWINI("अश्विनी"),
+    BHARANI("भरणी"),
+    KRITTIKA("कृत्तिका"),
+    ROHINI("रोहिणी"),
+    MRIGASHIRSHA("मृगशीर्ष"),
+    ARDRA("आर्द्रा"),
+    PUNARVASU("पुनर्वसू"),
+    PUSHYA("पुष्य"),
+    ASHLESHA("आश्लेषा"),
+    MAGHA("मघा"),
+    PURVA_PHALGUNI("पूर्वा फाल्गुनी"),
+    UTTARA_PHALGUNI("उत्तर फाल्गुनी"),
+    HASTA("हस्त"),
+    CHITRA("चित्रा"),
+    SWATI("स्वाती"),
+    VISHAKHA("विशाखा"),
+    ANURADHA("अनुराधा"),
+    JYESHTHA("ज्येष्ठा"),
+    MULA("मूळ"),
+    PURVA_ASHADHA("पूर्वाषाढा"),
+    UTTARA_ASHADHA("उत्तराषाढा"),
+    SHRAVANA("श्रवण"),
+    DHANISHTHA("धनिष्ठा"),
+    SHATABHISHA("शततारका"),
+    PURVA_BHADRAPADA("पूर्वाभाद्रपदा"),
+    UTTARA_BHADRAPADA("उत्तराभाद्रपदा"),
+    REVATI("रेवती")
 }
 
 data class MoonState(
