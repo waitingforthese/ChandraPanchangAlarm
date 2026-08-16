@@ -9,86 +9,94 @@ import android.provider.Settings
 
 class AlarmScheduler(private val context: Context) {
 
-    fun scheduleTestAlarm(delayMillis: Long) {
-
-        val alarmManager = context.getSystemService(AlarmManager::class.java)
-
-        val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra("title", "चंद्र पंचांग अलार्म")
-            putExtra("message", "हा Test Alarm आहे.")
-        }
-
-        val pending = PendingIntent.getBroadcast(
-            context,
-            1001,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or
-                    PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val at = System.currentTimeMillis() + delayMillis
-
-        scheduleExact(alarmManager, at, pending)
-    }
-
-
-    fun scheduleMoonChangeAlarm(
-        triggerAtMillis: Long,
+    private fun scheduleAlarm(
+        delayMillis: Long,
+        requestCode: Int,
         title: String,
-        message: String
+        message: String,
+        soundType: String
     ) {
 
-        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        val alarmManager =
+            context.getSystemService(AlarmManager::class.java)
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("title", title)
             putExtra("message", message)
+            putExtra("soundType", soundType)
         }
 
-        /*
-         * Moon change साठी वेगळा request code.
-         * त्यामुळे Test Alarm आणि Moon Alarm एकमेकांना replace करणार नाहीत.
-         */
-        val pending = PendingIntent.getBroadcast(
+        val pendingIntent = PendingIntent.getBroadcast(
             context,
-            2001,
+            requestCode,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or
                     PendingIntent.FLAG_IMMUTABLE
         )
 
-        scheduleExact(
-            alarmManager,
-            triggerAtMillis,
-            pending
-        )
-    }
-
-
-    private fun scheduleExact(
-        alarmManager: AlarmManager,
-        triggerAtMillis: Long,
-        pendingIntent: PendingIntent
-    ) {
+        val alarmTime =
+            System.currentTimeMillis() + delayMillis
 
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             !alarmManager.canScheduleExactAlarms()
         ) {
 
-            context.startActivity(
-                Intent(
-                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
+            val settingsIntent =
+                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
 
+            context.startActivity(settingsIntent)
             return
         }
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            triggerAtMillis,
+            alarmTime,
             pendingIntent
         )
+    }
+
+    // चंद्र राशी बदल
+    fun scheduleRashiAlarm(delayMillis: Long) {
+
+        scheduleAlarm(
+            delayMillis = delayMillis,
+            requestCode = 1001,
+            title = "चंद्र राशीमध्ये बदल",
+            message = "चंद्र राशीमध्ये बदल झाला आहे.",
+            soundType = "rashi"
+        )
+    }
+
+    // नक्षत्र बदल
+    fun scheduleNakshatraAlarm(delayMillis: Long) {
+
+        scheduleAlarm(
+            delayMillis = delayMillis,
+            requestCode = 1002,
+            title = "नक्षत्रामध्ये बदल",
+            message = "चंद्राच्या नक्षत्रामध्ये बदल झाला आहे.",
+            soundType = "nakshatra"
+        )
+    }
+
+    // नक्षत्र चरण बदल
+    fun scheduleCharanAlarm(delayMillis: Long) {
+
+        scheduleAlarm(
+            delayMillis = delayMillis,
+            requestCode = 1003,
+            title = "नक्षत्र चरणमध्ये बदल",
+            message = "नक्षत्र चरणमध्ये बदल झाला आहे.",
+            soundType = "charan"
+        )
+    }
+
+    // 10 सेकंद Test Alarm
+    fun scheduleTestAlarm(delayMillis: Long) {
+
+        scheduleRashiAlarm(delayMillis)
     }
 }
