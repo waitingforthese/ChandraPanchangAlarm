@@ -33,14 +33,12 @@ class MainActivity : ComponentActivity() {
 
         scheduler = AlarmScheduler(this)
 
-        // Notification permission
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
 
-        // Location permission
         locationPermission.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -57,27 +55,21 @@ class MainActivity : ComponentActivity() {
                 ChandraHome(
                     state = moonState,
 
-                    // राशी Test
-                    onRashiTest = {
-                        scheduler.scheduleTestAlarm(
-                            10_000L,
-                            "rashi"
+                    onTestRashiAlarm = {
+                        scheduler.scheduleRashiAlarm(
+                            10_000L
                         )
                     },
 
-                    // नक्षत्र Test
-                    onNakshatraTest = {
-                        scheduler.scheduleTestAlarm(
-                            10_000L,
-                            "nakshatra"
+                    onTestNakshatraAlarm = {
+                        scheduler.scheduleNakshatraAlarm(
+                            10_000L
                         )
                     },
 
-                    // चरण Test
-                    onCharanTest = {
-                        scheduler.scheduleTestAlarm(
-                            10_000L,
-                            "charan"
+                    onTestCharanAlarm = {
+                        scheduler.scheduleCharanAlarm(
+                            10_000L
                         )
                     }
                 )
@@ -86,31 +78,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 private fun ChandraHome(
     state: MoonState,
-    onRashiTest: () -> Unit,
-    onNakshatraTest: () -> Unit,
-    onCharanTest: () -> Unit
+
+    onTestRashiAlarm: () -> Unit,
+
+    onTestNakshatraAlarm: () -> Unit,
+
+    onTestCharanAlarm: () -> Unit
 ) {
 
     Scaffold(
-
         topBar = {
 
             TopAppBar(
-
                 title = {
 
                     Column {
 
-                        Text("🌙 चंद्र पंचांग अलार्म")
+                        Text(
+                            "🌙 चंद्र पंचांग अलार्म"
+                        )
 
                         Text(
                             "V2.4 • LIVE MOON • AUTO ALARM",
                             style =
-                                MaterialTheme.typography.labelSmall
+                                MaterialTheme
+                                    .typography
+                                    .labelSmall
                         )
                     }
                 }
@@ -120,7 +117,6 @@ private fun ChandraHome(
     ) { padding ->
 
         Column(
-
             modifier = Modifier
                 .padding(padding)
                 .padding(20.dp),
@@ -132,30 +128,42 @@ private fun ChandraHome(
             Text(
                 "📍 ${state.location}",
                 style =
-                    MaterialTheme.typography.titleMedium
+                    MaterialTheme
+                        .typography
+                        .titleMedium
             )
 
             Text(
                 "● Live Calculation: ON",
                 style =
-                    MaterialTheme.typography.labelMedium
+                    MaterialTheme
+                        .typography
+                        .labelMedium
             )
 
-            // Current Moon State
+
+            // सध्याची चंद्र स्थिती
+
             Card(
-                Modifier.fillMaxWidth()
+                modifier =
+                    Modifier.fillMaxWidth()
             ) {
 
                 Column(
-                    Modifier.padding(18.dp),
+                    modifier =
+                        Modifier.padding(18.dp),
+
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
                 ) {
 
                     Text(
                         "सध्याची चंद्र स्थिती",
+
                         style =
-                            MaterialTheme.typography.titleLarge
+                            MaterialTheme
+                                .typography
+                                .titleLarge
                     )
 
                     Text(
@@ -172,21 +180,29 @@ private fun ChandraHome(
                 }
             }
 
-            // Next Change
+
+            // पुढील बदल
+
             Card(
-                Modifier.fillMaxWidth()
+                modifier =
+                    Modifier.fillMaxWidth()
             ) {
 
                 Column(
-                    Modifier.padding(18.dp),
+                    modifier =
+                        Modifier.padding(18.dp),
+
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
                 ) {
 
                     Text(
                         "🔔 पुढील चंद्र बदल",
+
                         style =
-                            MaterialTheme.typography.titleLarge
+                            MaterialTheme
+                                .typography
+                                .titleLarge
                     )
 
                     Text(
@@ -199,48 +215,64 @@ private fun ChandraHome(
                 }
             }
 
-            // Rashi Test
+
+            // राशी Test
+
             Button(
-                onClick = onRashiTest,
+                onClick =
+                    onTestRashiAlarm,
+
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Text(
-                    "🔊 राशी बदल Test"
+                    "🌙 राशी बदल Test Alarm"
                 )
             }
 
-            // Nakshatra Test
+
+            // नक्षत्र Test
+
             Button(
-                onClick = onNakshatraTest,
+                onClick =
+                    onTestNakshatraAlarm,
+
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Text(
-                    "🔊 नक्षत्र बदल Test"
+                    "⭐ नक्षत्र बदल Test Alarm"
                 )
             }
 
-            // Charan Test
+
+            // चरण Test
+
             Button(
-                onClick = onCharanTest,
+                onClick =
+                    onTestCharanAlarm,
+
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Text(
-                    "🔊 चरण बदल Test"
+                    "🔔 चरण बदल Test Alarm"
                 )
             }
+
 
             Text(
-                "V2.4 TEST BUILD\n" +
-                    "राशी, नक्षत्र आणि चरण यांचे " +
-                    "स्वतंत्र Marathi Voice Alarm Test करता येईल.",
+                "V2.4 LIVE BUILD\n" +
+                        "राशी, नक्षत्र आणि चरण बदलासाठी " +
+                        "वेगवेगळे Marathi आवाज वापरले जात आहेत.",
+
                 style =
-                    MaterialTheme.typography.bodySmall
+                    MaterialTheme
+                        .typography
+                        .bodySmall
             )
         }
     }
