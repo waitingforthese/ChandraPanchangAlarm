@@ -5,15 +5,24 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
-import androidx.compose.material3.ExperimentalMaterial3Api
 
 class MainActivity : ComponentActivity() {
 
@@ -29,22 +38,29 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.RequestPermission()
         ) { }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
-       scheduler =
-    AlarmScheduler(this)
+        // Alarm Scheduler तयार करा
+        scheduler =
+            AlarmScheduler(this)
 
-val moonState =
-    LiveMoonCalculator.getCurrentMoonState()
+        // पुढील LIVE चंद्र बदलासाठी Alarm schedule करा
+        scheduler.scheduleNextLiveAlarm()
 
-scheduler.scheduleNextLiveAlarm()
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
+        // Notification Permission
+        if (
+            android.os.Build.VERSION.SDK_INT >= 33
+        ) {
+
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
 
+        // Location Permission
         locationPermission.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -52,28 +68,34 @@ scheduler.scheduleNextLiveAlarm()
             )
         )
 
+        // सध्याची Moon State फक्त एकदाच घ्या
         val moonState =
             LiveMoonCalculator.getCurrentMoonState()
 
         setContent {
+
             MaterialTheme {
 
                 ChandraHome(
+
                     state = moonState,
 
                     onTestRashiAlarm = {
+
                         scheduler.scheduleRashiAlarm(
                             10_000L
                         )
                     },
 
                     onTestNakshatraAlarm = {
+
                         scheduler.scheduleNakshatraAlarm(
                             10_000L
                         )
                     },
 
                     onTestCharanAlarm = {
+
                         scheduler.scheduleCharanAlarm(
                             10_000L
                         )
@@ -84,9 +106,11 @@ scheduler.scheduleNextLiveAlarm()
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChandraHome(
+
     state: MoonState,
 
     onTestRashiAlarm: () -> Unit,
@@ -97,9 +121,11 @@ private fun ChandraHome(
 ) {
 
     Scaffold(
+
         topBar = {
 
             TopAppBar(
+
                 title = {
 
                     Column {
@@ -109,7 +135,9 @@ private fun ChandraHome(
                         )
 
                         Text(
+
                             "V2.4 • LIVE MOON • AUTO ALARM",
+
                             style =
                                 MaterialTheme
                                     .typography
@@ -123,24 +151,31 @@ private fun ChandraHome(
     ) { padding ->
 
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(20.dp),
+
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .padding(20.dp),
 
             verticalArrangement =
                 Arrangement.spacedBy(14.dp)
         ) {
 
             Text(
+
                 "📍 ${state.location}",
+
                 style =
                     MaterialTheme
                         .typography
                         .titleMedium
             )
 
+
             Text(
+
                 "● Live Calculation: ON",
+
                 style =
                     MaterialTheme
                         .typography
@@ -151,11 +186,13 @@ private fun ChandraHome(
             // सध्याची चंद्र स्थिती
 
             Card(
+
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Column(
+
                     modifier =
                         Modifier.padding(18.dp),
 
@@ -164,6 +201,7 @@ private fun ChandraHome(
                 ) {
 
                     Text(
+
                         "सध्याची चंद्र स्थिती",
 
                         style =
@@ -190,11 +228,13 @@ private fun ChandraHome(
             // पुढील बदल
 
             Card(
+
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Column(
+
                     modifier =
                         Modifier.padding(18.dp),
 
@@ -203,6 +243,7 @@ private fun ChandraHome(
                 ) {
 
                     Text(
+
                         "🔔 पुढील चंद्र बदल",
 
                         style =
@@ -218,6 +259,10 @@ private fun ChandraHome(
                     Text(
                         "⏰ ${state.nextChangeTime}"
                     )
+
+                    Text(
+                        "Alarm Type: ${state.changeType}"
+                    )
                 }
             }
 
@@ -225,6 +270,7 @@ private fun ChandraHome(
             // राशी Test
 
             Button(
+
                 onClick =
                     onTestRashiAlarm,
 
@@ -241,6 +287,7 @@ private fun ChandraHome(
             // नक्षत्र Test
 
             Button(
+
                 onClick =
                     onTestNakshatraAlarm,
 
@@ -257,6 +304,7 @@ private fun ChandraHome(
             // चरण Test
 
             Button(
+
                 onClick =
                     onTestCharanAlarm,
 
@@ -271,6 +319,7 @@ private fun ChandraHome(
 
 
             Text(
+
                 "V2.4 LIVE BUILD\n" +
                         "राशी, नक्षत्र आणि चरण बदलासाठी " +
                         "वेगवेगळे Marathi आवाज वापरले जात आहेत.",
