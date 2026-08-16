@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 class MainActivity : ComponentActivity() {
 
@@ -78,7 +79,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChandraHome(
     state: MoonState,
