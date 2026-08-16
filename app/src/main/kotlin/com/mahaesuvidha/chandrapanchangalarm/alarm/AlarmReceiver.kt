@@ -2,13 +2,12 @@ package com.mahaesuvidha.chandrapanchangalarm.alarm
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.media.MediaPlayer
 import androidx.core.app.NotificationCompat
-import com.mahaesuvidha.chandrapanchangalarm.MainActivity
+import com.mahaesuvidha.chandrapanchangalarm.R
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -19,58 +18,69 @@ class AlarmReceiver : BroadcastReceiver() {
         val manager =
             context.getSystemService(NotificationManager::class.java)
 
-        // Android 8+ Notification Channel
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            val channel = NotificationChannel(
+        manager.createNotificationChannel(
+            NotificationChannel(
                 channelId,
-                "चंद्र राशी / नक्षत्र बदल",
+                "चंद्र बदल अलार्म",
                 NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "चंद्र राशी किंवा नक्षत्र बदल अलर्ट"
-                enableVibration(true)
-            }
-
-            manager.createNotificationChannel(channel)
-        }
+            )
+        )
 
         val title =
             intent.getStringExtra("title")
-                ?: "🌙 चंद्र पंचांग अलार्म"
+                ?: "चंद्र पंचांग अलार्म"
 
         val message =
             intent.getStringExtra("message")
                 ?: "चंद्र स्थितीत बदल झाला."
 
-        // Notification वर click केल्यावर App उघडेल
-        val openAppIntent =
-            Intent(context, MainActivity::class.java)
+        // कोणता बदल झाला ते तपासा
+        val alarmType =
+            intent.getStringExtra("alarm_type") ?: "rashi"
 
-        val pendingIntent =
-            PendingIntent.getActivity(
-                context,
-                2001,
-                openAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE
-            )
+        // योग्य Marathi MP3 निवडा
+        val soundRes = when (alarmType) {
 
+            "rashi" -> R.raw.rashi
+
+            "nakshatra" -> R.raw.nakshatra
+
+            "charan" -> R.raw.charan
+
+            else -> R.raw.rashi
+        }
+
+        // MP3 वाजवा
+        try {
+            val mediaPlayer =
+                MediaPlayer.create(context, soundRes)
+
+            mediaPlayer.setOnCompletionListener {
+                it.release()
+            }
+
+            mediaPlayer.start()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // Screen वर Notification दाखवा
         val notification =
             NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setSmallIcon(
+                    android.R.drawable.ic_lock_idle_alarm
+                )
                 .setContentTitle(title)
                 .setContentText(message)
-                .setStyle(
-                    NotificationCompat.BigTextStyle()
-                        .bigText(message)
+                .setPriority(
+                    NotificationCompat.PRIORITY_HIGH
                 )
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build()
 
         manager.notify(
-            2001,
+            System.currentTimeMillis().toInt(),
             notification
         )
     }
