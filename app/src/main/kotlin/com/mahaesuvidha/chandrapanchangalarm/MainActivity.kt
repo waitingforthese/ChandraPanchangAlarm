@@ -115,7 +115,7 @@ private fun ChandraHome(
                         Text("🌙 चंद्र पंचांग अलार्म")
 
                         Text(
-                            "V2.3 • LIVE MOON • AUTO ALARM",
+                            "V2.4 • LIVE MOON • AUTO ALARM",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
