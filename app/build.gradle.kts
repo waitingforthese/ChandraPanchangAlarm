@@ -12,8 +12,8 @@ android {
         applicationId = "com.mahaesuvidha.chandrapanchangalarm"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 4
+        versionName = "2.4"
     }
 
     buildFeatures { compose = true }
