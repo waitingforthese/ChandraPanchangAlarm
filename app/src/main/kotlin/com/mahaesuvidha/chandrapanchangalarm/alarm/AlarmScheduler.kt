@@ -11,57 +11,21 @@ class AlarmScheduler(
     private val context: Context
 ) {
 
-    private val alarmManager: AlarmManager =
+    private val alarmManager =
         context.getSystemService(
             AlarmManager::class.java
         )
 
     /*
-     * Main alarm schedule function
+     * कोणत्याही exact time साठी Alarm schedule
      */
-    fun scheduleMoonAlarm(
-        triggerTimeMillis: Long,
-        changeType: String,
-        changeText: String
+    private fun scheduleExactAlarm(
+        timeMillis: Long,
+        requestCode: Int,
+        title: String,
+        message: String,
+        alarmType: String
     ) {
-
-        val requestCode =
-            when (changeType) {
-                "rashi" -> 1001
-                "nakshatra" -> 1002
-                "charan" -> 1003
-                else -> 1000
-            }
-
-        val title =
-            when (changeType) {
-                "rashi" ->
-                    "🌙 चंद्र राशीमध्ये बदल"
-
-                "nakshatra" ->
-                    "⭐ नक्षत्रामध्ये बदल"
-
-                "charan" ->
-                    "🔔 नक्षत्र चरणमध्ये बदल"
-
-                else ->
-                    "🌙 चंद्र पंचांग अलार्म"
-            }
-
-        val message =
-            when (changeType) {
-                "rashi" ->
-                    "चंद्र राशीमध्ये बदल झाला आहे: $changeText"
-
-                "nakshatra" ->
-                    "चंद्र नक्षत्रामध्ये बदल झाला आहे: $changeText"
-
-                "charan" ->
-                    "चंद्राच्या चरणमध्ये बदल झाला आहे: $changeText"
-
-                else ->
-                    changeText
-            }
 
         val intent =
             Intent(
@@ -80,11 +44,11 @@ class AlarmScheduler(
                 )
 
                 /*
-                 * हे AlarmReceiver मध्ये वापरले जाईल
+                 * AlarmReceiver मध्ये हाच key वापरला आहे
                  */
                 putExtra(
                     "alarm_type",
-                    changeType
+                    alarmType
                 )
             }
 
@@ -98,115 +62,228 @@ class AlarmScheduler(
             )
 
         /*
-         * Android 12+ Exact Alarm permission
+         * Android 12+ Exact Alarm Permission
          */
         if (
             Build.VERSION.SDK_INT >=
-            Build.VERSION_CODES.S &&
-            !alarmManager.canScheduleExactAlarms()
+            Build.VERSION_CODES.S
         ) {
 
-            val settingsIntent =
-                Intent(
-                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                ).apply {
+            if (
+                !alarmManager.canScheduleExactAlarms()
+            ) {
 
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                    )
-                }
+                val settingsIntent =
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                    ).apply {
 
-            context.startActivity(
-                settingsIntent
-            )
+                        addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK
+                        )
+                    }
 
-            return
+                context.startActivity(
+                    settingsIntent
+                )
+
+                return
+            }
         }
 
         /*
-         * फोन lock असला,
-         * Doze mode मध्ये असला
-         * तरी शक्य तितका exact alarm
+         * Phone lock / Doze mode असताना सुद्धा Alarm
          */
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            triggerTimeMillis,
+            timeMillis,
             pendingIntent
         )
     }
 
+
     /*
-     * पुढील Live Moon Change Schedule
+     * LIVE Moon Calculator कडून आलेल्या
+     * पुढील बदलाच्या वेळेस Alarm schedule
      */
-    fun scheduleNextMoonChange(
-        triggerTimeMillis: Long,
+    fun scheduleNextLiveAlarm(
+        timeMillis: Long,
         changeType: String,
         changeText: String
     ) {
 
-        scheduleMoonAlarm(
-            triggerTimeMillis = triggerTimeMillis,
-            changeType = changeType,
-            changeText = changeText
-        )
+        /*
+         * जुनी वेळ असेल तर Alarm schedule करू नका
+         */
+        if (
+            timeMillis <=
+            System.currentTimeMillis()
+        ) {
+            return
+        }
+
+        when (changeType) {
+
+            "rashi" -> {
+
+                scheduleExactAlarm(
+                    timeMillis = timeMillis,
+                    requestCode = 1001,
+
+                    title =
+                        "🌙 चंद्र राशीमध्ये बदल",
+
+                    message =
+                        "चंद्र राशी बदल: $changeText",
+
+                    alarmType =
+                        "rashi"
+                )
+            }
+
+
+            "nakshatra" -> {
+
+                scheduleExactAlarm(
+                    timeMillis = timeMillis,
+                    requestCode = 1002,
+
+                    title =
+                        "⭐ नक्षत्रामध्ये बदल",
+
+                    message =
+                        "नक्षत्र बदल: $changeText",
+
+                    alarmType =
+                        "nakshatra"
+                )
+            }
+
+
+            "charan" -> {
+
+                scheduleExactAlarm(
+                    timeMillis = timeMillis,
+                    requestCode = 1003,
+
+                    title =
+                        "🔔 चरणामध्ये बदल",
+
+                    message =
+                        "चरण बदल: $changeText",
+
+                    alarmType =
+                        "charan"
+                )
+            }
+
+
+            else -> {
+
+                scheduleExactAlarm(
+                    timeMillis = timeMillis,
+                    requestCode = 1004,
+
+                    title =
+                        "🌙 चंद्र पंचांग अलार्म",
+
+                    message =
+                        changeText,
+
+                    alarmType =
+                        "rashi"
+                )
+            }
+        }
     }
 
+
     /*
-     * राशी Test Alarm
+     * राशी बदलण्यासाठी Test Alarm
      */
     fun scheduleRashiAlarm(
         delayMillis: Long
     ) {
 
-        val triggerTime =
+        val alarmTime =
             System.currentTimeMillis() +
                     delayMillis
 
-        scheduleMoonAlarm(
-            triggerTimeMillis = triggerTime,
-            changeType = "rashi",
-            changeText = "Test राशी बदल"
+        scheduleExactAlarm(
+            timeMillis = alarmTime,
+
+            requestCode = 2001,
+
+            title =
+                "🌙 चंद्र राशीमध्ये बदल",
+
+            message =
+                "हा राशी बदलाचा Test Alarm आहे.",
+
+            alarmType =
+                "rashi"
         )
     }
 
+
     /*
-     * नक्षत्र Test Alarm
+     * नक्षत्र बदलण्यासाठी Test Alarm
      */
     fun scheduleNakshatraAlarm(
         delayMillis: Long
     ) {
 
-        val triggerTime =
+        val alarmTime =
             System.currentTimeMillis() +
                     delayMillis
 
-        scheduleMoonAlarm(
-            triggerTimeMillis = triggerTime,
-            changeType = "nakshatra",
-            changeText = "Test नक्षत्र बदल"
+        scheduleExactAlarm(
+            timeMillis = alarmTime,
+
+            requestCode = 2002,
+
+            title =
+                "⭐ नक्षत्रामध्ये बदल",
+
+            message =
+                "हा नक्षत्र बदलाचा Test Alarm आहे.",
+
+            alarmType =
+                "nakshatra"
         )
     }
 
+
     /*
-     * चरण Test Alarm
+     * चरण बदलण्यासाठी Test Alarm
      */
     fun scheduleCharanAlarm(
         delayMillis: Long
     ) {
 
-        val triggerTime =
+        val alarmTime =
             System.currentTimeMillis() +
                     delayMillis
 
-        scheduleMoonAlarm(
-            triggerTimeMillis = triggerTime,
-            changeType = "charan",
-            changeText = "Test चरण बदल"
+        scheduleExactAlarm(
+            timeMillis = alarmTime,
+
+            requestCode = 2003,
+
+            title =
+                "🔔 नक्षत्र चरणमध्ये बदल",
+
+            message =
+                "हा चरण बदलाचा Test Alarm आहे.",
+
+            alarmType =
+                "charan"
         )
     }
 
+
     /*
-     * जुना Test Alarm compatibility
+     * सामान्य 10 सेकंदांचा Test Alarm
      */
     fun scheduleTestAlarm(
         delayMillis: Long
@@ -217,38 +294,46 @@ class AlarmScheduler(
         )
     }
 
+
     /*
-     * सर्व Moon Alarms Cancel
+     * सर्व Moon Change Alarms Cancel करण्यासाठी
      */
-    fun cancelAllMoonAlarms() {
+    fun cancelAllAlarms() {
 
-        val requestCodes =
-            listOf(
-                1001,
-                1002,
-                1003
+        cancelAlarm(1001)
+        cancelAlarm(1002)
+        cancelAlarm(1003)
+        cancelAlarm(1004)
+
+        cancelAlarm(2001)
+        cancelAlarm(2002)
+        cancelAlarm(2003)
+    }
+
+
+    private fun cancelAlarm(
+        requestCode: Int
+    ) {
+
+        val intent =
+            Intent(
+                context,
+                AlarmReceiver::class.java
             )
 
-        requestCodes.forEach { requestCode ->
-
-            val intent =
-                Intent(
-                    context,
-                    AlarmReceiver::class.java
-                )
-
-            val pendingIntent =
-                PendingIntent.getBroadcast(
-                    context,
-                    requestCode,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or
-                            PendingIntent.FLAG_IMMUTABLE
-                )
-
-            alarmManager.cancel(
-                pendingIntent
+        val pendingIntent =
+            PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        PendingIntent.FLAG_IMMUTABLE
             )
-        }
+
+        alarmManager.cancel(
+            pendingIntent
+        )
+
+        pendingIntent.cancel()
     }
 }
