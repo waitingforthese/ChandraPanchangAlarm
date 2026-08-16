@@ -14,6 +14,7 @@ import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.Rashi
 import com.mahaesuvidha.chandrapanchangalarm.model.Nakshatra
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 class MainActivity : ComponentActivity() {
 
@@ -66,7 +67,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChandraHome(
     state: MoonState,
