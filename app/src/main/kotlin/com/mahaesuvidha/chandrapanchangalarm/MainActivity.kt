@@ -15,7 +15,6 @@ import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.Rashi
 import com.mahaesuvidha.chandrapanchangalarm.model.Nakshatra
 
-@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
@@ -68,7 +67,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChandraHome(
     state: MoonState,
@@ -78,7 +76,14 @@ private fun ChandraHome(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("🌙 चंद्र पंचांग अलार्म")
+                    Column {
+                        Text("🌙 चंद्र पंचांग अलार्म")
+
+                        Text(
+                            "V2.1 • LIVE MOON • DAUND",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
             )
         }
@@ -96,13 +101,19 @@ private fun ChandraHome(
                 style = MaterialTheme.typography.titleMedium
             )
 
+            Text(
+                "● Live Calculation: ON",
+                style = MaterialTheme.typography.labelMedium
+            )
+
             Card(
-                modifier = Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(18.dp),
+                    Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+
                     Text(
                         "सध्याची चंद्र स्थिती",
                         style = MaterialTheme.typography.titleLarge
@@ -115,12 +126,13 @@ private fun ChandraHome(
             }
 
             Card(
-                modifier = Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(18.dp),
+                    Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+
                     Text(
                         "पुढील राशी बदल",
                         style = MaterialTheme.typography.titleLarge
@@ -139,9 +151,8 @@ private fun ChandraHome(
             }
 
             Text(
-                text =
-                    "टीप: 17-08-2026, दौंड, 4:19 PM हा validation reference आहे. " +
-                    "Production calculation मध्ये ही वेळ hard-code केली जाणार नाही.",
+                "V2.1 TEST BUILD\n" +
+                    "Live Moon calculation पुढील build मध्ये जोडली जाईल.",
                 style = MaterialTheme.typography.bodySmall
             )
         }
