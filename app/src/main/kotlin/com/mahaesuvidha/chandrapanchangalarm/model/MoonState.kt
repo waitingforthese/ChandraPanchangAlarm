@@ -1,60 +1,32 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
-enum class Rashi(val marathi: String) {
-    MESHA("मेष"),
-    VRISHABHA("वृषभ"),
-    MITHUNA("मिथुन"),
-    KARKA("कर्क"),
-    SIMHA("सिंह"),
-    KANYA("कन्या"),
-    TULA("तुळ"),
-    VRISHCHIKA("वृश्चिक"),
-    DHANU("धनु"),
-    MAKARA("मकर"),
-    KUMBHA("कुंभ"),
-    MEENA("मीन")
-}
-
-enum class Nakshatra(val marathi: String) {
-    ASHWINI("अश्विनी"),
-    BHARANI("भरणी"),
-    KRITTIKA("कृत्तिका"),
-    ROHINI("रोहिणी"),
-    MRIGASHIRSHA("मृगशीर्ष"),
-    ARDRA("आर्द्रा"),
-    PUNARVASU("पुनर्वसू"),
-    PUSHYA("पुष्य"),
-    ASHLESHA("आश्लेषा"),
-    MAGHA("मघा"),
-    PURVA_PHALGUNI("पूर्वा फाल्गुनी"),
-    UTTARA_PHALGUNI("उत्तर फाल्गुनी"),
-    HASTA("हस्त"),
-    CHITRA("चित्रा"),
-    SWATI("स्वाती"),
-    VISHAKHA("विशाखा"),
-    ANURADHA("अनुराधा"),
-    JYESHTHA("ज्येष्ठा"),
-    MULA("मूळ"),
-    PURVA_ASHADHA("पूर्वाषाढा"),
-    UTTARA_ASHADHA("उत्तराषाढा"),
-    SHRAVANA("श्रवण"),
-    DHANISHTHA("धनिष्ठा"),
-    SHATABHISHA("शततारका"),
-    PURVA_BHADRAPADA("पूर्वाभाद्रपदा"),
-    UTTARA_BHADRAPADA("उत्तराभाद्रपदा"),
-    REVATI("रेवती")
-}
-
 data class MoonState(
+
+    // Location
     val location: String,
+
+    // सध्याची चंद्र राशी
     val rashi: Rashi,
+
+    // सध्याचे नक्षत्र
     val nakshatra: Nakshatra,
+
+    // सध्याचा चरण
     val pada: Int,
 
+    // पुढील बदलाचे नाव
+    // उदाहरण: हस्त → चित्रा
     val nextChange: String,
+
+    // पुढील बदलाची Date आणि Time
+    // उदाहरण: 17-08-2026 02:04
     val nextChangeTime: String,
 
+    // पुढील बदलाची Exact Time milliseconds मध्ये
+    // AlarmScheduler साठी वापरले जाते
     val nextChangeMillis: Long,
 
+    // कोणता बदल आहे
+    // rashi / nakshatra / charan
     val changeType: String
 )
