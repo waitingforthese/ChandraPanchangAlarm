@@ -47,10 +47,19 @@ class MainActivity : ComponentActivity() {
             )
         )
 
+        val moonState = LiveMoonCalculator.getCurrentMoonState()
+
+        /*
+         * पुढील चंद्र बदलासाठी automatic alarm.
+         *
+         * पुढच्या step मध्ये LiveMoonCalculator मधून
+         * exact timestamp मिळाल्यावर येथे जोडला जाईल.
+         */
+
         setContent {
             MaterialTheme {
                 ChandraHome(
-state = LiveMoonCalculator.getCurrentMoonState(),
+                    state = moonState,
                     onTestAlarm = {
                         scheduler.scheduleTestAlarm(10_000L)
                     }
@@ -59,6 +68,7 @@ state = LiveMoonCalculator.getCurrentMoonState(),
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChandraHome(
@@ -73,7 +83,7 @@ private fun ChandraHome(
                         Text("🌙 चंद्र पंचांग अलार्म")
 
                         Text(
-                            "V2.1 • LIVE MOON • DAUND",
+                            "V2.2 • LIVE MOON • DAUND",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -127,7 +137,7 @@ private fun ChandraHome(
                 ) {
 
                     Text(
-                        "पुढील राशी बदल",
+                        "पुढील चंद्र बदल",
                         style = MaterialTheme.typography.titleLarge
                     )
 
@@ -144,8 +154,9 @@ private fun ChandraHome(
             }
 
             Text(
-                "V2.1 TEST BUILD\n" +
-                    "Live Moon calculation पुढील build मध्ये जोडली जाईल.",
+                "V2.2 LIVE BUILD\n" +
+                    "चंद्राची राशी, नक्षत्र आणि चरण Live calculation मधून घेतले जात आहेत.\n" +
+                    "पुढील बदलासाठी Automatic Alarm scheduling जोडण्याचे काम सुरू आहे.",
                 style = MaterialTheme.typography.bodySmall
             )
         }
