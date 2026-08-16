@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
-import androidx.compose.material3.ExperimentalMaterial3Api
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 
@@ -47,14 +46,11 @@ class MainActivity : ComponentActivity() {
             )
         )
 
-        val moonState = LiveMoonCalculator.getCurrentMoonState()
+        val moonState =
+            LiveMoonCalculator.getCurrentMoonState()
 
-        /*
-         * पुढील चंद्र बदलासाठी automatic alarm.
-         *
-         * पुढच्या step मध्ये LiveMoonCalculator मधून
-         * exact timestamp मिळाल्यावर येथे जोडला जाईल.
-         */
+        // पुढील वास्तविक चंद्र बदलासाठी Alarm schedule करा
+        scheduleNextMoonChange(moonState)
 
         setContent {
             MaterialTheme {
@@ -67,6 +63,40 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun scheduleNextMoonChange(
+        state: MoonState
+    ) {
+
+        val delayMillis =
+            state.nextChangeMillis -
+                    System.currentTimeMillis()
+
+        if (delayMillis <= 0) {
+            return
+        }
+
+        when (state.changeType) {
+
+            "rashi" -> {
+                scheduler.scheduleRashiAlarm(
+                    delayMillis
+                )
+            }
+
+            "nakshatra" -> {
+                scheduler.scheduleNakshatraAlarm(
+                    delayMillis
+                )
+            }
+
+            "charan" -> {
+                scheduler.scheduleCharanAlarm(
+                    delayMillis
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,15 +105,17 @@ private fun ChandraHome(
     state: MoonState,
     onTestAlarm: () -> Unit
 ) {
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
+
                         Text("🌙 चंद्र पंचांग अलार्म")
 
                         Text(
-                            "V2.2 • LIVE MOON • DAUND",
+                            "V2.3 • LIVE MOON • AUTO ALARM",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -96,68 +128,101 @@ private fun ChandraHome(
             modifier = Modifier
                 .padding(padding)
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
         ) {
 
             Text(
                 "📍 ${state.location}",
-                style = MaterialTheme.typography.titleMedium
+                style =
+                    MaterialTheme.typography.titleMedium
             )
 
             Text(
                 "● Live Calculation: ON",
-                style = MaterialTheme.typography.labelMedium
+                style =
+                    MaterialTheme.typography.labelMedium
             )
 
             Card(
                 Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(8.dp)
                 ) {
 
                     Text(
                         "सध्याची चंद्र स्थिती",
-                        style = MaterialTheme.typography.titleLarge
+                        style =
+                            MaterialTheme.typography.titleLarge
                     )
 
-                    Text("राशी: ${state.rashi.marathi}")
-                    Text("नक्षत्र: ${state.nakshatra.marathi}")
-                    Text("चरण: ${state.pada}")
+                    Text(
+                        "राशी: ${state.rashi.marathi}"
+                    )
+
+                    Text(
+                        "नक्षत्र: ${state.nakshatra.marathi}"
+                    )
+
+                    Text(
+                        "चरण: ${state.pada}"
+                    )
                 }
             }
 
             Card(
                 Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(8.dp)
                 ) {
 
                     Text(
-                        "पुढील चंद्र बदल",
-                        style = MaterialTheme.typography.titleLarge
+                        "🔔 पुढील चंद्र बदल",
+                        style =
+                            MaterialTheme.typography.titleLarge
                     )
 
                     Text(state.nextChange)
-                    Text("⏰ ${state.nextChangeTime}")
+
+                    Text(
+                        "⏰ ${state.nextChangeTime}"
+                    )
+
+                    Text(
+                        "Alarm Type: ${state.changeType}"
+                    )
                 }
             }
 
             Button(
                 onClick = onTestAlarm,
-                modifier = Modifier.fillMaxWidth()
+
+                modifier =
+                    Modifier.fillMaxWidth()
             ) {
-                Text("🔔 10 सेकंदांचा Test Alarm")
+
+                Text(
+                    "🔔 10 सेकंदांचा Test Alarm"
+                )
             }
 
             Text(
-                "V2.2 LIVE BUILD\n" +
-                    "चंद्राची राशी, नक्षत्र आणि चरण Live calculation मधून घेतले जात आहेत.\n" +
-                    "पुढील बदलासाठी Automatic Alarm scheduling जोडण्याचे काम सुरू आहे.",
-                style = MaterialTheme.typography.bodySmall
+                "V2.3 LIVE BUILD\n" +
+                        "राशी, नक्षत्र आणि चरण Live calculation मधून घेतले जात आहेत.\n" +
+                        "पुढील बदलासाठी Automatic Alarm schedule केला जातो.",
+                style =
+                    MaterialTheme.typography.bodySmall
             )
         }
     }
