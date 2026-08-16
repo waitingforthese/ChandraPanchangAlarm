@@ -50,6 +50,11 @@ data class MoonState(
     val rashi: Rashi,
     val nakshatra: Nakshatra,
     val pada: Int,
+
     val nextChange: String,
-    val nextChangeTime: String
+    val nextChangeTime: String,
+
+    val nextChangeMillis: Long,
+
+    val changeType: String
 )
