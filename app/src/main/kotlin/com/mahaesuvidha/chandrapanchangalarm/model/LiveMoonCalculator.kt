@@ -37,28 +37,42 @@ object LiveMoonCalculator {
             moonLongitude % nakshatraSize
 
         val pada =
-            (positionInsideNakshatra /
-                    (nakshatraSize / 4.0))
-                .toInt()
+            (
+                positionInsideNakshatra /
+                    (nakshatraSize / 4.0)
+                ).toInt()
                 .coerceIn(0, 3) + 1
 
         val nextChange =
             getNextChange(
-                now = now,
-                currentRashi = rashiIndex,
-                currentNakshatra = nakshatraIndex,
-                currentPada = pada
+                now,
+                rashiIndex,
+                nakshatraIndex,
+                pada
             )
 
         return MoonState(
             location = "दौंड, महाराष्ट्र",
-            rashi = Rashi.entries[rashiIndex],
-            nakshatra = Nakshatra.entries[nakshatraIndex],
+
+            rashi =
+                Rashi.entries[rashiIndex],
+
+            nakshatra =
+                Nakshatra.entries[nakshatraIndex],
+
             pada = pada,
-            nextChange = nextChange.text,
-            nextChangeTime = nextChange.timeText,
-            nextChangeMillis = nextChange.timeMillis,
-            changeType = nextChange.type
+
+            nextChange =
+                nextChange.text,
+
+            nextChangeTime =
+                nextChange.timeText,
+
+            nextChangeMillis =
+                nextChange.timeMillis,
+
+            changeType =
+                nextChange.type
         )
     }
 
@@ -74,52 +88,66 @@ object LiveMoonCalculator {
 
         val l =
             normalize(
-                218.316 + 13.176396 * d
+                218.316 +
+                    13.176396 * d
             )
 
         val m =
             normalize(
-                134.963 + 13.064993 * d
+                134.963 +
+                    13.064993 * d
             )
 
         val f =
             normalize(
-                93.272 + 13.229350 * d
+                93.272 +
+                    13.229350 * d
             )
 
         val moonLongitude =
             l +
-                    6.289 * sin(
-                Math.toRadians(m)
-            ) +
-                    1.274 * sin(
-                Math.toRadians(
-                    2 * (l - 280.466) - m
-                )
-            ) +
-                    0.658 * sin(
-                Math.toRadians(
-                    2 * (l - 280.466)
-                )
-            ) +
-                    0.214 * sin(
-                Math.toRadians(2 * m)
-            ) -
-                    0.186 * sin(
-                Math.toRadians(
-                    357.529 +
+                6.289 *
+                sin(Math.toRadians(m)) +
+
+                1.274 *
+                sin(
+                    Math.toRadians(
+                        2 * (l - 280.466) - m
+                    )
+                ) +
+
+                0.658 *
+                sin(
+                    Math.toRadians(
+                        2 * (l - 280.466)
+                    )
+                ) +
+
+                0.214 *
+                sin(
+                    Math.toRadians(2 * m)
+                ) -
+
+                0.186 *
+                sin(
+                    Math.toRadians(
+                        357.529 +
                             0.98560028 * d
+                    )
+                ) -
+
+                0.114 *
+                sin(
+                    Math.toRadians(2 * f)
                 )
-            ) -
-                    0.114 * sin(
-                Math.toRadians(2 * f)
-            )
 
         val ayanamsa =
             23.85675 +
-                    ((jd - 2451545.0) /
-                            36525.0 *
-                            1.396971)
+                (
+                    (jd - 2451545.0) /
+                        36525.0
+                    ) *
+                    1.396971
 
         return normalize(
             moonLongitude - ayanamsa
@@ -138,7 +166,8 @@ object LiveMoonCalculator {
                 )
             )
 
-        return instant.epochSecond /
+        return
+            instant.epochSecond /
                 86400.0 +
                 2440587.5
     }
@@ -150,8 +179,7 @@ object LiveMoonCalculator {
         currentPada: Int
     ): NextChange {
 
-        var checkTime =
-            now
+        var checkTime = now
 
         repeat(4320) {
 
@@ -180,9 +208,10 @@ object LiveMoonCalculator {
                 longitude % nakshatraSize
 
             val pada =
-                (inside /
-                        (nakshatraSize / 4.0))
-                    .toInt()
+                (
+                    inside /
+                        (nakshatraSize / 4.0)
+                    ).toInt()
                     .coerceIn(0, 3) + 1
 
             val timeMillis =
@@ -200,7 +229,7 @@ object LiveMoonCalculator {
                 return NextChange(
                     text =
                         "${Rashi.entries[currentRashi].marathi} → " +
-                                Rashi.entries[rashi].marathi,
+                            Rashi.entries[rashi].marathi,
 
                     timeText =
                         formatDateTime(
@@ -210,8 +239,7 @@ object LiveMoonCalculator {
                     timeMillis =
                         timeMillis,
 
-                    type =
-                        "rashi"
+                    type = "rashi"
                 )
             }
 
@@ -220,7 +248,7 @@ object LiveMoonCalculator {
                 return NextChange(
                     text =
                         "${Nakshatra.entries[currentNakshatra].marathi} → " +
-                                Nakshatra.entries[nakshatra].marathi,
+                            Nakshatra.entries[nakshatra].marathi,
 
                     timeText =
                         formatDateTime(
@@ -230,8 +258,7 @@ object LiveMoonCalculator {
                     timeMillis =
                         timeMillis,
 
-                    type =
-                        "nakshatra"
+                    type = "nakshatra"
                 )
             }
 
@@ -249,8 +276,7 @@ object LiveMoonCalculator {
                     timeMillis =
                         timeMillis,
 
-                    type =
-                        "charan"
+                    type = "charan"
                 )
             }
         }
@@ -277,8 +303,7 @@ object LiveMoonCalculator {
                     )
                     .toEpochMilli(),
 
-            type =
-                "charan"
+            type = "charan"
         )
     }
 
@@ -306,7 +331,8 @@ object LiveMoonCalculator {
                 .toString()
                 .padStart(2, '0')
 
-        return "$day-$month-${dateTime.year} $hour:$minute"
+        return
+            "$day-$month-${dateTime.year} $hour:$minute"
     }
 
     private fun normalize(
