@@ -33,12 +33,14 @@ class MainActivity : ComponentActivity() {
 
         scheduler = AlarmScheduler(this)
 
+        // Notification permission
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
 
+        // Location permission
         locationPermission.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -49,50 +51,35 @@ class MainActivity : ComponentActivity() {
         val moonState =
             LiveMoonCalculator.getCurrentMoonState()
 
-        // पुढील वास्तविक चंद्र बदलासाठी Alarm schedule करा
-        scheduleNextMoonChange(moonState)
-
         setContent {
             MaterialTheme {
+
                 ChandraHome(
                     state = moonState,
-                    onTestAlarm = {
-                        scheduler.scheduleTestAlarm(10_000L)
+
+                    // राशी Test
+                    onRashiTest = {
+                        scheduler.scheduleTestAlarm(
+                            10_000L,
+                            "rashi"
+                        )
+                    },
+
+                    // नक्षत्र Test
+                    onNakshatraTest = {
+                        scheduler.scheduleTestAlarm(
+                            10_000L,
+                            "nakshatra"
+                        )
+                    },
+
+                    // चरण Test
+                    onCharanTest = {
+                        scheduler.scheduleTestAlarm(
+                            10_000L,
+                            "charan"
+                        )
                     }
-                )
-            }
-        }
-    }
-
-    private fun scheduleNextMoonChange(
-        state: MoonState
-    ) {
-
-        val delayMillis =
-            state.nextChangeMillis -
-                    System.currentTimeMillis()
-
-        if (delayMillis <= 0) {
-            return
-        }
-
-        when (state.changeType) {
-
-            "rashi" -> {
-                scheduler.scheduleRashiAlarm(
-                    delayMillis
-                )
-            }
-
-            "nakshatra" -> {
-                scheduler.scheduleNakshatraAlarm(
-                    delayMillis
-                )
-            }
-
-            "charan" -> {
-                scheduler.scheduleCharanAlarm(
-                    delayMillis
                 )
             }
         }
@@ -103,28 +90,37 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun ChandraHome(
     state: MoonState,
-    onTestAlarm: () -> Unit
+    onRashiTest: () -> Unit,
+    onNakshatraTest: () -> Unit,
+    onCharanTest: () -> Unit
 ) {
 
     Scaffold(
+
         topBar = {
+
             TopAppBar(
+
                 title = {
+
                     Column {
 
                         Text("🌙 चंद्र पंचांग अलार्म")
 
                         Text(
                             "V2.4 • LIVE MOON • AUTO ALARM",
-                            style = MaterialTheme.typography.labelSmall
+                            style =
+                                MaterialTheme.typography.labelSmall
                         )
                     }
                 }
             )
         }
+
     ) { padding ->
 
         Column(
+
             modifier = Modifier
                 .padding(padding)
                 .padding(20.dp),
@@ -145,13 +141,13 @@ private fun ChandraHome(
                     MaterialTheme.typography.labelMedium
             )
 
+            // Current Moon State
             Card(
                 Modifier.fillMaxWidth()
             ) {
 
                 Column(
                     Modifier.padding(18.dp),
-
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
                 ) {
@@ -176,13 +172,13 @@ private fun ChandraHome(
                 }
             }
 
+            // Next Change
             Card(
                 Modifier.fillMaxWidth()
             ) {
 
                 Column(
                     Modifier.padding(18.dp),
-
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
                 ) {
@@ -193,34 +189,56 @@ private fun ChandraHome(
                             MaterialTheme.typography.titleLarge
                     )
 
-                    Text(state.nextChange)
+                    Text(
+                        state.nextChange
+                    )
 
                     Text(
                         "⏰ ${state.nextChangeTime}"
                     )
-
-                    Text(
-                        "Alarm Type: ${state.changeType}"
-                    )
                 }
             }
 
+            // Rashi Test
             Button(
-                onClick = onTestAlarm,
-
+                onClick = onRashiTest,
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
 
                 Text(
-                    "🔔 10 सेकंदांचा Test Alarm"
+                    "🔊 राशी बदल Test"
+                )
+            }
+
+            // Nakshatra Test
+            Button(
+                onClick = onNakshatraTest,
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Text(
+                    "🔊 नक्षत्र बदल Test"
+                )
+            }
+
+            // Charan Test
+            Button(
+                onClick = onCharanTest,
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Text(
+                    "🔊 चरण बदल Test"
                 )
             }
 
             Text(
-                "V2.3 LIVE BUILD\n" +
-                        "राशी, नक्षत्र आणि चरण Live calculation मधून घेतले जात आहेत.\n" +
-                        "पुढील बदलासाठी Automatic Alarm schedule केला जातो.",
+                "V2.4 TEST BUILD\n" +
+                    "राशी, नक्षत्र आणि चरण यांचे " +
+                    "स्वतंत्र Marathi Voice Alarm Test करता येईल.",
                 style =
                     MaterialTheme.typography.bodySmall
             )
