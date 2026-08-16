@@ -28,49 +28,30 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
 
-    private val locationPermission =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { }
-
     private val notificationPermission =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { }
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Alarm Scheduler तयार करा
-        scheduler =
-            AlarmScheduler(this)
+        scheduler = AlarmScheduler(this)
 
-        // पुढील LIVE चंद्र बदलासाठी Alarm schedule करा
-        scheduler.scheduleNextLiveAlarm()
-
-        // Notification Permission
-        if (
-            android.os.Build.VERSION.SDK_INT >= 33
-        ) {
-
+        // Notification permission
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
 
-        // Location Permission
-        locationPermission.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        )
-
-        // सध्याची Moon State फक्त एकदाच घ्या
+        // LIVE Moon State फक्त एकदाच घ्या
         val moonState =
             LiveMoonCalculator.getCurrentMoonState()
+
+        // पुढील LIVE बदलासाठी Alarm Schedule करा
+        scheduler.scheduleNextLiveAlarm()
 
         setContent {
 
@@ -135,8 +116,7 @@ private fun ChandraHome(
                         )
 
                         Text(
-
-                            "V2.4 • LIVE MOON • AUTO ALARM",
+                            "V2.5 • LIVE MOON • AUTO ALARM",
 
                             style =
                                 MaterialTheme
@@ -171,7 +151,6 @@ private fun ChandraHome(
                         .titleMedium
             )
 
-
             Text(
 
                 "● Live Calculation: ON",
@@ -189,6 +168,7 @@ private fun ChandraHome(
 
                 modifier =
                     Modifier.fillMaxWidth()
+
             ) {
 
                 Column(
@@ -198,6 +178,7 @@ private fun ChandraHome(
 
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
+
                 ) {
 
                     Text(
@@ -231,6 +212,7 @@ private fun ChandraHome(
 
                 modifier =
                     Modifier.fillMaxWidth()
+
             ) {
 
                 Column(
@@ -240,6 +222,7 @@ private fun ChandraHome(
 
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
+
                 ) {
 
                     Text(
@@ -276,6 +259,7 @@ private fun ChandraHome(
 
                 modifier =
                     Modifier.fillMaxWidth()
+
             ) {
 
                 Text(
@@ -293,6 +277,7 @@ private fun ChandraHome(
 
                 modifier =
                     Modifier.fillMaxWidth()
+
             ) {
 
                 Text(
@@ -310,6 +295,7 @@ private fun ChandraHome(
 
                 modifier =
                     Modifier.fillMaxWidth()
+
             ) {
 
                 Text(
@@ -320,9 +306,10 @@ private fun ChandraHome(
 
             Text(
 
-                "V2.4 LIVE BUILD\n" +
-                        "राशी, नक्षत्र आणि चरण बदलासाठी " +
-                        "वेगवेगळे Marathi आवाज वापरले जात आहेत.",
+                "V2.5 LIVE BUILD\n" +
+                        "पुढील राशी, नक्षत्र किंवा चरण बदल " +
+                        "आपोआप शोधून Alarm schedule केला जातो.\n\n" +
+                        "प्रत्येक बदलासाठी वेगळा Marathi आवाज वापरला जातो.",
 
                 style =
                     MaterialTheme
