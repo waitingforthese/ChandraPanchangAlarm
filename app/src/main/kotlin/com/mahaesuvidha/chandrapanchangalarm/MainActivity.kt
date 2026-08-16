@@ -11,10 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
-import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
-import com.mahaesuvidha.chandrapanchangalarm.model.Rashi
-import com.mahaesuvidha.chandrapanchangalarm.model.Nakshatra
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 
 class MainActivity : ComponentActivity() {
 
@@ -51,14 +49,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 ChandraHome(
-                    state = MoonState(
-                        location = "दौंड, महाराष्ट्र",
-                        rashi = Rashi.KARKA,
-                        nakshatra = Nakshatra.PUSHYA,
-                        pada = 2,
-                        nextChange = "कर्क → सिंह",
-                        nextChangeTime = "17 ऑगस्ट 2026, 4:19 PM"
-                    ),
+state = LiveMoonCalculator.getCurrentMoonState(),
                     onTestAlarm = {
                         scheduler.scheduleTestAlarm(10_000L)
                     }
