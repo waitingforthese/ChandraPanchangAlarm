@@ -1012,3 +1012,115 @@ private fun ToggleRow(
         )
     }
 }
+@Composable
+private fun PlanetPanel(
+    info: JyotishInfo,
+    accent: Color
+) {
+
+    Text(
+        text = "ग्रह स्वामी",
+        color = accent,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold
+    )
+
+    Spacer(
+        Modifier.height(6.dp)
+    )
+
+    PlanetLine(
+        label = "राशी",
+        planet = info.rashiLord,
+        info = info
+    )
+
+    PlanetLine(
+        label = "नक्षत्र",
+        planet = info.nakshatraLord,
+        info = info
+    )
+
+    PlanetLine(
+        label = "नवांश",
+        planet = info.navamshaLord,
+        info = info
+    )
+
+    Text(
+        text =
+            "नवांश राशी: ${info.navamshaRashi}",
+
+        color = Color.LightGray,
+
+        fontSize = 13.sp
+    )
+
+    if (info.enemies.isNotEmpty()) {
+
+        Spacer(
+            Modifier.height(6.dp)
+        )
+
+        Text(
+            text =
+                "🔴 शत्रू ग्रह: " +
+                    info.enemies.joinToString(" • "),
+
+            color =
+                Color(0xFFFF5252),
+
+            fontSize =
+                13.sp,
+
+            fontWeight =
+                FontWeight.Bold
+        )
+    }
+}
+@Composable
+private fun PlanetLine(
+    label: String,
+    planet: String,
+    info: JyotishInfo
+) {
+
+    val isEnemy =
+        info.enemies.contains(planet)
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 3.dp),
+
+        horizontalArrangement =
+            Arrangement.SpaceBetween
+    ) {
+
+        Text(
+            text = "$label:",
+
+            color =
+                Color.LightGray,
+
+            fontSize = 13.sp
+        )
+
+        Text(
+            text = planet,
+
+            color =
+                if (isEnemy)
+                    Color(0xFFFF5252)
+                else
+                    Color.White,
+
+            fontSize =
+                14.sp,
+
+            fontWeight =
+                FontWeight.Bold
+        )
+    }
+}
