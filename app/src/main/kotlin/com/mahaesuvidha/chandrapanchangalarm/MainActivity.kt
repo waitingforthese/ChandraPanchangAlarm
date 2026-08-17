@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
 
                 ChandraSuryaHome(
                     moonState = moonState,
+                    sunState = sunState,
 
                     onTestRashi = {
                         scheduler.scheduleRashiAlarm(
@@ -100,6 +101,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun ChandraSuryaHome(
     moonState: MoonState,
+    sunState: SunState,
     onTestRashi: () -> Unit,
     onTestNakshatra: () -> Unit,
     onTestCharan: () -> Unit
@@ -262,11 +264,12 @@ private fun ChandraSuryaHome(
                     .weight(1f)
             ) {
 
-                SunColumn(
-                    cardColor = sunCardColor,
-                    accentColor = gold,
-                    textColor = white
-                )
+               SunColumn(
+    state = sunState,
+    cardColor = sunCardColor,
+    accentColor = gold,
+    textColor = white
+)
             }
         }
 
