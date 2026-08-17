@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
         // Current LIVE Moon calculation
         val moonState =
             LiveMoonCalculator.getCurrentMoonState()
+        
         val sunState =
     LiveSunCalculator.getCurrentSunState()
 
@@ -247,13 +248,12 @@ private fun ChandraSuryaHome(
                 modifier = Modifier
                     .weight(1f)
             ) {
-
-                MoonColumn(
-                    state = moonState,
-                    cardColor = moonCardColor,
-                    accentColor = moonBlue,
-                    textColor = white
-                )
+MoonColumn(
+    state = moonState,
+    cardColor = moonCardColor,
+    accentColor = moonBlue,
+    textColor = white
+)
             }
 
 
