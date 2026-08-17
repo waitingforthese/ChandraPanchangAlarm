@@ -360,9 +360,8 @@ private fun Header(
             Alignment.CenterVertically
     ) {
 
-        Column(
-            modifier =
-                Modifier.weight(1f)
+       Column(
+    Modifier.fillMaxWidth(0.82f)
         ) {
 
             Text(
