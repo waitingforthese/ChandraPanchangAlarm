@@ -462,18 +462,25 @@ private fun MoonColumn(
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = state.nextChange,
-                color = textColor,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
+           Text(
+    text = "🔔 पुढील बदल",
+    color = accentColor,
+    fontSize = 14.sp,
+    fontWeight = FontWeight.Bold
+)
 
-            Text(
-                text = "📅 ${state.nextChangeTime}",
-                color = Color.LightGray,
-                fontSize = 11.sp
-            )
+Text(
+    text = state.nextChange,
+    color = textColor,
+    fontSize = 12.sp,
+    fontWeight = FontWeight.Medium
+)
+
+Text(
+    text = "🗓️ ${state.nextChangeTime}",
+    color = Color.LightGray,
+    fontSize = 11.sp
+)
         }
     }
 }
