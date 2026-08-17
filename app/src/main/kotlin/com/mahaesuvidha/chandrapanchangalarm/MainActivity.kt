@@ -266,7 +266,7 @@ private fun ChandraSuryaHome(
                     .weight(1f)
             ) {
 
-               SunColumn(
+SunColumn(
     state = sunState,
     cardColor = sunCardColor,
     accentColor = gold,
@@ -541,11 +541,11 @@ Text(
 
 @Composable
 private fun SunColumn(
+    state: SunState,
     cardColor: Color,
     accentColor: Color,
     textColor: Color
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
 
