@@ -5,21 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
@@ -28,37 +18,58 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
 
+    private val locationPermission =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { }
+
     private val notificationPermission =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
 
-        // Alarm Scheduler तयार करा
-        scheduler = AlarmScheduler(this)
+        super.onCreate(
+            savedInstanceState
+        )
+
+        scheduler =
+            AlarmScheduler(this)
 
         // Notification permission
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
+        if (
+            android.os.Build.VERSION.SDK_INT >= 33
+        ) {
+
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
         }
 
-        // LIVE Moon State फक्त एकदाच घ्या
-        val moonState =
-            LiveMoonCalculator.getCurrentMoonState()
+        // Location permission
+        locationPermission.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
 
-        // पुढील LIVE बदलासाठी Alarm Schedule करा
-        scheduler.scheduleNextLiveAlarm()
+        // Current Moon State
+        val moonState =
+            LiveMoonCalculator
+                .getCurrentMoonState()
+
+        // तीनही पुढील alarms schedule
+        scheduler.scheduleNextLiveAlarms()
 
         setContent {
 
             MaterialTheme {
 
                 ChandraHome(
-
                     state = moonState,
 
                     onTestRashiAlarm = {
@@ -87,17 +98,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class
+)
 @Composable
 private fun ChandraHome(
-
     state: MoonState,
-
     onTestRashiAlarm: () -> Unit,
-
     onTestNakshatraAlarm: () -> Unit,
-
     onTestCharanAlarm: () -> Unit
 ) {
 
@@ -116,8 +124,7 @@ private fun ChandraHome(
                         )
 
                         Text(
-                            "V2.5 • LIVE MOON • AUTO ALARM",
-
+                            "V2.6 • LIVE MOON • AUTO ALARM",
                             style =
                                 MaterialTheme
                                     .typography
@@ -142,9 +149,7 @@ private fun ChandraHome(
         ) {
 
             Text(
-
                 "📍 ${state.location}",
-
                 style =
                     MaterialTheme
                         .typography
@@ -152,37 +157,31 @@ private fun ChandraHome(
             )
 
             Text(
-
                 "● Live Calculation: ON",
-
                 style =
                     MaterialTheme
                         .typography
                         .labelMedium
             )
 
-
-            // सध्याची चंद्र स्थिती
+            // ----------------------------------------
+            // CURRENT MOON
+            // ----------------------------------------
 
             Card(
-
                 modifier =
                     Modifier.fillMaxWidth()
-
             ) {
 
                 Column(
-
                     modifier =
                         Modifier.padding(18.dp),
 
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
-
                 ) {
 
                     Text(
-
                         "सध्याची चंद्र स्थिती",
 
                         style =
@@ -205,29 +204,25 @@ private fun ChandraHome(
                 }
             }
 
-
-            // पुढील बदल
+            // ----------------------------------------
+            // NEXT RASHI
+            // ----------------------------------------
 
             Card(
-
                 modifier =
                     Modifier.fillMaxWidth()
-
             ) {
 
                 Column(
-
                     modifier =
                         Modifier.padding(18.dp),
 
                     verticalArrangement =
-                        Arrangement.spacedBy(8.dp)
-
+                        Arrangement.spacedBy(6.dp)
                 ) {
 
                     Text(
-
-                        "🔔 पुढील चंद्र बदल",
+                        "🌙 पुढील राशी बदल",
 
                         style =
                             MaterialTheme
@@ -236,30 +231,97 @@ private fun ChandraHome(
                     )
 
                     Text(
-                        state.nextChange
+                        state.nextRashi
                     )
 
                     Text(
-                        "⏰ ${state.nextChangeTime}"
-                    )
-
-                    Text(
-                        "Alarm Type: ${state.changeType}"
+                        "📅 ${state.nextRashiTime}"
                     )
                 }
             }
 
+            // ----------------------------------------
+            // NEXT NAKSHATRA
+            // ----------------------------------------
 
-            // राशी Test
+            Card(
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier =
+                        Modifier.padding(18.dp),
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(6.dp)
+                ) {
+
+                    Text(
+                        "⭐ पुढील नक्षत्र बदल",
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleLarge
+                    )
+
+                    Text(
+                        state.nextNakshatra
+                    )
+
+                    Text(
+                        "📅 ${state.nextNakshatraTime}"
+                    )
+                }
+            }
+
+            // ----------------------------------------
+            // NEXT CHARAN
+            // ----------------------------------------
+
+            Card(
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier =
+                        Modifier.padding(18.dp),
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(6.dp)
+                ) {
+
+                    Text(
+                        "🔔 पुढील चरण बदल",
+
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleLarge
+                    )
+
+                    Text(
+                        state.nextCharan
+                    )
+
+                    Text(
+                        "📅 ${state.nextCharanTime}"
+                    )
+                }
+            }
+
+            // ----------------------------------------
+            // TEST RASHI
+            // ----------------------------------------
 
             Button(
-
                 onClick =
                     onTestRashiAlarm,
 
                 modifier =
                     Modifier.fillMaxWidth()
-
             ) {
 
                 Text(
@@ -267,17 +329,16 @@ private fun ChandraHome(
                 )
             }
 
-
-            // नक्षत्र Test
+            // ----------------------------------------
+            // TEST NAKSHATRA
+            // ----------------------------------------
 
             Button(
-
                 onClick =
                     onTestNakshatraAlarm,
 
                 modifier =
                     Modifier.fillMaxWidth()
-
             ) {
 
                 Text(
@@ -285,17 +346,16 @@ private fun ChandraHome(
                 )
             }
 
-
-            // चरण Test
+            // ----------------------------------------
+            // TEST CHARAN
+            // ----------------------------------------
 
             Button(
-
                 onClick =
                     onTestCharanAlarm,
 
                 modifier =
                     Modifier.fillMaxWidth()
-
             ) {
 
                 Text(
@@ -303,12 +363,10 @@ private fun ChandraHome(
                 )
             }
 
-
             Text(
-
-                "V2.5 LIVE BUILD\n" +
-                        "पुढील राशी, नक्षत्र किंवा चरण बदल " +
-                        "आपोआप शोधून Alarm schedule केला जातो.\n\n" +
+                "V2.6 LIVE BUILD\n" +
+                        "राशी, नक्षत्र आणि प्रत्येक चरणाचा पुढील बदल स्वतंत्रपणे शोधला जातो.\n" +
+                        "तिन्ही प्रकारचे Automatic Alarm स्वतंत्रपणे schedule केले जातात.\n" +
                         "प्रत्येक बदलासाठी वेगळा Marathi आवाज वापरला जातो.",
 
                 style =
