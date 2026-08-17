@@ -540,6 +540,7 @@ Text(
 // ==========================================================
 
 @Composable
+@Composable
 private fun SunColumn(
     state: SunState,
     cardColor: Color,
@@ -548,32 +549,115 @@ private fun SunColumn(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-
-        shape =
-            RoundedCornerShape(18.dp),
-
-        colors =
-            CardDefaults.cardColors(
-                containerColor = cardColor
-            )
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor
+        ),
+        shape = RoundedCornerShape(28.dp)
     ) {
-
         Column(
-            modifier =
-                Modifier.padding(10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp)
         ) {
 
             Text(
                 text = "☀️ सूर्य",
                 color = textColor,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = "● LIVE सध्याची स्थिती",
+                color = Color(0xFF00E676),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(22.dp)
+            )
+
+            InfoRow(
+                label = "राशी",
+                value = state.rashi.marathi,
+                textColor = textColor
+            )
+
+            Spacer(
+                modifier = Modifier.height(14.dp)
+            )
+
+            InfoRow(
+                label = "नक्षत्र",
+                value = state.nakshatra.marathi,
+                textColor = textColor
+            )
+
+            Spacer(
+                modifier = Modifier.height(14.dp)
+            )
+
+            InfoRow(
+                label = "चरण",
+                value = state.pada.toString(),
+                textColor = textColor
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 18.dp),
+                color = Color.White.copy(alpha = 0.20f)
+            )
+
+            Text(
+                text = "ग्रह स्वामी",
+                color = accentColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+
             Text(
-                text = "● LIVE  सध्याची स्थिती",
-                color = Color(0xFF39D353),
-                fontSize = 11.sp,
+                text = "राशी: ${state.rashiLord}",
+                color = textColor,
+                fontSize = 17.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = "नक्षत्र: ${state.nakshatraLord}",
+                color = textColor,
+                fontSize = 17.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = "चरण: ${state.padaLord}",
+                color = textColor,
+                fontSize = 17.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            Text(
+                text = "🔔 पुढील बदल",
+                color = accentColor,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
@@ -581,89 +665,24 @@ private fun SunColumn(
                 modifier = Modifier.height(10.dp)
             )
 
-
-            SmallDataRow(
-                label = "राशी",
-                value = "—",
-                color = textColor
-            )
-
-            SmallDataRow(
-                label = "नक्षत्र",
-                value = "—",
-                color = textColor
-            )
-
-            SmallDataRow(
-                label = "चरण",
-                value = "—",
-                color = textColor
-            )
-
-
-            Divider(
-                modifier =
-                    Modifier.padding(
-                        vertical = 6.dp
-                    ),
-
-                color =
-                    Color.White.copy(
-                        alpha = 0.15f
-                    )
-            )
-
-
             Text(
-                text = "ग्रह स्वामी",
-                color = accentColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "राशी: —",
+                text = state.nextChange,
                 color = textColor,
-                fontSize = 12.sp
+                fontSize = 17.sp
             )
-
-            Text(
-                text = "नक्षत्र: —",
-                color = textColor,
-                fontSize = 12.sp
-            )
-
-            Text(
-                text = "नवांश: —",
-                color = textColor,
-                fontSize = 12.sp
-            )
-
 
             Spacer(
-                modifier = Modifier.height(6.dp)
-            )
-
-
-            Text(
-                text = "🔔 पुढील बदल",
-                color = accentColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                modifier = Modifier.height(8.dp)
             )
 
             Text(
-                text = "सूर्य LIVE गणना जोडणार",
-                color = textColor,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
+                text = "📅 ${state.nextChangeTime}",
+                color = textColor.copy(alpha = 0.75f),
+                fontSize = 15.sp
             )
-
-            Text(
-                text = "📅 —",
-                color = Color.LightGray,
-                fontSize = 11.sp
-            )
+        }
+    }
+}
         }
     }
 }
