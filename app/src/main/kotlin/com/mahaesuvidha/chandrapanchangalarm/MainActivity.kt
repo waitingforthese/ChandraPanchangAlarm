@@ -498,19 +498,17 @@ private fun MoonCard(
                     18.sp
             )
 
-            Text(
-                text =
-                    "राशी: चंद्र"
-            )
+           val jyotish =
+    JyotishMaster.getInfo(
+        state.rashi,
+        state.nakshatra,
+        state.pada
+    )
 
-            Text(
-                text =
-                    "नक्षत्र: चंद्र"
-            )
-
-            Text(
-                text =
-                    "नवांश: —"
+PlanetPanel(
+    info = jyotish,
+    accent = Color(0xFF72B7FF)
+)
             )
 
             Spacer(
@@ -657,19 +655,17 @@ private fun SunCard(
                     18.sp
             )
 
-            Text(
-                text =
-                    "राशी: सूर्य"
-            )
+           val jyotish =
+    JyotishMaster.getInfo(
+        state.rashi,
+        state.nakshatra,
+        state.pada
+    )
 
-            Text(
-                text =
-                    "नक्षत्र: केतू"
-            )
-
-            Text(
-                text =
-                    "नवांश: —"
+PlanetPanel(
+    info = jyotish,
+    accent = Color(0xFF72B7FF)
+)
             )
 
             Spacer(
