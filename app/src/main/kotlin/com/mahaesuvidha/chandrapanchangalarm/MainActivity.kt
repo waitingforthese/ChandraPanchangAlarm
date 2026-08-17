@@ -5,11 +5,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
@@ -18,32 +27,30 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
 
-    private val locationPermission =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { }
-
     private val notificationPermission =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { }
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    private val locationPermission =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { }
 
-        super.onCreate(
-            savedInstanceState
-        )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        scheduler =
-            AlarmScheduler(this)
+        scheduler = AlarmScheduler(this)
+
+        // Current LIVE Moon calculation
+        val moonState =
+            LiveMoonCalculator.getCurrentMoonState()
+
+        // Existing automatic Moon alarm
+        scheduler.scheduleNextLiveAlarm()
 
         // Notification permission
-        if (
-            android.os.Build.VERSION.SDK_INT >= 33
-        ) {
-
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
             notificationPermission.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
@@ -57,37 +64,26 @@ class MainActivity : ComponentActivity() {
             )
         )
 
-        // Current Moon State
-        val moonState =
-            LiveMoonCalculator
-                .getCurrentMoonState()
-
-        // तीनही पुढील alarms schedule
-        scheduler.scheduleNextLiveAlarms()
-
         setContent {
 
             MaterialTheme {
 
-                ChandraHome(
-                    state = moonState,
+                ChandraSuryaHome(
+                    moonState = moonState,
 
-                    onTestRashiAlarm = {
-
+                    onTestRashi = {
                         scheduler.scheduleRashiAlarm(
                             10_000L
                         )
                     },
 
-                    onTestNakshatraAlarm = {
-
+                    onTestNakshatra = {
                         scheduler.scheduleNakshatraAlarm(
                             10_000L
                         )
                     },
 
-                    onTestCharanAlarm = {
-
+                    onTestCharan = {
                         scheduler.scheduleCharanAlarm(
                             10_000L
                         )
@@ -98,282 +94,596 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class
-)
+
 @Composable
-private fun ChandraHome(
-    state: MoonState,
-    onTestRashiAlarm: () -> Unit,
-    onTestNakshatraAlarm: () -> Unit,
-    onTestCharanAlarm: () -> Unit
+private fun ChandraSuryaHome(
+    moonState: MoonState,
+    onTestRashi: () -> Unit,
+    onTestNakshatra: () -> Unit,
+    onTestCharan: () -> Unit
 ) {
 
-    Scaffold(
+    val backgroundColor =
+        Color(0xFF07111F)
 
-        topBar = {
+    val moonCardColor =
+        Color(0xFF0B2038)
 
-            TopAppBar(
+    val sunCardColor =
+        Color(0xFF211A08)
 
-                title = {
+    val gold =
+        Color(0xFFFFC83D)
 
-                    Column {
+    val moonBlue =
+        Color(0xFF4DA3FF)
 
-                        Text(
-                            "🌙 चंद्र पंचांग अलार्म"
-                        )
+    val white =
+        Color(0xFFF5F7FA)
 
-                        Text(
-                            "V2.6 • LIVE MOON • AUTO ALARM",
-                            style =
-                                MaterialTheme
-                                    .typography
-                                    .labelSmall
-                        )
-                    }
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .verticalScroll(
+                rememberScrollState()
             )
-        }
+            .padding(12.dp)
+    ) {
 
-    ) { padding ->
+        // ------------------------------------------------
+        // HEADER
+        // ------------------------------------------------
 
-        Column(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 8.dp
+                ),
 
-            modifier =
-                Modifier
-                    .padding(padding)
-                    .padding(20.dp),
-
-            verticalArrangement =
-                Arrangement.spacedBy(14.dp)
+            verticalAlignment =
+                Alignment.CenterVertically
         ) {
 
             Text(
-                "📍 ${state.location}",
-                style =
-                    MaterialTheme
-                        .typography
-                        .titleMedium
+                text = "🌙",
+                fontSize = 38.sp
             )
 
-            Text(
-                "● Live Calculation: ON",
-                style =
-                    MaterialTheme
-                        .typography
-                        .labelMedium
+            Spacer(
+                modifier = Modifier.width(8.dp)
             )
 
-            // ----------------------------------------
-            // CURRENT MOON
-            // ----------------------------------------
-
-            Card(
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier =
-                        Modifier.padding(18.dp),
-
-                    verticalArrangement =
-                        Arrangement.spacedBy(8.dp)
-                ) {
-
-                    Text(
-                        "सध्याची चंद्र स्थिती",
-
-                        style =
-                            MaterialTheme
-                                .typography
-                                .titleLarge
-                    )
-
-                    Text(
-                        "राशी: ${state.rashi.marathi}"
-                    )
-
-                    Text(
-                        "नक्षत्र: ${state.nakshatra.marathi}"
-                    )
-
-                    Text(
-                        "चरण: ${state.pada}"
-                    )
-                }
-            }
-
-            // ----------------------------------------
-            // NEXT RASHI
-            // ----------------------------------------
-
-            Card(
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier =
-                        Modifier.padding(18.dp),
-
-                    verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
-                ) {
-
-                    Text(
-                        "🌙 पुढील राशी बदल",
-
-                        style =
-                            MaterialTheme
-                                .typography
-                                .titleLarge
-                    )
-
-                    Text(
-                        state.nextRashi
-                    )
-
-                    Text(
-                        "📅 ${state.nextRashiTime}"
-                    )
-                }
-            }
-
-            // ----------------------------------------
-            // NEXT NAKSHATRA
-            // ----------------------------------------
-
-            Card(
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier =
-                        Modifier.padding(18.dp),
-
-                    verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
-                ) {
-
-                    Text(
-                        "⭐ पुढील नक्षत्र बदल",
-
-                        style =
-                            MaterialTheme
-                                .typography
-                                .titleLarge
-                    )
-
-                    Text(
-                        state.nextNakshatra
-                    )
-
-                    Text(
-                        "📅 ${state.nextNakshatraTime}"
-                    )
-                }
-            }
-
-            // ----------------------------------------
-            // NEXT CHARAN
-            // ----------------------------------------
-
-            Card(
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier =
-                        Modifier.padding(18.dp),
-
-                    verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
-                ) {
-
-                    Text(
-                        "🔔 पुढील चरण बदल",
-
-                        style =
-                            MaterialTheme
-                                .typography
-                                .titleLarge
-                    )
-
-                    Text(
-                        state.nextCharan
-                    )
-
-                    Text(
-                        "📅 ${state.nextCharanTime}"
-                    )
-                }
-            }
-
-            // ----------------------------------------
-            // TEST RASHI
-            // ----------------------------------------
-
-            Button(
-                onClick =
-                    onTestRashiAlarm,
-
-                modifier =
-                    Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
 
                 Text(
-                    "🌙 राशी बदल Test Alarm"
+                    text = "चंद्र सूर्य अलार्म",
+                    color = white,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold
                 )
-            }
-
-            // ----------------------------------------
-            // TEST NAKSHATRA
-            // ----------------------------------------
-
-            Button(
-                onClick =
-                    onTestNakshatraAlarm,
-
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
 
                 Text(
-                    "⭐ नक्षत्र बदल Test Alarm"
-                )
-            }
-
-            // ----------------------------------------
-            // TEST CHARAN
-            // ----------------------------------------
-
-            Button(
-                onClick =
-                    onTestCharanAlarm,
-
-                modifier =
-                    Modifier.fillMaxWidth()
-            ) {
-
-                Text(
-                    "🔔 चरण बदल Test Alarm"
+                    text = "LIVE • AUTO • ACCURATE",
+                    color = Color.LightGray,
+                    fontSize = 11.sp
                 )
             }
 
             Text(
-                "V2.6 LIVE BUILD\n" +
-                        "राशी, नक्षत्र आणि प्रत्येक चरणाचा पुढील बदल स्वतंत्रपणे शोधला जातो.\n" +
-                        "तिन्ही प्रकारचे Automatic Alarm स्वतंत्रपणे schedule केले जातात.\n" +
-                        "प्रत्येक बदलासाठी वेगळा Marathi आवाज वापरला जातो.",
-
-                style =
-                    MaterialTheme
-                        .typography
-                        .bodySmall
+                text = "⚙️",
+                fontSize = 25.sp
             )
         }
+
+
+        // ------------------------------------------------
+        // LOCATION
+        // ------------------------------------------------
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 4.dp
+                ),
+
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = "📍 ${moonState.location}",
+                color = white,
+                fontSize = 14.sp
+            )
+
+            Spacer(
+                modifier = Modifier.width(8.dp)
+            )
+
+            Text(
+                text = "● LIVE",
+                color = Color(0xFF39D353),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+
+        Spacer(
+            modifier = Modifier.height(10.dp)
+        )
+
+
+        // ------------------------------------------------
+        // MOON + SUN TWO COLUMN
+        // ------------------------------------------------
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+
+            horizontalArrangement =
+                Arrangement.spacedBy(8.dp),
+
+            verticalAlignment =
+                Alignment.Top
+        ) {
+
+            // ==================================================
+            // MOON COLUMN
+            // ==================================================
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+
+                MoonColumn(
+                    state = moonState,
+                    cardColor = moonCardColor,
+                    accentColor = moonBlue,
+                    textColor = white
+                )
+            }
+
+
+            // ==================================================
+            // SUN COLUMN
+            // ==================================================
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+
+                SunColumn(
+                    cardColor = sunCardColor,
+                    accentColor = gold,
+                    textColor = white
+                )
+            }
+        }
+
+
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
+
+
+        // ------------------------------------------------
+        // TEST BUTTONS
+        // ------------------------------------------------
+
+        Text(
+            text = "🔔 अलार्म टेस्ट",
+            color = white,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(
+                vertical = 6.dp
+            )
+        )
+
+        TestButton(
+            text = "🌙 राशी बदल Test",
+            onClick = onTestRashi
+        )
+
+        TestButton(
+            text = "⭐ नक्षत्र बदल Test",
+            onClick = onTestNakshatra
+        )
+
+        TestButton(
+            text = "🔔 चरण बदल Test",
+            onClick = onTestCharan
+        )
+
+
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
+
+
+        // ------------------------------------------------
+        // FOOTER
+        // ------------------------------------------------
+
+        Text(
+            text =
+                "चंद्र सूर्य अलार्म\n" +
+                "LIVE Calculation • Auto Alarm",
+
+            color = Color.Gray,
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 10.dp
+                )
+        )
+    }
+}
+
+
+// ==========================================================
+// MOON COLUMN
+// ==========================================================
+
+@Composable
+private fun MoonColumn(
+    state: MoonState,
+    cardColor: Color,
+    accentColor: Color,
+    textColor: Color
+) {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(18.dp),
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor = cardColor
+            )
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(10.dp)
+        ) {
+
+            Text(
+                text = "🌙 चंद्र",
+                color = textColor,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "● LIVE  सध्याची स्थिती",
+                color = Color(0xFF39D353),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
+
+
+            // ----------------------------------------------
+            // CURRENT DATA
+            // ----------------------------------------------
+
+            SmallDataRow(
+                label = "राशी",
+                value = state.rashi.marathi,
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "नक्षत्र",
+                value = state.nakshatra.marathi,
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "चरण",
+                value = state.pada.toString(),
+                color = textColor
+            )
+
+
+            Divider(
+                modifier =
+                    Modifier.padding(
+                        vertical = 6.dp
+                    ),
+
+                color =
+                    Color.White.copy(
+                        alpha = 0.15f
+                    )
+            )
+
+
+            // ----------------------------------------------
+            // PLANET LORD
+            // ----------------------------------------------
+
+            Text(
+                text = "ग्रह स्वामी",
+                color = accentColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "राशी: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+            Text(
+                text = "नक्षत्र: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+            Text(
+                text = "नवांश: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
+
+
+            // ----------------------------------------------
+            // NEXT CHANGES
+            // ----------------------------------------------
+
+            Text(
+                text = "🔔 पुढील बदल",
+                color = accentColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = state.nextChange,
+                color = textColor,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Text(
+                text = "📅 ${state.nextChangeTime}",
+                color = Color.LightGray,
+                fontSize = 11.sp
+            )
+        }
+    }
+}
+
+
+// ==========================================================
+// SUN COLUMN
+// ==========================================================
+
+@Composable
+private fun SunColumn(
+    cardColor: Color,
+    accentColor: Color,
+    textColor: Color
+) {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(18.dp),
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor = cardColor
+            )
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(10.dp)
+        ) {
+
+            Text(
+                text = "☀️ सूर्य",
+                color = textColor,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "● LIVE  सध्याची स्थिती",
+                color = Color(0xFF39D353),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
+
+
+            SmallDataRow(
+                label = "राशी",
+                value = "—",
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "नक्षत्र",
+                value = "—",
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "चरण",
+                value = "—",
+                color = textColor
+            )
+
+
+            Divider(
+                modifier =
+                    Modifier.padding(
+                        vertical = 6.dp
+                    ),
+
+                color =
+                    Color.White.copy(
+                        alpha = 0.15f
+                    )
+            )
+
+
+            Text(
+                text = "ग्रह स्वामी",
+                color = accentColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "राशी: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+            Text(
+                text = "नक्षत्र: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+            Text(
+                text = "नवांश: —",
+                color = textColor,
+                fontSize = 12.sp
+            )
+
+
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
+
+
+            Text(
+                text = "🔔 पुढील बदल",
+                color = accentColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "सूर्य LIVE गणना जोडणार",
+                color = textColor,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Text(
+                text = "📅 —",
+                color = Color.LightGray,
+                fontSize = 11.sp
+            )
+        }
+    }
+}
+
+
+// ==========================================================
+// SMALL DATA ROW
+// ==========================================================
+
+@Composable
+private fun SmallDataRow(
+    label: String,
+    value: String,
+    color: Color
+) {
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 4.dp
+                ),
+
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+
+        Text(
+            text = label,
+            color = Color.LightGray,
+            fontSize = 12.sp
+        )
+
+        Text(
+            text = value,
+            color = color,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.End
+        )
+    }
+}
+
+
+// ==========================================================
+// TEST BUTTON
+// ==========================================================
+
+@Composable
+private fun TestButton(
+    text: String,
+    onClick: () -> Unit
+) {
+
+    Button(
+        onClick = onClick,
+
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 3.dp
+                ),
+
+        shape =
+            RoundedCornerShape(14.dp)
+    ) {
+
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
