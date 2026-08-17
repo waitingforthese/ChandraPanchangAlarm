@@ -7,11 +7,17 @@ data class MoonState(
     val nakshatra: Nakshatra,
     val pada: Int,
 
-    val nextChange: String,
-    val nextChangeTime: String,
+    val nextRashi: String,
+    val nextRashiTime: String,
+    val nextRashiMillis: Long,
 
-    val nextChangeMillis: Long,
-    val changeType: String
+    val nextNakshatra: String,
+    val nextNakshatraTime: String,
+    val nextNakshatraMillis: Long,
+
+    val nextCharan: String,
+    val nextCharanTime: String,
+    val nextCharanMillis: Long
 )
 
 enum class Rashi(
@@ -40,7 +46,7 @@ enum class Nakshatra(
     ROHINI("रोहिणी"),
     MRIGASHIRSHA("मृगशीर्ष"),
     ARDRA("आर्द्रा"),
-    PUNARVASU("पुनर्वसु"),
+    PUNARVASU("पुनर्वसू"),
     PUSHYA("पुष्य"),
     ASHLESHA("आश्लेषा"),
     MAGHA("मघा"),
