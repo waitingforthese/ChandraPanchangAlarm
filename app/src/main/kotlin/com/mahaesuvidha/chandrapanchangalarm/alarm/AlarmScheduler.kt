@@ -53,12 +53,12 @@ class AlarmScheduler(
                 requestCode,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or
-                    PendingIntent.FLAG_IMMUTABLE
+                        PendingIntent.FLAG_IMMUTABLE
             )
 
         if (
             Build.VERSION.SDK_INT >=
-                Build.VERSION_CODES.S &&
+            Build.VERSION_CODES.S &&
             !alarmManager.canScheduleExactAlarms()
         ) {
 
@@ -86,6 +86,10 @@ class AlarmScheduler(
         )
     }
 
+    // --------------------------------------------------
+    // TEST RASHI
+    // --------------------------------------------------
+
     fun scheduleRashiAlarm(
         delayMillis: Long
     ) {
@@ -93,9 +97,10 @@ class AlarmScheduler(
         scheduleAlarm(
             alarmTime =
                 System.currentTimeMillis() +
-                    delayMillis,
+                        delayMillis,
 
-            requestCode = 1001,
+            requestCode =
+                1001,
 
             title =
                 "चंद्र राशीमध्ये बदल",
@@ -108,6 +113,10 @@ class AlarmScheduler(
         )
     }
 
+    // --------------------------------------------------
+    // TEST NAKSHATRA
+    // --------------------------------------------------
+
     fun scheduleNakshatraAlarm(
         delayMillis: Long
     ) {
@@ -115,9 +124,10 @@ class AlarmScheduler(
         scheduleAlarm(
             alarmTime =
                 System.currentTimeMillis() +
-                    delayMillis,
+                        delayMillis,
 
-            requestCode = 1002,
+            requestCode =
+                1002,
 
             title =
                 "नक्षत्रामध्ये बदल",
@@ -130,6 +140,10 @@ class AlarmScheduler(
         )
     }
 
+    // --------------------------------------------------
+    // TEST CHARAN
+    // --------------------------------------------------
+
     fun scheduleCharanAlarm(
         delayMillis: Long
     ) {
@@ -137,98 +151,140 @@ class AlarmScheduler(
         scheduleAlarm(
             alarmTime =
                 System.currentTimeMillis() +
-                    delayMillis,
+                        delayMillis,
 
-            requestCode = 1003,
+            requestCode =
+                1003,
 
             title =
                 "नक्षत्र चरणमध्ये बदल",
 
             message =
-                "चंद्राच्या चरणमध्ये बदल झाला आहे.",
+                "नक्षत्र चरणमध्ये बदल झाला आहे.",
 
             alarmType =
                 "charan"
         )
     }
 
-    fun scheduleTestAlarm(
-        delayMillis: Long
-    ) {
+    // --------------------------------------------------
+    // SCHEDULE ALL THREE LIVE ALARMS
+    // --------------------------------------------------
 
-        scheduleRashiAlarm(
-            delayMillis
-        )
+    fun scheduleNextLiveAlarms() {
+
+        scheduleNextRashiAlarm()
+
+        scheduleNextNakshatraAlarm()
+
+        scheduleNextCharanAlarm()
     }
 
-    /*
-     * पुढील LIVE चंद्र बदल शोधून
-     * Automatic Alarm schedule करतो.
-     */
-    fun scheduleNextLiveAlarm() {
+    // --------------------------------------------------
+    // NEXT RASHI
+    // --------------------------------------------------
+
+    fun scheduleNextRashiAlarm() {
 
         val state =
             LiveMoonCalculator
                 .getCurrentMoonState()
 
-        val title: String
-        val message: String
-        val requestCode: Int
-
-        when (state.changeType) {
-
-            "rashi" -> {
-
-                title =
-                    "चंद्र राशीमध्ये बदल"
-
-                message =
-                    state.nextChange
-
-                requestCode =
-                    2001
-            }
-
-            "nakshatra" -> {
-
-                title =
-                    "नक्षत्रामध्ये बदल"
-
-                message =
-                    state.nextChange
-
-                requestCode =
-                    2002
-            }
-
-            else -> {
-
-                title =
-                    "नक्षत्र चरणमध्ये बदल"
-
-                message =
-                    state.nextChange
-
-                requestCode =
-                    2003
-            }
-        }
-
         scheduleAlarm(
+
             alarmTime =
-                state.nextChangeMillis,
+                state.nextRashiMillis,
 
             requestCode =
-                requestCode,
+                2001,
 
             title =
-                title,
+                "चंद्र राशीमध्ये बदल",
 
             message =
-                message,
+                state.nextRashi,
 
             alarmType =
-                state.changeType
+                "rashi"
         )
+    }
+
+    // --------------------------------------------------
+    // NEXT NAKSHATRA
+    // --------------------------------------------------
+
+    fun scheduleNextNakshatraAlarm() {
+
+        val state =
+            LiveMoonCalculator
+                .getCurrentMoonState()
+
+        scheduleAlarm(
+
+            alarmTime =
+                state.nextNakshatraMillis,
+
+            requestCode =
+                2002,
+
+            title =
+                "नक्षत्रामध्ये बदल",
+
+            message =
+                state.nextNakshatra,
+
+            alarmType =
+                "nakshatra"
+        )
+    }
+
+    // --------------------------------------------------
+    // NEXT CHARAN
+    // --------------------------------------------------
+
+    fun scheduleNextCharanAlarm() {
+
+        val state =
+            LiveMoonCalculator
+                .getCurrentMoonState()
+
+        scheduleAlarm(
+
+            alarmTime =
+                state.nextCharanMillis,
+
+            requestCode =
+                2003,
+
+            title =
+                "नक्षत्र चरणमध्ये बदल",
+
+            message =
+                state.nextCharan,
+
+            alarmType =
+                "charan"
+        )
+    }
+
+    // --------------------------------------------------
+    // AFTER ALARM → SCHEDULE NEXT SAME TYPE
+    // --------------------------------------------------
+
+    fun scheduleNextAlarmForType(
+        alarmType: String
+    ) {
+
+        when (alarmType) {
+
+            "rashi" ->
+                scheduleNextRashiAlarm()
+
+            "nakshatra" ->
+                scheduleNextNakshatraAlarm()
+
+            "charan" ->
+                scheduleNextCharanAlarm()
+        }
     }
 }
