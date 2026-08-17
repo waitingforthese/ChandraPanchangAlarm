@@ -509,7 +509,7 @@ PlanetPanel(
     info = jyotish,
     accent = Color(0xFF72B7FF)
 )
-            )
+            
 
             Spacer(
                 modifier =
@@ -666,7 +666,7 @@ PlanetPanel(
     info = jyotish,
     accent = Color(0xFF72B7FF)
 )
-            )
+            
 
             Spacer(
                 modifier =
