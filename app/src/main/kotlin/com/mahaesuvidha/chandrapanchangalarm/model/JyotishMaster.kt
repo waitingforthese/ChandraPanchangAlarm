@@ -1,11 +1,5 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
-data class PlanetInfo(
-    val name: String,
-    val friendly: Boolean,
-    val enemy: Boolean
-)
-
 data class JyotishInfo(
     val rashiLord: String,
     val nakshatraLord: String,
@@ -15,10 +9,6 @@ data class JyotishInfo(
 )
 
 object JyotishMaster {
-
-    // -----------------------------
-    // RASHI LORDS
-    // -----------------------------
 
     private val rashiLords = mapOf(
         Rashi.MESHA to "मंगळ",
@@ -34,10 +24,6 @@ object JyotishMaster {
         Rashi.KUMBHA to "शनि",
         Rashi.MEENA to "गुरु"
     )
-
-    // -----------------------------
-    // NAKSHATRA LORDS
-    // -----------------------------
 
     private val nakshatraLords = mapOf(
         Nakshatra.ASHWINI to "केतू",
@@ -69,120 +55,7 @@ object JyotishMaster {
         Nakshatra.REVATI to "बुध"
     )
 
-    // -----------------------------
-    // NAVAMSHA
-    // 108 PADA -> 12 RASHI
-    // -----------------------------
-
-    private val navamshaRashis = listOf(
-        Rashi.MESHA,
-        Rashi.VRISHABHA,
-        Rashi.MITHUNA,
-        Rashi.KARKA,
-        Rashi.SIMHA,
-        Rashi.KANYA,
-        Rashi.TULA,
-        Rashi.VRISHCHIKA,
-        Rashi.DHANU,
-        Rashi.MAKARA,
-        Rashi.KUMBHA,
-        Rashi.MEENA
-    )
-
-    fun getRashiLord(
-        rashi: Rashi
-    ): String {
-        return rashiLords[rashi] ?: "—"
-    }
-
-    fun getNakshatraLord(
-        nakshatra: Nakshatra
-    ): String {
-        return nakshatraLords[nakshatra] ?: "—"
-    }
-
-    fun getNavamshaRashi(
-        nakshatra: Nakshatra,
-        pada: Int
-    ): Rashi {
-
-        val nakshatraIndex =
-            Nakshatra.entries.indexOf(nakshatra)
-
-        val safePada =
-            pada.coerceIn(1, 4)
-
-        val index =
-            (nakshatraIndex * 4 + (safePada - 1)) % 12
-
-        return navamshaRashis[index]
-    }
-
-    fun getNavamshaLord(
-        navamshaRashi: Rashi
-    ): String {
-        return getRashiLord(navamshaRashi)
-    }
-
-    // -----------------------------
-    // NATURAL PLANET RELATIONSHIPS
-    // -----------------------------
-
-    private val enemies = mapOf(
-
-        "सूर्य" to setOf(
-            "शुक्र",
-            "शनि"
-        ),
-
-        "चंद्र" to emptySet(),
-
-        "मंगळ" to setOf(
-            "बुध"
-        ),
-
-        "बुध" to setOf(
-            "चंद्र"
-        ),
-
-        "गुरु" to setOf(
-            "बुध",
-            "शुक्र"
-        ),
-
-        "शुक्र" to setOf(
-            "सूर्य",
-            "चंद्र"
-        ),
-
-        "शनि" to setOf(
-            "सूर्य",
-            "चंद्र"
-        ),
-
-        "राहू" to setOf(
-            "सूर्य",
-            "चंद्र",
-            "मंगळ"
-        ),
-
-        "केतू" to setOf(
-            "सूर्य",
-            "चंद्र",
-            "मंगळ"
-        )
-    )
-
-    fun getEnemies(
-        planet1: String,
-        planet2: String
-    ): Boolean {
-
-        return enemies[planet1]
-            ?.contains(planet2) == true ||
-                enemies[planet2]
-                    ?.contains(planet1) == true
-    }
+    private val rashis = Rashi.entries
 
     fun getInfo(
         rashi: Rashi,
@@ -191,60 +64,72 @@ object JyotishMaster {
     ): JyotishInfo {
 
         val rashiLord =
-            getRashiLord(rashi)
+            rashiLords[rashi] ?: "—"
 
         val nakshatraLord =
-            getNakshatraLord(nakshatra)
+            nakshatraLords[nakshatra] ?: "—"
+
+        val nakshatraIndex =
+            Nakshatra.entries.indexOf(nakshatra)
+
+        val safePada =
+            pada.coerceIn(1, 4)
+
+        val navamshaIndex =
+            (nakshatraIndex * 4 + safePada - 1) % 12
 
         val navamshaRashi =
-            getNavamshaRashi(
-                nakshatra,
-                pada
-            )
+            rashis[navamshaIndex]
 
         val navamshaLord =
-            getNavamshaLord(
-                navamshaRashi
-            )
+            rashiLords[navamshaRashi] ?: "—"
 
-        val allPlanets =
-            listOf(
-                rashiLord,
-                nakshatraLord,
-                navamshaLord
-            )
+        val planets = listOf(
+            rashiLord,
+            nakshatraLord,
+            navamshaLord
+        ).distinct()
 
-        val enemyList =
-            allPlanets
-                .distinct()
-                .filter { planet ->
+        val enemies = mutableListOf<String>()
 
-                    allPlanets.any { other ->
+        val enemyPairs = mapOf(
+            "सूर्य" to setOf("शुक्र", "शनि"),
+            "चंद्र" to emptySet(),
+            "मंगळ" to setOf("बुध"),
+            "बुध" to setOf("चंद्र"),
+            "गुरु" to setOf("बुध", "शुक्र"),
+            "शुक्र" to setOf("सूर्य", "चंद्र"),
+            "शनि" to setOf("सूर्य", "चंद्र"),
+            "राहू" to setOf("सूर्य", "चंद्र", "मंगळ"),
+            "केतू" to setOf("सूर्य", "चंद्र", "मंगळ")
+        )
 
-                        other != planet &&
-                            getEnemies(
-                                planet,
-                                other
-                            )
-                    }
+        planets.forEach { planet ->
+
+            val hasEnemy =
+                planets.any { other ->
+
+                    other != planet &&
+                        (
+                            enemyPairs[planet]
+                                ?.contains(other) == true
+                            ||
+                            enemyPairs[other]
+                                ?.contains(planet) == true
+                        )
                 }
 
+            if (hasEnemy) {
+                enemies.add(planet)
+            }
+        }
+
         return JyotishInfo(
-
-            rashiLord =
-                rashiLord,
-
-            nakshatraLord =
-                nakshatraLord,
-
-            navamshaRashi =
-                navamshaRashi.marathi,
-
-            navamshaLord =
-                navamshaLord,
-
-            enemies =
-                enemyList
+            rashiLord = rashiLord,
+            nakshatraLord = nakshatraLord,
+            navamshaRashi = navamshaRashi.marathi,
+            navamshaLord = navamshaLord,
+            enemies = enemies
         )
     }
 }
