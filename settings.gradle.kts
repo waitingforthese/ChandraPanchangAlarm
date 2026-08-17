@@ -1,22 +1,7 @@
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-        maven(url = "https://jitpack.io")
-    }
-}
-
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
-    repositories {
-        google()
-        mavenCentral()
-        maven(url = "https://jitpack.io")
-    }
+    repositories { google(); mavenCentral() }
 }
-
 rootProject.name = "ChandraPanchangAlarm"
-
 include(":app")
