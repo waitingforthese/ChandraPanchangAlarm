@@ -1,14 +1,1020 @@
 package com.mahaesuvidha.chandrapanchangalarm
-import android.Manifest;import android.content.pm.PackageManager;import android.os.Bundle;import androidx.activity.ComponentActivity;import androidx.activity.compose.setContent;import androidx.activity.result.contract.ActivityResultContracts;import androidx.compose.foundation.*;import androidx.compose.foundation.layout.*;import androidx.compose.foundation.shape.RoundedCornerShape;import androidx.compose.material3.*;import androidx.compose.runtime.*;import androidx.compose.ui.*;import androidx.compose.ui.graphics.Color;import androidx.compose.ui.text.font.FontWeight;import androidx.compose.ui.unit.dp;import androidx.compose.ui.unit.sp;import androidx.core.content.ContextCompat;import com.google.android.gms.location.LocationServices;import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler;import com.mahaesuvidha.chandrapanchangalarm.model.*;import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs;import kotlinx.coroutines.delay;import java.time.*;import java.time.format.DateTimeFormatter
-class MainActivity:ComponentActivity(){private lateinit var scheduler:AlarmScheduler;private var locationText by mutableStateOf("स्थान शोधत आहे…");private val perm=registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){readLocation()};private val notif=registerForActivityResult(ActivityResultContracts.RequestPermission()){}
- override fun onCreate(b:Bundle?){super.onCreate(b);scheduler=AlarmScheduler(this);if(android.os.Build.VERSION.SDK_INT>=33)notif.launch(Manifest.permission.POST_NOTIFICATIONS);perm.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION));readLocation();scheduler.scheduleAll();setContent{MaterialTheme{App(locationText,scheduler)}}}
- private fun readLocation(){if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED)return;LocationServices.getFusedLocationProviderClient(this).lastLocation.addOnSuccessListener{l->if(l!=null)locationText="📍 ${"%.4f".format(l.latitude)}, ${"%.4f".format(l.longitude)} • LIVE" else locationText="📍 स्थान उपलब्ध नाही"}}
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.weight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+
+import com.google.android.gms.location.LocationServices
+
+import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
+import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
+import com.mahaesuvidha.chandrapanchangalarm.model.LiveSunCalculator
+import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
+import com.mahaesuvidha.chandrapanchangalarm.model.SunState
+import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
+
+import kotlinx.coroutines.delay
+
+class MainActivity : ComponentActivity() {
+
+    private lateinit var scheduler: AlarmScheduler
+
+    private var locationText by mutableStateOf(
+        "📍 स्थान शोधत आहे…"
+    )
+
+    private val permissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) {
+            readLocation()
+        }
+
+    private val notificationPermission =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { }
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+        super.onCreate(savedInstanceState)
+
+        scheduler = AlarmScheduler(this)
+
+        if (
+            android.os.Build.VERSION.SDK_INT >=
+            android.os.Build.VERSION_CODES.TIRAMISU
+        ) {
+            notificationPermission.launch(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+
+        permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+
+        readLocation()
+
+        scheduler.scheduleAll()
+
+        setContent {
+            MaterialTheme {
+                MainApp(
+                    location = locationText,
+                    scheduler = scheduler
+                )
+            }
+        }
+    }
+
+    private fun readLocation() {
+
+        val permission =
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+
+        if (
+            permission !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        LocationServices
+            .getFusedLocationProviderClient(this)
+            .lastLocation
+            .addOnSuccessListener { location ->
+
+                if (location != null) {
+
+                    locationText =
+                        "📍 ${"%.4f".format(location.latitude)}, " +
+                        "${"%.4f".format(location.longitude)} • LIVE"
+
+                } else {
+
+                    locationText =
+                        "📍 दौंड, महाराष्ट्र • LIVE"
+                }
+            }
+    }
 }
-@Composable private fun App(location:String,scheduler:AlarmScheduler){var moon by remember{mutableStateOf(AstroCalculator.moon())};var sun by remember{mutableStateOf(AstroCalculator.sun())};val prefs=remember{AlarmPrefs(androidx.compose.ui.platform.LocalContext.current)};var settings by remember{mutableStateOf(false)};LaunchedEffect(Unit){while(true){delay(30000);moon=AstroCalculator.moon();sun=AstroCalculator.sun()}}
- val bg=Color(0xFF081522);Box(Modifier.fillMaxSize().background(bg)){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("🌙 चंद्र सूर्य अलार्म",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Bold);Text("LIVE • AUTO ALARM",color=Color.LightGray)};Text("⚙️",fontSize=30.sp,modifier=Modifier.clickable{settings=true})};Spacer(Modifier.height(8.dp));Text(location,color=Color(0xFF39D353));Spacer(Modifier.height(12.dp));Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){BodyCard(Modifier.weight(1f),moon,Color(0xFF102B40),Color(0xFF72B7FF));BodyCard(Modifier.weight(1f),sun,Color(0xFF332703),Color(0xFFFFC857))};Spacer(Modifier.height(16.dp));Text("🔔 अलार्म टेस्ट",color=Color.White,fontWeight=FontWeight.Bold,fontSize=20.sp);listOf("राशी","नक्षत्र","चरण").forEach{t->Spacer(Modifier.height(8.dp));Button(onClick={scheduler.scheduleTest(t)},modifier=Modifier.fillMaxWidth()){Text("$t बदल Test Alarm (10 सेकंद)")}};Spacer(Modifier.height(20.dp));Text("टीप: सध्याचा calculation engine approximation आहे; पंचांगाशी production validation केल्यानंतरच याला अंतिम अचूकता द्यावी.",color=Color.LightGray,fontSize=12.sp)}
- if(settings)SettingsDialog(prefs,{scheduler.scheduleAll()},{settings=false})}}
-@Composable private fun BodyCard(mod:Modifier,s:AstroState,card:Color,accent:Color){Card(mod,colors=CardDefaults.cardColors(containerColor=card),shape=RoundedCornerShape(18.dp)){Column(Modifier.padding(10.dp)){Text(if(s.body=="चंद्र")"🌙 चंद्र" else "☀️ सूर्य",color=Color.White,fontWeight=FontWeight.Bold,fontSize=20.sp);Text("● LIVE",color=Color(0xFF39D353),fontSize=11.sp);RowLine("राशी",s.rashi.marathi);RowLine("नक्षत्र",s.nakshatra.marathi);RowLine("चरण",s.pada.toString());Divider(Modifier.padding(vertical=6.dp));Text("पुढील बदल",color=accent,fontWeight=FontWeight.Bold);Change(s.nextRashi, s.nextRashiMillis,accent);Change(s.nextNakshatra,s.nextNakshatraMillis,accent);Change(s.nextCharan,s.nextCharanMillis,accent)}}
-@Composable private fun RowLine(a:String,b:String){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(a,color=Color.LightGray,fontSize=12.sp);Text(b,color=Color.White,fontSize=13.sp,fontWeight=FontWeight.Bold)}}
-@Composable private fun Change(v:String,t:Long,c:Color){val f=DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");Text(v,color=Color.White,fontSize=12.sp);Text(Instant.ofEpochMilli(t).atZone(ZoneId.of("Asia/Kolkata")).format(f),color=c,fontSize=11.sp);Spacer(Modifier.height(5.dp))}
-@Composable private fun SettingsDialog(p:AlarmPrefs,reschedule:()->Unit,close:()->Unit){var moon by remember{mutableStateOf(p.moon)};var sun by remember{mutableStateOf(p.sun)};var r by remember{mutableStateOf(p.rashi)};var n by remember{mutableStateOf(p.nak)};var pa by remember{mutableStateOf(p.pada)};AlertDialog(onDismissRequest=close,title={Text("⚙️ अलार्म सेटिंग्स")},text={Column{Toggle("🌙 चंद्र अलार्म",moon){moon=it};Toggle("☀️ सूर्य अलार्म",sun){sun=it};Toggle("राशी बदल",r){r=it};Toggle("नक्षत्र बदल",n){n=it};Toggle("चरण बदल",pa){pa=it}}},confirmButton={Button(onClick={p.moon=moon;p.sun=sun;p.rashi=r;p.nak=n;p.pada=pa;reschedule();close()}){Text("Save")}},dismissButton={TextButton(onClick=close){Text("Cancel")}})}
-@Composable private fun Toggle(t:String,v:Boolean,set:(Boolean)->Unit){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(t,Modifier.weight(1f));Switch(v,set)}}
+
+
+@Composable
+private fun MainApp(
+    location: String,
+    scheduler: AlarmScheduler
+) {
+
+    var moonState by remember {
+        mutableStateOf(
+            LiveMoonCalculator.getCurrentMoonState()
+        )
+    }
+
+    var sunState by remember {
+        mutableStateOf(
+            LiveSunCalculator.getCurrentSunState()
+        )
+    }
+
+    val context = LocalContext.current
+
+    val prefs = remember {
+        AlarmPrefs(context)
+    }
+
+    var showSettings by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit) {
+
+        while (true) {
+
+            delay(30_000)
+
+            moonState =
+                LiveMoonCalculator.getCurrentMoonState()
+
+            sunState =
+                LiveSunCalculator.getCurrentSunState()
+        }
+    }
+
+    val backgroundColor =
+        Color(0xFF081522)
+
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(backgroundColor)
+    ) {
+
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(
+                        rememberScrollState()
+                    )
+                    .padding(16.dp)
+        ) {
+
+            Header(
+                onSettingsClick = {
+                    showSettings = true
+                }
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(12.dp)
+            )
+
+            Text(
+                text = location,
+                color = Color(0xFF39D353),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(16.dp)
+            )
+
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+
+                MoonCard(
+                    modifier =
+                        Modifier.weight(1f),
+
+                    state = moonState
+                )
+
+                SunCard(
+                    modifier =
+                        Modifier.weight(1f),
+
+                    state = sunState
+                )
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(24.dp)
+            )
+
+            Text(
+                text = "🔔 अलार्म टेस्ट",
+
+                color = Color.White,
+
+                fontSize = 22.sp,
+
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(12.dp)
+            )
+
+            TestButton(
+                text = "🌙 राशी बदल Test Alarm"
+            ) {
+                scheduler.scheduleTest("राशी")
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(10.dp)
+            )
+
+            TestButton(
+                text = "⭐ नक्षत्र बदल Test Alarm"
+            ) {
+                scheduler.scheduleTest("नक्षत्र")
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(10.dp)
+            )
+
+            TestButton(
+                text = "🔔 चरण बदल Test Alarm"
+            ) {
+                scheduler.scheduleTest("चरण")
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(30.dp)
+            )
+
+            Text(
+                text =
+                    "LIVE calculation प्रत्येक 30 सेकंदांनी अपडेट होते.",
+
+                color = Color.LightGray,
+
+                fontSize = 12.sp
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(30.dp)
+            )
+        }
+
+        if (showSettings) {
+
+            SettingsDialog(
+                prefs = prefs,
+
+                onSave = {
+
+                    scheduler.scheduleAll()
+
+                    showSettings = false
+                },
+
+                onClose = {
+
+                    showSettings = false
+                }
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun Header(
+    onSettingsClick: () -> Unit
+) {
+
+    Row(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+
+        Column(
+            modifier =
+                Modifier.weight(1f)
+        ) {
+
+            Text(
+                text =
+                    "🌙 चंद्र सूर्य अलार्म",
+
+                color =
+                    Color.White,
+
+                fontSize =
+                    26.sp,
+
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Text(
+                text =
+                    "LIVE • AUTO • ACCURATE",
+
+                color =
+                    Color.LightGray,
+
+                fontSize =
+                    14.sp
+            )
+        }
+
+        Text(
+            text =
+                "⚙️",
+
+            fontSize =
+                30.sp,
+
+            modifier =
+                Modifier.clickable {
+                    onSettingsClick()
+                }
+        )
+    }
+}
+
+
+@Composable
+private fun MoonCard(
+    modifier: Modifier,
+    state: MoonState
+) {
+
+    Card(
+        modifier = modifier,
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    Color(0xFF102B40)
+            ),
+
+        shape =
+            RoundedCornerShape(22.dp)
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(14.dp)
+        ) {
+
+            Text(
+                text =
+                    "🌙 चंद्र",
+
+                color =
+                    Color.White,
+
+                fontSize =
+                    23.sp,
+
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Text(
+                text =
+                    "● LIVE सध्याची स्थिती",
+
+                color =
+                    Color(0xFF39D353),
+
+                fontSize =
+                    13.sp,
+
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(18.dp)
+            )
+
+            InfoRow(
+                label = "राशी",
+                value = state.rashi.marathi
+            )
+
+            InfoRow(
+                label = "नक्षत्र",
+                value = state.nakshatra.marathi
+            )
+
+            InfoRow(
+                label = "चरण",
+                value = state.pada.toString()
+            )
+
+            Divider(
+                modifier =
+                    Modifier.padding(
+                        vertical = 12.dp
+                    )
+            )
+
+            Text(
+                text =
+                    "ग्रह स्वामी",
+
+                color =
+                    Color(0xFF72B7FF),
+
+                fontWeight =
+                    FontWeight.Bold,
+
+                fontSize =
+                    18.sp
+            )
+
+            Text(
+                text =
+                    "राशी: चंद्र"
+            )
+
+            Text(
+                text =
+                    "नक्षत्र: चंद्र"
+            )
+
+            Text(
+                text =
+                    "नवांश: —"
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(18.dp)
+            )
+
+            NextChange(
+                title =
+                    "🔔 पुढील राशी बदल",
+
+                change =
+                    state.nextRashi,
+
+                time =
+                    state.nextRashiTime,
+
+                color =
+                    Color(0xFF72B7FF)
+            )
+
+            NextChange(
+                title =
+                    "⭐ पुढील नक्षत्र बदल",
+
+                change =
+                    state.nextNakshatra,
+
+                time =
+                    state.nextNakshatraTime,
+
+                color =
+                    Color(0xFF72B7FF)
+            )
+
+            NextChange(
+                title =
+                    "🔔 पुढील चरण बदल",
+
+                change =
+                    state.nextCharan,
+
+                time =
+                    state.nextCharanTime,
+
+                color =
+                    Color(0xFF72B7FF)
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun SunCard(
+    modifier: Modifier,
+    state: SunState
+) {
+
+    Card(
+        modifier = modifier,
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    Color(0xFF332703)
+            ),
+
+        shape =
+            RoundedCornerShape(22.dp)
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(14.dp)
+        ) {
+
+            Text(
+                text =
+                    "☀️ सूर्य",
+
+                color =
+                    Color.White,
+
+                fontSize =
+                    23.sp,
+
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Text(
+                text =
+                    "● LIVE सध्याची स्थिती",
+
+                color =
+                    Color(0xFF39D353),
+
+                fontSize =
+                    13.sp,
+
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(18.dp)
+            )
+
+            InfoRow(
+                label = "राशी",
+                value = state.rashi.marathi
+            )
+
+            InfoRow(
+                label = "नक्षत्र",
+                value = state.nakshatra.marathi
+            )
+
+            InfoRow(
+                label = "चरण",
+                value = state.pada.toString()
+            )
+
+            Divider(
+                modifier =
+                    Modifier.padding(
+                        vertical = 12.dp
+                    )
+            )
+
+            Text(
+                text =
+                    "ग्रह स्वामी",
+
+                color =
+                    Color(0xFFFFC857),
+
+                fontWeight =
+                    FontWeight.Bold,
+
+                fontSize =
+                    18.sp
+            )
+
+            Text(
+                text =
+                    "राशी: सूर्य"
+            )
+
+            Text(
+                text =
+                    "नक्षत्र: केतू"
+            )
+
+            Text(
+                text =
+                    "नवांश: —"
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(18.dp)
+            )
+
+            NextChange(
+                title =
+                    "🔔 पुढील राशी बदल",
+
+                change =
+                    state.nextRashi,
+
+                time =
+                    state.nextRashiTime,
+
+                color =
+                    Color(0xFFFFC857)
+            )
+
+            NextChange(
+                title =
+                    "⭐ पुढील नक्षत्र बदल",
+
+                change =
+                    state.nextNakshatra,
+
+                time =
+                    state.nextNakshatraTime,
+
+                color =
+                    Color(0xFFFFC857)
+            )
+
+            NextChange(
+                title =
+                    "🔔 पुढील चरण बदल",
+
+                change =
+                    state.nextCharan,
+
+                time =
+                    state.nextCharanTime,
+
+                color =
+                    Color(0xFFFFC857)
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun InfoRow(
+    label: String,
+    value: String
+) {
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 5.dp
+                ),
+
+        horizontalArrangement =
+            Arrangement.SpaceBetween
+    ) {
+
+        Text(
+            text = label,
+
+            color =
+                Color.LightGray,
+
+            fontSize =
+                15.sp
+        )
+
+        Text(
+            text = value,
+
+            color =
+                Color.White,
+
+            fontSize =
+                17.sp,
+
+            fontWeight =
+                FontWeight.Bold
+        )
+    }
+}
+
+
+@Composable
+private fun NextChange(
+    title: String,
+    change: String,
+    time: String,
+    color: Color
+) {
+
+    Text(
+        text = title,
+
+        color = color,
+
+        fontSize = 17.sp,
+
+        fontWeight = FontWeight.Bold
+    )
+
+    Spacer(
+        modifier =
+            Modifier.height(4.dp)
+    )
+
+    Text(
+        text = change,
+
+        color =
+            Color.White,
+
+        fontSize =
+            15.sp
+    )
+
+    Text(
+        text = "📅 $time",
+
+        color =
+            Color.LightGray,
+
+        fontSize =
+            14.sp
+    )
+
+    Spacer(
+        modifier =
+            Modifier.height(14.dp)
+    )
+}
+
+
+@Composable
+private fun TestButton(
+    text: String,
+    onClick: () -> Unit
+) {
+
+    Button(
+        onClick = onClick,
+
+        modifier =
+            Modifier.fillMaxWidth()
+    ) {
+
+        Text(
+            text = text,
+
+            fontSize = 16.sp,
+
+            fontWeight =
+                FontWeight.Bold
+        )
+    }
+}
+
+
+@Composable
+private fun SettingsDialog(
+    prefs: AlarmPrefs,
+    onSave: () -> Unit,
+    onClose: () -> Unit
+) {
+
+    var moonEnabled by remember {
+        mutableStateOf(prefs.moon)
+    }
+
+    var sunEnabled by remember {
+        mutableStateOf(prefs.sun)
+    }
+
+    var rashiEnabled by remember {
+        mutableStateOf(prefs.rashi)
+    }
+
+    var nakshatraEnabled by remember {
+        mutableStateOf(prefs.nak)
+    }
+
+    var padaEnabled by remember {
+        mutableStateOf(prefs.pada)
+    }
+
+    AlertDialog(
+
+        onDismissRequest =
+            onClose,
+
+        title = {
+
+            Text(
+                text =
+                    "⚙️ अलार्म सेटिंग्स"
+            )
+        },
+
+        text = {
+
+            Column {
+
+                ToggleRow(
+                    text =
+                        "🌙 चंद्र अलार्म",
+
+                    checked =
+                        moonEnabled
+                ) {
+                    moonEnabled = it
+                }
+
+                ToggleRow(
+                    text =
+                        "☀️ सूर्य अलार्म",
+
+                    checked =
+                        sunEnabled
+                ) {
+                    sunEnabled = it
+                }
+
+                ToggleRow(
+                    text =
+                        "राशी बदल",
+
+                    checked =
+                        rashiEnabled
+                ) {
+                    rashiEnabled = it
+                }
+
+                ToggleRow(
+                    text =
+                        "नक्षत्र बदल",
+
+                    checked =
+                        nakshatraEnabled
+                ) {
+                    nakshatraEnabled = it
+                }
+
+                ToggleRow(
+                    text =
+                        "चरण बदल",
+
+                    checked =
+                        padaEnabled
+                ) {
+                    padaEnabled = it
+                }
+            }
+        },
+
+        confirmButton = {
+
+            Button(
+                onClick = {
+
+                    prefs.moon =
+                        moonEnabled
+
+                    prefs.sun =
+                        sunEnabled
+
+                    prefs.rashi =
+                        rashiEnabled
+
+                    prefs.nak =
+                        nakshatraEnabled
+
+                    prefs.pada =
+                        padaEnabled
+
+                    onSave()
+                }
+            ) {
+
+                Text(
+                    "Save"
+                )
+            }
+        },
+
+        dismissButton = {
+
+            TextButton(
+                onClick = onClose
+            ) {
+
+                Text(
+                    "Cancel"
+                )
+            }
+        }
+    )
+}
+
+
+@Composable
+private fun ToggleRow(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (
+        Boolean
+    ) -> Unit
+) {
+
+    Row(
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+
+        Text(
+            text = text,
+
+            modifier =
+                Modifier.weight(1f)
+        )
+
+        Switch(
+            checked =
+                checked,
+
+            onCheckedChange =
+                onCheckedChange
+        )
+    }
+}
