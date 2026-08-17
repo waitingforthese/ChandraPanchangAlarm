@@ -24,31 +24,29 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationManager::class.java
             )
 
-        val channel =
+        manager.createNotificationChannel(
             NotificationChannel(
                 channelId,
                 "चंद्र बदल अलार्म",
                 NotificationManager.IMPORTANCE_HIGH
             )
-
-        manager.createNotificationChannel(
-            channel
         )
 
         val title =
-            intent.getStringExtra(
-                "title"
-            ) ?: "चंद्र पंचांग अलार्म"
+            intent.getStringExtra("title")
+                ?: "चंद्र पंचांग अलार्म"
 
         val message =
-            intent.getStringExtra(
-                "message"
-            ) ?: "चंद्र स्थितीत बदल झाला."
+            intent.getStringExtra("message")
+                ?: "चंद्र स्थितीत बदल झाला."
 
         val alarmType =
-            intent.getStringExtra(
-                "alarm_type"
-            ) ?: "rashi"
+            intent.getStringExtra("alarm_type")
+                ?: "rashi"
+
+        // --------------------------------------------
+        // योग्य Marathi आवाज
+        // --------------------------------------------
 
         val soundRes =
             when (alarmType) {
@@ -75,7 +73,6 @@ class AlarmReceiver : BroadcastReceiver() {
                 )
 
             mediaPlayer.setOnCompletionListener {
-
                 it.release()
             }
 
@@ -86,49 +83,57 @@ class AlarmReceiver : BroadcastReceiver() {
             e.printStackTrace()
         }
 
+        // --------------------------------------------
+        // Notification
+        // --------------------------------------------
+
         val notification =
             NotificationCompat.Builder(
                 context,
                 channelId
             )
+
                 .setSmallIcon(
-                    android.R.drawable
-                        .ic_lock_idle_alarm
+                    android.R.drawable.ic_lock_idle_alarm
                 )
+
                 .setContentTitle(
                     title
                 )
+
                 .setContentText(
                     message
                 )
+
                 .setPriority(
-                    NotificationCompat
-                        .PRIORITY_HIGH
+                    NotificationCompat.PRIORITY_HIGH
                 )
+
+                .setCategory(
+                    NotificationCompat.CATEGORY_ALARM
+                )
+
                 .setAutoCancel(
                     true
                 )
+
                 .build()
 
         manager.notify(
-            System.currentTimeMillis()
-                .toInt(),
+            System.currentTimeMillis().toInt(),
             notification
         )
 
-        /*
-         * हा Alarm संपल्यानंतर
-         * पुढील चंद्र बदल शोधून
-         * नवीन LIVE Alarm schedule करा.
-         */
+        // --------------------------------------------
+        // पुढचा त्याच प्रकारचा Alarm schedule करा
+        // --------------------------------------------
+
         try {
 
-            val scheduler =
-                AlarmScheduler(
-                    context
+            AlarmScheduler(context)
+                .scheduleNextAlarmForType(
+                    alarmType
                 )
-
-            scheduler.scheduleNextLiveAlarm()
 
         } catch (e: Exception) {
 
