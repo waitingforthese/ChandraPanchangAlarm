@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
+import com.mahaesuvidha.chandrapanchangalarm.model.SunState
 
 class MainActivity : ComponentActivity() {
 
@@ -100,6 +101,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun ChandraSuryaHome(
+
     moonState: MoonState,
     sunState: SunState,
     onTestRashi: () -> Unit,
