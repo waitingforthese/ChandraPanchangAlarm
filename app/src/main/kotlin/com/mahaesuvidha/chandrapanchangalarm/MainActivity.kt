@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
             LiveMoonCalculator.getCurrentMoonState()
 
         // Existing automatic Moon alarm
-        scheduler.scheduleNextLiveAlarm()
+      // scheduler.scheduleNextLiveAlarm()
 
         // Notification permission
         if (android.os.Build.VERSION.SDK_INT >= 33) {
