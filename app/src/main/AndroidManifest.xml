@@ -7,7 +7,7 @@
 
     <application
         android:theme="@style/Theme.ChandraPanchangAlarm"
-        android:label="चंद्र पंचांग अलार्म"
+        android:label="चंद्र सूर्य अलार्म"
         android:icon="@drawable/logo"
         android:allowBackup="true">
 
