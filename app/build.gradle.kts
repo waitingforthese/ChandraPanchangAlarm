@@ -44,6 +44,5 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.7.8")
 
     implementation("androidx.compose.material3:material3:1.3.1")
-   
-    implementation("com.github.cosinekitty:astronomy:2.1.19"
+   implementation("com.github.cosinekitty:astronomy:2.1.19")
 }
