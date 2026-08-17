@@ -79,21 +79,15 @@ class MainActivity : ComponentActivity() {
                     sunState = sunState,
 
                     onTestRashi = {
-                        scheduler.scheduleRashiAlarm(
-                            10_000L
-                        )
+                        scheduler.scheduleTest("राशी")
                     },
 
                     onTestNakshatra = {
-                        scheduler.scheduleNakshatraAlarm(
-                            10_000L
-                        )
+                        scheduler.scheduleTest("नक्षत्र")
                     },
 
                     onTestCharan = {
-                        scheduler.scheduleCharanAlarm(
-                            10_000L
-                        )
+                       scheduler.scheduleTest("चरण")
                     }
                 )
             }
