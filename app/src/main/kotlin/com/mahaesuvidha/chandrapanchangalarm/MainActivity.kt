@@ -45,6 +45,8 @@ class MainActivity : ComponentActivity() {
         // Current LIVE Moon calculation
         val moonState =
             LiveMoonCalculator.getCurrentMoonState()
+        val sunState =
+    LiveSunCalculator.getCurrentSunState()
 
         // Existing automatic Moon alarm
       // scheduler.scheduleNextLiveAlarm()
