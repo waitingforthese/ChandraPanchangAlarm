@@ -15,7 +15,6 @@ object LiveSunCalculator {
     private const val PADA_SIZE =
         NAKSHATRA_SIZE / 4.0
 
-
     fun getCurrentSunState(): SunState {
 
         val now = LocalDateTime.now()
@@ -31,7 +30,6 @@ object LiveSunCalculator {
 
         val currentPada =
             getPada(currentLongitude)
-
 
         val nextRashi =
             findNextRashiChange(
@@ -51,7 +49,6 @@ object LiveSunCalculator {
                 currentNakshatra,
                 currentPada
             )
-
 
         return SunState(
 
@@ -93,7 +90,6 @@ object LiveSunCalculator {
         )
     }
 
-
     private fun findNextRashiChange(
         now: LocalDateTime,
         currentRashi: Int
@@ -103,8 +99,7 @@ object LiveSunCalculator {
 
         repeat(60000) {
 
-            check =
-                check.plusMinutes(10)
+            check = check.plusMinutes(1)
 
             val longitude =
                 getSiderealSunLongitude(check)
@@ -128,7 +123,6 @@ object LiveSunCalculator {
         )
     }
 
-
     private fun findNextNakshatraChange(
         now: LocalDateTime,
         currentNakshatra: Int
@@ -136,10 +130,9 @@ object LiveSunCalculator {
 
         var check = now
 
-        repeat(10000) {
+        repeat(30000) {
 
-            check =
-                check.plusMinutes(10)
+            check = check.plusMinutes(1)
 
             val longitude =
                 getSiderealSunLongitude(check)
@@ -163,7 +156,6 @@ object LiveSunCalculator {
         )
     }
 
-
     private fun findNextPadaChange(
         now: LocalDateTime,
         currentNakshatra: Int,
@@ -172,10 +164,9 @@ object LiveSunCalculator {
 
         var check = now
 
-        repeat(3000) {
+        repeat(10000) {
 
-            check =
-                check.plusMinutes(10)
+            check = check.plusMinutes(1)
 
             val longitude =
                 getSiderealSunLongitude(check)
@@ -192,11 +183,8 @@ object LiveSunCalculator {
             ) {
 
                 val nextPada =
-                    if (nakshatra != currentNakshatra) {
-                        1
-                    } else {
-                        pada
-                    }
+                    if (nakshatra != currentNakshatra) 1
+                    else pada
 
                 return Pair(
                     "चरण $currentPada → चरण $nextPada",
@@ -211,30 +199,23 @@ object LiveSunCalculator {
         )
     }
 
-
     private fun getRashiIndex(
         longitude: Double
     ): Int {
 
-        return (
-            longitude / 30.0
-        )
+        return (longitude / 30.0)
             .toInt()
             .coerceIn(0, 11)
     }
-
 
     private fun getNakshatraIndex(
         longitude: Double
     ): Int {
 
-        return (
-            longitude / NAKSHATRA_SIZE
-        )
+        return (longitude / NAKSHATRA_SIZE)
             .toInt()
             .coerceIn(0, 26)
     }
-
 
     private fun getPada(
         longitude: Double
@@ -243,13 +224,10 @@ object LiveSunCalculator {
         val nakshatraPosition =
             longitude % NAKSHATRA_SIZE
 
-        return (
-            nakshatraPosition / PADA_SIZE
-        )
+        return (nakshatraPosition / PADA_SIZE)
             .toInt()
             .coerceIn(0, 3) + 1
     }
-
 
     private fun getSiderealSunLongitude(
         dateTime: LocalDateTime
@@ -261,13 +239,11 @@ object LiveSunCalculator {
         val d =
             jd - 2451545.0
 
-
         val meanLongitude =
             normalize(
                 280.46646 +
                         0.98564736 * d
             )
-
 
         val meanAnomaly =
             normalize(
@@ -275,48 +251,32 @@ object LiveSunCalculator {
                         0.98560028 * d
             )
 
-
-        val equation =
+        val equationOfCenter =
             1.914602 *
-                    sin(
-                        Math.toRadians(meanAnomaly)
-                    ) +
-
+                    sin(Math.toRadians(meanAnomaly)) +
                     0.019993 *
-                    sin(
-                        Math.toRadians(
-                            2 * meanAnomaly
-                        )
-                    ) +
-
+                    sin(Math.toRadians(2 * meanAnomaly)) +
                     0.000289 *
-                    sin(
-                        Math.toRadians(
-                            3 * meanAnomaly
-                        )
-                    )
-
+                    sin(Math.toRadians(3 * meanAnomaly))
 
         val tropicalLongitude =
             normalize(
-                meanLongitude + equation
+                meanLongitude +
+                        equationOfCenter
             )
-
 
         val ayanamsa =
             23.85675 +
                     (
-                        (jd - 2451545.0) /
-                                36525.0
-                        ) *
+                            (jd - 2451545.0) /
+                                    36525.0
+                            ) *
                     1.396971
-
 
         return normalize(
             tropicalLongitude - ayanamsa
         )
     }
-
 
     private fun getJulianDay(
         dateTime: LocalDateTime
@@ -328,11 +288,11 @@ object LiveSunCalculator {
             )
 
         return (
-            instant.epochSecond /
-                    86400.0
-            ) + 2440587.5
+                instant.epochSecond /
+                        86400.0
+                ) +
+                2440587.5
     }
-
 
     private fun toMillis(
         dateTime: LocalDateTime
@@ -344,7 +304,6 @@ object LiveSunCalculator {
             )
             .toEpochMilli()
     }
-
 
     private fun formatDateTime(
         dateTime: LocalDateTime
@@ -373,13 +332,11 @@ object LiveSunCalculator {
         return "$day-$month-${dateTime.year} $hour:$minute"
     }
 
-
     private fun normalize(
         value: Double
     ): Double {
 
-        var result =
-            value % 360.0
+        var result = value % 360.0
 
         if (result < 0) {
             result += 360.0
