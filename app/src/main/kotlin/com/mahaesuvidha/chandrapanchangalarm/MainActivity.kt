@@ -25,6 +25,8 @@ import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.SunState
+import com.mahaesuvidha.chandrapanchangalarm.model.PanchangCalculator
+import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 
 class MainActivity : ComponentActivity() {
 
