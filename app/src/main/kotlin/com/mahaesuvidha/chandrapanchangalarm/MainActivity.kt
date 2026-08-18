@@ -27,6 +27,8 @@ import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.SunState
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 
 class MainActivity : ComponentActivity() {
 
@@ -130,14 +132,16 @@ private fun ChandraSuryaHome(
         Color(0xFFF5F7FA)
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(12.dp)
-    ) {
+    modifier = Modifier
+        .fillMaxSize()
+        .background(backgroundColor)
+        .statusBarsPadding()
+        .navigationBarsPadding()
+        .verticalScroll(
+            rememberScrollState()
+        )
+        .padding(12.dp)
+) {
 
         // ------------------------------------------------
         // HEADER
