@@ -277,11 +277,19 @@ SunColumn(
         }
 
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+       Spacer(
+    modifier = Modifier.height(12.dp)
+)
 
+PanchangCard(
+    state = panchangState,
+    textColor = white,
+    accentColor = gold
+)
 
+Spacer(
+    modifier = Modifier.height(12.dp)
+)
         // ------------------------------------------------
         // TEST BUTTONS
         // ------------------------------------------------
