@@ -724,3 +724,5 @@ private fun TestButton(
         )
     }
 }
+LiveMoonCalculator.getCurrentMoonState()
+LiveSunCalculator.getCurrentSunState()
