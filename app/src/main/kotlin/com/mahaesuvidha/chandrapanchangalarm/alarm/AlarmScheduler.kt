@@ -9,8 +9,9 @@ import android.provider.Settings
 
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveSunCalculator
-import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
 import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
+import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
+
 
 class AlarmScheduler(
     private val context: Context
@@ -21,45 +22,7 @@ class AlarmScheduler(
             AlarmManager::class.java
         )
 
-        // ==========================================
-        // PANCHANG ALARMS
-        // ==========================================
 
-        val panchang =
-            LivePanchangCalculator
-                .getCurrentPanchangState()
-
-        schedule(
-            id = 21,
-            at = panchang.nextTithiMillis,
-            title = "🔔 तिथी बदल",
-            message =
-                "${panchang.tithi} → ${panchang.nextTithi}"
-        )
-
-        schedule(
-            id = 22,
-            at = panchang.nextYogaMillis,
-            title = "🔔 योग बदल",
-            message =
-                "${panchang.yoga} → ${panchang.nextYoga}"
-        )
-
-        schedule(
-            id = 23,
-            at = panchang.nextKaranaMillis,
-            title = "🔔 करण बदल",
-            message =
-                "${panchang.karana} → ${panchang.nextKarana}"
-        )
-
-        schedule(
-            id = 24,
-            at = panchang.nextPakshaMillis,
-            title = "🔔 पक्ष बदल",
-            message =
-                "${panchang.paksha} → ${panchang.nextPaksha}"
-        )
     // ==================================================
     // SCHEDULE ALL ENABLED ALARMS
     // ==================================================
@@ -71,11 +34,19 @@ class AlarmScheduler(
         val prefs =
             AlarmPrefs(context)
 
+
+        // ==================================================
+        // MOON ALARMS
+        // ==================================================
+
         if (prefs.moon) {
 
             val moon =
                 LiveMoonCalculator
                     .getCurrentMoonState()
+
+
+            // RASHI
 
             if (prefs.rashi) {
 
@@ -87,6 +58,9 @@ class AlarmScheduler(
                 )
             }
 
+
+            // NAKSHATRA
+
             if (prefs.nak) {
 
                 schedule(
@@ -96,6 +70,9 @@ class AlarmScheduler(
                     message = moon.nextNakshatra
                 )
             }
+
+
+            // CHARAN
 
             if (prefs.pada) {
 
@@ -109,11 +86,18 @@ class AlarmScheduler(
         }
 
 
+        // ==================================================
+        // SUN ALARMS
+        // ==================================================
+
         if (prefs.sun) {
 
             val sun =
                 LiveSunCalculator
                     .getCurrentSunState()
+
+
+            // RASHI
 
             if (prefs.rashi) {
 
@@ -125,6 +109,9 @@ class AlarmScheduler(
                 )
             }
 
+
+            // NAKSHATRA
+
             if (prefs.nak) {
 
                 schedule(
@@ -134,6 +121,9 @@ class AlarmScheduler(
                     message = sun.nextNakshatra
                 )
             }
+
+
+            // CHARAN
 
             if (prefs.pada) {
 
@@ -145,6 +135,59 @@ class AlarmScheduler(
                 )
             }
         }
+
+
+        // ==================================================
+        // PANCHANG ALARMS
+        // ==================================================
+
+        val panchang =
+            LivePanchangCalculator
+                .getCurrentPanchangState()
+
+
+        // TITHI
+
+        schedule(
+            id = 21,
+            at = panchang.nextTithiMillis,
+            title = "🔔 तिथी बदल",
+            message =
+                "${panchang.tithi} → ${panchang.nextTithi}"
+        )
+
+
+        // YOGA
+
+        schedule(
+            id = 22,
+            at = panchang.nextYogaMillis,
+            title = "🔔 योग बदल",
+            message =
+                "${panchang.yoga} → ${panchang.nextYoga}"
+        )
+
+
+        // KARANA
+
+        schedule(
+            id = 23,
+            at = panchang.nextKaranaMillis,
+            title = "🔔 करण बदल",
+            message =
+                "${panchang.karana} → ${panchang.nextKarana}"
+        )
+
+
+        // PAKSHA
+
+        schedule(
+            id = 24,
+            at = panchang.nextPakshaMillis,
+            title = "🔔 पक्ष बदल",
+            message =
+                "${panchang.paksha} → ${panchang.nextPaksha}"
+        )
     }
 
 
@@ -156,6 +199,7 @@ class AlarmScheduler(
 
         val prefs =
             AlarmPrefs(context)
+
 
         if (prefs.moon) {
 
@@ -170,6 +214,7 @@ class AlarmScheduler(
                 message = moon.nextRashi
             )
         }
+
 
         if (prefs.sun) {
 
@@ -196,6 +241,7 @@ class AlarmScheduler(
         val prefs =
             AlarmPrefs(context)
 
+
         if (prefs.moon) {
 
             val moon =
@@ -209,6 +255,7 @@ class AlarmScheduler(
                 message = moon.nextNakshatra
             )
         }
+
 
         if (prefs.sun) {
 
@@ -235,6 +282,7 @@ class AlarmScheduler(
         val prefs =
             AlarmPrefs(context)
 
+
         if (prefs.moon) {
 
             val moon =
@@ -248,6 +296,7 @@ class AlarmScheduler(
                 message = moon.nextCharan
             )
         }
+
 
         if (prefs.sun) {
 
@@ -336,6 +385,7 @@ class AlarmScheduler(
                 AlarmReceiver::class.java
             )
 
+
         intent.putExtra(
             "title",
             title
@@ -376,22 +426,31 @@ class AlarmScheduler(
 
     fun cancelAll() {
 
-        for (
-            id in 1..3
-        ) {
+        // MOON
+
+        for (id in 1..3) {
 
             cancel(id)
         }
 
-for (id in 11..13) {
+
+        // SUN
+
+        for (id in 11..13) {
 
             cancel(id)
         }
+
+
+        // PANCHANG
 
         for (id in 21..24) {
 
             cancel(id)
         }
+
+
+        // TEST
 
         cancel(99)
     }
@@ -416,6 +475,7 @@ for (id in 11..13) {
                 PendingIntent.FLAG_NO_CREATE or
                         PendingIntent.FLAG_IMMUTABLE
             )
+
 
         if (
             pendingIntent != null
