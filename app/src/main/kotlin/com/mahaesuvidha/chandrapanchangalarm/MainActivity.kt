@@ -347,8 +347,16 @@ private fun MoonColumn(
     textColor: Color
 ) {
 
+    val jyotish =
+        JyotishMaster.getInfo(
+            state.rashi,
+            state.nakshatra,
+            state.pada
+        )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier.fillMaxWidth(),
 
         shape =
             RoundedCornerShape(18.dp),
@@ -372,20 +380,16 @@ private fun MoonColumn(
             )
 
             Text(
-                text = "● LIVE  सध्याची स्थिती",
+                text = "● LIVE सध्याची स्थिती",
                 color = Color(0xFF39D353),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(
-                modifier = Modifier.height(10.dp)
+                modifier =
+                    Modifier.height(10.dp)
             )
-
-
-            // ----------------------------------------------
-            // CURRENT DATA
-            // ----------------------------------------------
 
             SmallDataRow(
                 label = "राशी",
@@ -405,11 +409,10 @@ private fun MoonColumn(
                 color = textColor
             )
 
-
-            Divider(
+            HorizontalDivider(
                 modifier =
                     Modifier.padding(
-                        vertical = 6.dp
+                        vertical = 8.dp
                     ),
 
                 color =
@@ -418,22 +421,11 @@ private fun MoonColumn(
                     )
             )
 
-
-            // ----------------------------------------------
-            // PLANET LORD
-            // ----------------------------------------------
-
             Text(
                 text = "ग्रह स्वामी",
                 color = accentColor,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
-            )
-
-            val jyotish = JyotishMaster.getInfo(
-                state.rashi,
-                state.nakshatra,
-                state.pada
             )
 
             PlanetPanel(
@@ -442,80 +434,38 @@ private fun MoonColumn(
                 textColor = textColor
             )
 
-
             Spacer(
-                modifier = Modifier.height(6.dp)
+                modifier =
+                    Modifier.height(8.dp)
             )
 
+            NextChangeBlock(
+                title = "🌙 पुढील राशी बदल",
+                change = state.nextRashi,
+                time = state.nextRashiTime,
+                accent = accentColor,
+                textColor = textColor
+            )
 
-            // ----------------------------------------------
-            // NEXT CHANGES
-            // ----------------------------------------------
+            NextChangeBlock(
+                title = "⭐ पुढील नक्षत्र बदल",
+                change = state.nextNakshatra,
+                time = state.nextNakshatraTime,
+                accent = accentColor,
+                textColor = textColor
+            )
 
-Text(
-    text = "🌙 पुढील राशी बदल",
-    color = accentColor,
-    fontSize = 14.sp,
-    fontWeight = FontWeight.Bold
-)
+            NextChangeBlock(
+                title = "🔔 पुढील चरण बदल",
+                change = state.nextCharan,
+                time = state.nextCharanTime,
+                accent = accentColor,
+                textColor = textColor
+            )
+        }
+    }
+}
 
-Text(
-    text = state.nextRashi,
-    color = textColor,
-    fontSize = 12.sp
-)
-
-Text(
-    text = "📅 ${state.nextRashiTime}",
-    color = Color.LightGray,
-    fontSize = 11.sp
-)
-
-Spacer(
-    modifier = Modifier.height(8.dp)
-)
-
-Text(
-    text = "⭐ पुढील नक्षत्र बदल",
-    color = accentColor,
-    fontSize = 14.sp,
-    fontWeight = FontWeight.Bold
-)
-
-Text(
-    text = state.nextNakshatra,
-    color = textColor,
-    fontSize = 12.sp
-)
-
-Text(
-    text = "📅 ${state.nextNakshatraTime}",
-    color = Color.LightGray,
-    fontSize = 11.sp
-)
-
-Spacer(
-    modifier = Modifier.height(8.dp)
-)
-
-Text(
-    text = "🔔 पुढील चरण बदल",
-    color = accentColor,
-    fontSize = 14.sp,
-    fontWeight = FontWeight.Bold
-)
-
-Text(
-    text = state.nextCharan,
-    color = textColor,
-    fontSize = 12.sp
-)
-
-Text(
-    text = "📅 ${state.nextCharanTime}",
-    color = Color.LightGray,
-    fontSize = 11.sp
-)
 
 // ==========================================================
 // SUN COLUMN
@@ -528,18 +478,32 @@ private fun SunColumn(
     accentColor: Color,
     textColor: Color
 ) {
-    val jyotish = JyotishMaster.getInfo(
-        state.rashi,
-        state.nakshatra,
-        state.pada
-    )
+
+    val jyotish =
+        JyotishMaster.getInfo(
+            state.rashi,
+            state.nakshatra,
+            state.pada
+        )
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor)
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(18.dp),
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor = cardColor
+            )
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+
+        Column(
+            modifier =
+                Modifier.padding(10.dp)
+        ) {
+
             Text(
                 text = "☀️ सूर्य",
                 color = textColor,
@@ -554,15 +518,39 @@ private fun SunColumn(
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(
+                modifier =
+                    Modifier.height(10.dp)
+            )
 
-            SmallDataRow("राशी", state.rashi.marathi, textColor)
-            SmallDataRow("नक्षत्र", state.nakshatra.marathi, textColor)
-            SmallDataRow("चरण", state.pada.toString(), textColor)
+            SmallDataRow(
+                label = "राशी",
+                value = state.rashi.marathi,
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "नक्षत्र",
+                value = state.nakshatra.marathi,
+                color = textColor
+            )
+
+            SmallDataRow(
+                label = "चरण",
+                value = state.pada.toString(),
+                color = textColor
+            )
 
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = Color.White.copy(alpha = 0.15f)
+                modifier =
+                    Modifier.padding(
+                        vertical = 8.dp
+                    ),
+
+                color =
+                    Color.White.copy(
+                        alpha = 0.15f
+                    )
             )
 
             Text(
@@ -578,34 +566,38 @@ private fun SunColumn(
                 textColor = textColor
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
 
             NextChangeBlock(
-    title = "🔔 पुढील राशी बदल",
-    change = state.nextRashi,
-    time = state.nextRashiTime,
-    accent = accentColor,
-    textColor = textColor
-)
+                title = "☀️ पुढील राशी बदल",
+                change = state.nextRashi,
+                time = state.nextRashiTime,
+                accent = accentColor,
+                textColor = textColor
+            )
 
-NextChangeBlock(
-    title = "⭐ पुढील नक्षत्र बदल",
-    change = state.nextNakshatra,
-    time = state.nextNakshatraTime,
-    accent = accentColor,
-    textColor = textColor
-)
+            NextChangeBlock(
+                title = "⭐ पुढील नक्षत्र बदल",
+                change = state.nextNakshatra,
+                time = state.nextNakshatraTime,
+                accent = accentColor,
+                textColor = textColor
+            )
 
-NextChangeBlock(
-    title = "🔔 पुढील चरण बदल",
-    change = state.nextCharan,
-    time = state.nextCharanTime,
-    accent = accentColor,
-    textColor = textColor
-)    
+            NextChangeBlock(
+                title = "🔔 पुढील चरण बदल",
+                change = state.nextCharan,
+                time = state.nextCharanTime,
+                accent = accentColor,
+                textColor = textColor
+            )
         }
     }
 }
+
 
 // ==========================================================
 // SMALL DATA ROW
@@ -650,26 +642,61 @@ private fun SmallDataRow(
 }
 
 
+// ==========================================================
+// PLANET PANEL
+// ==========================================================
+
 @Composable
 private fun PlanetPanel(
     info: JyotishInfo,
     accent: Color,
     textColor: Color
 ) {
-    Text("राशी: ${info.rashiLord}", color = textColor, fontSize = 12.sp)
-    Text("नक्षत्र: ${info.nakshatraLord}", color = textColor, fontSize = 12.sp)
-    Text("नवांश: ${info.navamshaRashi}", color = textColor, fontSize = 12.sp)
-    Text("नवांश स्वामी: ${info.navamshaLord}", color = textColor, fontSize = 12.sp)
 
-    if (info.enemies.isNotEmpty()) {
+    Text(
+        text = "राशी: ${info.rashiLord}",
+        color = textColor,
+        fontSize = 12.sp
+    )
+
+    Text(
+        text = "नक्षत्र: ${info.nakshatraLord}",
+        color = textColor,
+        fontSize = 12.sp
+    )
+
+    Text(
+        text = "नवांश: ${info.navamshaRashi}",
+        color = textColor,
+        fontSize = 12.sp
+    )
+
+    Text(
+        text = "नवांश स्वामी: ${info.navamshaLord}",
+        color = textColor,
+        fontSize = 12.sp
+    )
+
+    if (
+        info.enemies.isNotEmpty()
+    ) {
+
         Text(
-            text = "⚠️ विरोधी ग्रह: ${info.enemies.joinToString(", ")}",
+            text =
+                "⚠️ विरोधी ग्रह: " +
+                        info.enemies.joinToString(", "),
+
             color = accent,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )
     }
 }
+
+
+// ==========================================================
+// NEXT CHANGE BLOCK
+// ==========================================================
 
 @Composable
 private fun NextChangeBlock(
@@ -679,11 +706,32 @@ private fun NextChangeBlock(
     accent: Color,
     textColor: Color
 ) {
-    Text(title, color = accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-    Text(change, color = textColor, fontSize = 12.sp)
-    Text("📅 $time", color = Color.LightGray, fontSize = 11.sp)
-    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        text = title,
+        color = accent,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold
+    )
+
+    Text(
+        text = change,
+        color = textColor,
+        fontSize = 12.sp
+    )
+
+    Text(
+        text = "📅 $time",
+        color = Color.LightGray,
+        fontSize = 11.sp
+    )
+
+    Spacer(
+        modifier =
+            Modifier.height(8.dp)
+    )
 }
+
 
 // ==========================================================
 // TEST BUTTON
@@ -716,4 +764,3 @@ private fun TestButton(
         )
     }
 }
-
