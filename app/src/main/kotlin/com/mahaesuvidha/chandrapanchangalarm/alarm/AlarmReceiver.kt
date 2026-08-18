@@ -1,27 +1,20 @@
 package com.mahaesuvidha.chandrapanchangalarm.alarm
 
-import android.app.BroadcastReceiver
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
+
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
+import com.mahaesuvidha.chandrapanchangalarm.R
+
 class AlarmReceiver : BroadcastReceiver() {
-
-    companion object {
-
-        private const val CHANNEL_ID =
-            "chandra_sun_alarm_v2"
-
-        private const val CHANNEL_NAME =
-            "चंद्र सूर्य अलार्म"
-
-    }
 
     override fun onReceive(
         context: Context,
@@ -34,7 +27,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val message =
             intent.getStringExtra("message")
-                ?: "पुढील बदलाची सूचना"
+                ?: "ग्रह स्थितीमध्ये बदल झाला आहे."
 
         val notificationId =
             intent.getIntExtra(
@@ -42,80 +35,35 @@ class AlarmReceiver : BroadcastReceiver() {
                 100
             )
 
-        createNotificationChannel(context)
+        val channelId =
+            "chandra_sun_alarm_channel"
 
-        val notification =
-            NotificationCompat.Builder(
-                context,
-                CHANNEL_ID
+        val soundUri =
+            RingtoneManager.getDefaultUri(
+                RingtoneManager.TYPE_ALARM
             )
-                .setSmallIcon(
-                    android.R.drawable.ic_dialog_info
-                )
-                .setContentTitle(title)
-                .setContentText(message)
-                .setStyle(
-                    NotificationCompat.BigTextStyle()
-                        .bigText(message)
-                )
-                .setPriority(
-                    NotificationCompat.PRIORITY_HIGH
-                )
-                .setCategory(
-                    NotificationCompat.CATEGORY_ALARM
-                )
-                .setAutoCancel(true)
-                .build()
-
-        try {
-
-            NotificationManagerCompat
-                .from(context)
-                .notify(
-                    notificationId,
-                    notification
-                )
-
-        } catch (e: SecurityException) {
-
-            e.printStackTrace()
-
-        }
-    }
-
-    private fun createNotificationChannel(
-        context: Context
-    ) {
 
         if (
             Build.VERSION.SDK_INT >=
             Build.VERSION_CODES.O
         ) {
 
-            val soundUri =
-                RingtoneManager.getDefaultUri(
-                    RingtoneManager.TYPE_ALARM
-                )
-
             val audioAttributes =
                 AudioAttributes.Builder()
                     .setUsage(
                         AudioAttributes.USAGE_ALARM
                     )
-                    .setContentType(
-                        AudioAttributes.CONTENT_TYPE_SONIFICATION
-                    )
                     .build()
 
             val channel =
                 NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
+                    channelId,
+                    "चंद्र सूर्य अलार्म",
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
 
                     description =
-                        "चंद्र आणि सूर्य बदल अलार्म"
+                        "राशी, नक्षत्र आणि चरण बदल अलार्म"
 
                     enableVibration(true)
 
@@ -125,14 +73,52 @@ class AlarmReceiver : BroadcastReceiver() {
                     )
                 }
 
-            val manager =
+            val notificationManager =
                 context.getSystemService(
                     NotificationManager::class.java
                 )
 
-            manager.createNotificationChannel(
+            notificationManager.createNotificationChannel(
                 channel
             )
         }
+
+        val notification =
+            NotificationCompat.Builder(
+                context,
+                channelId
+            )
+                .setSmallIcon(
+                    android.R.drawable.ic_dialog_info
+                )
+                .setContentTitle(
+                    title
+                )
+                .setContentText(
+                    message
+                )
+                .setStyle(
+                    NotificationCompat.BigTextStyle()
+                        .bigText(
+                            message
+                        )
+                )
+                .setPriority(
+                    NotificationCompat.PRIORITY_HIGH
+                )
+                .setCategory(
+                    NotificationCompat.CATEGORY_ALARM
+                )
+                .setAutoCancel(
+                    true
+                )
+                .build()
+
+        NotificationManagerCompat
+            .from(context)
+            .notify(
+                notificationId,
+                notification
+            )
     }
 }
