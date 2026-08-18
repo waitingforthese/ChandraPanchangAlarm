@@ -12,96 +12,171 @@ class AlarmPrefs(
             Context.MODE_PRIVATE
         )
 
-
     // ==========================================
-    // GRAHA
+    // MOON / SUN
     // ==========================================
 
     var moon: Boolean
-        get() = p.getBoolean("moon", true)
+        get() = p.getBoolean(
+            "moon",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("moon", value)
+                .putBoolean(
+                    "moon",
+                    value
+                )
                 .apply()
         }
-
 
     var sun: Boolean
-        get() = p.getBoolean("sun", true)
+        get() = p.getBoolean(
+            "sun",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("sun", value)
+                .putBoolean(
+                    "sun",
+                    value
+                )
                 .apply()
         }
 
-
     // ==========================================
-    // GRAHA BADAL
+    // PLANET CHANGE ALARMS
     // ==========================================
 
     var rashi: Boolean
-        get() = p.getBoolean("rashi", true)
+        get() = p.getBoolean(
+            "rashi",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("rashi", value)
+                .putBoolean(
+                    "rashi",
+                    value
+                )
                 .apply()
         }
-
 
     var nak: Boolean
-        get() = p.getBoolean("nak", true)
+        get() = p.getBoolean(
+            "nak",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("nak", value)
+                .putBoolean(
+                    "nak",
+                    value
+                )
                 .apply()
         }
-
 
     var pada: Boolean
-        get() = p.getBoolean("pada", true)
+        get() = p.getBoolean(
+            "pada",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("pada", value)
+                .putBoolean(
+                    "pada",
+                    value
+                )
                 .apply()
         }
 
+    // ==========================================
+    // PANCHANG MASTER
+    // ==========================================
+
+    var panchang: Boolean
+        get() = p.getBoolean(
+            "panchang",
+            true
+        )
+        set(value) {
+            p.edit()
+                .putBoolean(
+                    "panchang",
+                    value
+                )
+                .apply()
+        }
 
     // ==========================================
-    // PANCHANG BADAL
+    // TITHI
     // ==========================================
 
     var tithi: Boolean
-        get() = p.getBoolean("tithi", true)
+        get() = p.getBoolean(
+            "tithi",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("tithi", value)
+                .putBoolean(
+                    "tithi",
+                    value
+                )
                 .apply()
         }
 
+    // ==========================================
+    // YOGA
+    // ==========================================
 
     var yoga: Boolean
-        get() = p.getBoolean("yoga", true)
+        get() = p.getBoolean(
+            "yoga",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("yoga", value)
+                .putBoolean(
+                    "yoga",
+                    value
+                )
                 .apply()
         }
 
+    // ==========================================
+    // KARANA
+    // ==========================================
 
     var karana: Boolean
-        get() = p.getBoolean("karana", true)
+        get() = p.getBoolean(
+            "karana",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("karana", value)
+                .putBoolean(
+                    "karana",
+                    value
+                )
                 .apply()
         }
 
+    // ==========================================
+    // PAKSHA
+    // ==========================================
 
     var paksha: Boolean
-        get() = p.getBoolean("paksha", true)
+        get() = p.getBoolean(
+            "paksha",
+            true
+        )
         set(value) {
             p.edit()
-                .putBoolean("paksha", value)
+                .putBoolean(
+                    "paksha",
+                    value
+                )
                 .apply()
         }
 }
