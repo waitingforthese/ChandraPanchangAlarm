@@ -452,14 +452,7 @@ private fun MoonColumn(
             // NEXT CHANGES
             // ----------------------------------------------
 
-            Text(
-                text = "🔔 पुढील बदल",
-                color = accentColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-           Text(
+Text(
     text = "🌙 पुढील राशी बदल",
     color = accentColor,
     fontSize = 14.sp,
@@ -467,7 +460,7 @@ private fun MoonColumn(
 )
 
 Text(
-  text = state.nextRashi,
+    text = state.nextRashi,
     color = textColor,
     fontSize = 12.sp
 )
@@ -478,7 +471,9 @@ Text(
     fontSize = 11.sp
 )
 
-Spacer(modifier = Modifier.height(8.dp))
+Spacer(
+    modifier = Modifier.height(8.dp)
+)
 
 Text(
     text = "⭐ पुढील नक्षत्र बदल",
@@ -499,7 +494,9 @@ Text(
     fontSize = 11.sp
 )
 
-Spacer(modifier = Modifier.height(8.dp))
+Spacer(
+    modifier = Modifier.height(8.dp)
+)
 
 Text(
     text = "🔔 पुढील चरण बदल",
@@ -509,7 +506,7 @@ Text(
 )
 
 Text(
-  text = state.nextCharan,
+    text = state.nextCharan,
     color = textColor,
     fontSize = 12.sp
 )
@@ -519,11 +516,6 @@ Text(
     color = Color.LightGray,
     fontSize = 11.sp
 )
-
-        }
-    }
-}
-
 
 // ==========================================================
 // SUN COLUMN
