@@ -467,7 +467,7 @@ private fun MoonColumn(
 )
 
 Text(
-    text = "${state.rashi.marathi} → ${state.nextRashi}",
+  text = state.nextRashi,
     color = textColor,
     fontSize = 12.sp
 )
@@ -488,7 +488,7 @@ Text(
 )
 
 Text(
-    text = "${state.nakshatra.marathi} → ${state.nextNakshatra}",
+    text = state.nextNakshatra,
     color = textColor,
     fontSize = 12.sp
 )
@@ -509,7 +509,7 @@ Text(
 )
 
 Text(
-    text = "चरण ${state.pada} → ${state.nextCharan}",
+  text = state.nextCharan,
     color = textColor,
     fontSize = 12.sp
 )
@@ -589,28 +589,28 @@ private fun SunColumn(
             Spacer(modifier = Modifier.height(8.dp))
 
             NextChangeBlock(
-                title = "🔔 पुढील राशी बदल",
-                change = "${state.rashi.marathi} → ${state.nextRashi}",
-                time = state.nextRashiTime,
-                accent = accentColor,
-                textColor = textColor
-            )
+    title = "🔔 पुढील राशी बदल",
+    change = state.nextRashi,
+    time = state.nextRashiTime,
+    accent = accentColor,
+    textColor = textColor
+)
 
-            NextChangeBlock(
-                title = "⭐ पुढील नक्षत्र बदल",
-                change = "${state.nakshatra.marathi} → ${state.nextNakshatra}",
-                time = state.nextNakshatraTime,
-                accent = accentColor,
-                textColor = textColor
-            )
+NextChangeBlock(
+    title = "⭐ पुढील नक्षत्र बदल",
+    change = state.nextNakshatra,
+    time = state.nextNakshatraTime,
+    accent = accentColor,
+    textColor = textColor
+)
 
-            NextChangeBlock(
-                title = "🔔 पुढील चरण बदल",
-                change = "चरण ${state.pada} → ${state.nextCharan}",
-                time = state.nextCharanTime,
-                accent = accentColor,
-                textColor = textColor
-            )
+NextChangeBlock(
+    title = "🔔 पुढील चरण बदल",
+    change = state.nextCharan,
+    time = state.nextCharanTime,
+    accent = accentColor,
+    textColor = textColor
+)    
         }
     }
 }
