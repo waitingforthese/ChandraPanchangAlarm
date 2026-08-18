@@ -1,17 +1,14 @@
 package com.mahaesuvidha.chandrapanchangalarm.alarm
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
-
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-
 import com.mahaesuvidha.chandrapanchangalarm.R
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -27,20 +24,44 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val message =
             intent.getStringExtra("message")
-                ?: "ग्रह स्थितीमध्ये बदल झाला आहे."
+                ?: "पंचांग बदल झाला आहे."
 
-        val notificationId =
-            intent.getIntExtra(
-                "id",
-                100
-            )
+        val id =
+            intent.getIntExtra("id", 1)
+
+        showNotification(
+            context,
+            title,
+            message,
+            id
+        )
+
+        // पुढील राशी / नक्षत्र / चरण बदल
+        // पुन्हा आपोआप schedule करा
+        val scheduler =
+            AlarmScheduler(context)
+
+        scheduler.scheduleAll()
+    }
+
+    private fun showNotification(
+        context: Context,
+        title: String,
+        message: String,
+        id: Int
+    ) {
 
         val channelId =
-            "chandra_sun_alarm_channel"
+            "chandra_alarm_channel"
+
+        val notificationManager =
+            context.getSystemService(
+                Context.NOTIFICATION_SERVICE
+            ) as NotificationManager
 
         val soundUri =
-            RingtoneManager.getDefaultUri(
-                RingtoneManager.TYPE_ALARM
+            Uri.parse(
+                "android.resource://${context.packageName}/raw/alarm"
             )
 
         if (
@@ -60,23 +81,15 @@ class AlarmReceiver : BroadcastReceiver() {
                     channelId,
                     "चंद्र सूर्य अलार्म",
                     NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-
-                    description =
-                        "राशी, नक्षत्र आणि चरण बदल अलार्म"
-
-                    enableVibration(true)
-
-                    setSound(
-                        soundUri,
-                        audioAttributes
-                    )
-                }
-
-            val notificationManager =
-                context.getSystemService(
-                    NotificationManager::class.java
                 )
+
+            channel.description =
+                "राशी, नक्षत्र आणि चरण बदल अलार्म"
+
+            channel.setSound(
+                soundUri,
+                audioAttributes
+            )
 
             notificationManager.createNotificationChannel(
                 channel
@@ -89,7 +102,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 channelId
             )
                 .setSmallIcon(
-                    android.R.drawable.ic_dialog_info
+                    R.mipmap.ic_launcher
                 )
                 .setContentTitle(
                     title
@@ -97,28 +110,17 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setContentText(
                     message
                 )
-                .setStyle(
-                    NotificationCompat.BigTextStyle()
-                        .bigText(
-                            message
-                        )
-                )
                 .setPriority(
                     NotificationCompat.PRIORITY_HIGH
-                )
-                .setCategory(
-                    NotificationCompat.CATEGORY_ALARM
                 )
                 .setAutoCancel(
                     true
                 )
                 .build()
 
-        NotificationManagerCompat
-            .from(context)
-            .notify(
-                notificationId,
-                notification
-            )
+        notificationManager.notify(
+            id,
+            notification
+        )
     }
 }
