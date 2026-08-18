@@ -53,6 +53,8 @@ class MainActivity : ComponentActivity() {
         
         val sunState =
     LiveSunCalculator.getCurrentSunState()
+    val panchangState =
+    PanchangCalculator.getCurrentPanchang()
 
         // Existing automatic Moon alarm
       // scheduler.scheduleNextLiveAlarm()
@@ -77,8 +79,9 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
 
                 ChandraSuryaHome(
-                    moonState = moonState,
-                    sunState = sunState,
+    moonState = moonState,
+    sunState = sunState,
+    panchangState = panchangState,
 
                     onTestRashi = {
                         scheduler.scheduleTest("राशी")
@@ -100,9 +103,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun ChandraSuryaHome(
-
     moonState: MoonState,
     sunState: SunState,
+    panchangState: PanchangState,
     onTestRashi: () -> Unit,
     onTestNakshatra: () -> Unit,
     onTestCharan: () -> Unit
@@ -762,6 +765,242 @@ private fun TestButton(
         Text(
             text = text,
             fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+// ==========================================================
+// PANCHANG CARD
+// ==========================================================
+
+@Composable
+private fun PanchangCard(
+    state: PanchangState,
+    textColor: Color,
+    accentColor: Color
+) {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(18.dp),
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor = Color(0xFFF7F7F7)
+            )
+    ) {
+
+        Column(
+            modifier =
+                Modifier.padding(16.dp)
+        ) {
+
+            // ------------------------------------------------
+            // TITLE
+            // ------------------------------------------------
+
+            Text(
+                text = "📅 आजचे पंचांग",
+                color = Color.Black,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(10.dp)
+            )
+
+            // ------------------------------------------------
+            // DATE
+            // ------------------------------------------------
+
+            PanchangRow(
+                label = "तारीख",
+                value = state.date
+            )
+
+            PanchangRow(
+                label = "वार",
+                value = state.weekday
+            )
+
+            Divider(
+                color = Color.LightGray,
+                modifier =
+                    Modifier.padding(
+                        vertical = 4.dp
+                    )
+            )
+
+            // ------------------------------------------------
+            // TITHI
+            // ------------------------------------------------
+
+            PanchangRow(
+                label = "तिथी",
+                value = state.tithi
+            )
+
+            Text(
+                text = "🔔 पुढील तिथी बदल",
+                color = Color(0xFF1565C0),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = state.nextTithi,
+                color = Color.Black,
+                fontSize = 13.sp
+            )
+
+            Text(
+                text = "📅 ${state.nextTithiTime}",
+                color = Color.DarkGray,
+                fontSize = 11.sp
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            // ------------------------------------------------
+            // YOGA
+            // ------------------------------------------------
+
+            PanchangRow(
+                label = "योग",
+                value = state.yoga
+            )
+
+            Text(
+                text = "🔔 पुढील योग बदल",
+                color = Color(0xFF1565C0),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = state.nextYoga,
+                color = Color.Black,
+                fontSize = 13.sp
+            )
+
+            Text(
+                text = "📅 ${state.nextYogaTime}",
+                color = Color.DarkGray,
+                fontSize = 11.sp
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            // ------------------------------------------------
+            // KARANA
+            // ------------------------------------------------
+
+            PanchangRow(
+                label = "करण",
+                value = state.karana
+            )
+
+            Text(
+                text = "🔔 पुढील करण बदल",
+                color = Color(0xFF1565C0),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = state.nextKarana,
+                color = Color.Black,
+                fontSize = 13.sp
+            )
+
+            Text(
+                text = "📅 ${state.nextKaranaTime}",
+                color = Color.DarkGray,
+                fontSize = 11.sp
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            // ------------------------------------------------
+            // PAKSHA
+            // ------------------------------------------------
+
+            PanchangRow(
+                label = "पक्ष",
+                value = state.paksha
+            )
+
+            Text(
+                text = "🔔 पुढील पक्ष बदल",
+                color = Color(0xFF1565C0),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = state.nextPaksha,
+                color = Color.Black,
+                fontSize = 13.sp
+            )
+
+            Text(
+                text = "📅 ${state.nextPakshaTime}",
+                color = Color.DarkGray,
+                fontSize = 11.sp
+            )
+        }
+    }
+}
+
+
+// ==========================================================
+// PANCHANG ROW
+// ==========================================================
+
+@Composable
+private fun PanchangRow(
+    label: String,
+    value: String
+) {
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 7.dp
+                ),
+
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+
+        Text(
+            text = label,
+            color = Color.Gray,
+            fontSize = 15.sp
+        )
+
+        Text(
+            text = value,
+            color = Color.Black,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
     }
