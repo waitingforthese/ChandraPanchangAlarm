@@ -30,6 +30,32 @@ import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+
+import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
+import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
@@ -185,12 +211,24 @@ private fun ChandraSuryaHome(
                 )
             }
 
-            Text(
-                text = "⚙️",
-                fontSize = 25.sp
-            )
-        }
+         var showSettings by remember {
+    mutableStateOf(false)
+}
 
+Text(
+    text = "⚙️",
+    fontSize = 25.sp,
+    modifier = Modifier.clickable {
+        showSettings = true
+    }
+)
+if (showSettings) {
+    SettingsDialog(
+        onDismiss = {
+            showSettings = false
+        }
+    )
+}
 
         // ------------------------------------------------
         // LOCATION
@@ -1014,6 +1052,257 @@ private fun PanchangRow(
             color = Color.Black,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
+        )
+    }
+}
+@Composable
+private fun SettingsDialog(
+    onDismiss: () -> Unit
+) {
+
+    val context = LocalContext.current
+
+    val prefs = remember {
+        AlarmPrefs(context)
+    }
+
+    var moon by remember {
+        mutableStateOf(prefs.moon)
+    }
+
+    var sun by remember {
+        mutableStateOf(prefs.sun)
+    }
+
+    var rashi by remember {
+        mutableStateOf(prefs.rashi)
+    }
+
+    var nak by remember {
+        mutableStateOf(prefs.nak)
+    }
+
+    var pada by remember {
+        mutableStateOf(prefs.pada)
+    }
+
+    var tithi by remember {
+        mutableStateOf(prefs.tithi)
+    }
+
+    var yoga by remember {
+        mutableStateOf(prefs.yoga)
+    }
+
+    var karana by remember {
+        mutableStateOf(prefs.karana)
+    }
+
+    var paksha by remember {
+        mutableStateOf(prefs.paksha)
+    }
+
+    AlertDialog(
+
+        onDismissRequest = {
+            onDismiss()
+        },
+
+        title = {
+
+            Text(
+                text = "⚙️ अलार्म सेटिंग्स"
+            )
+        },
+
+        text = {
+
+            Column {
+
+                Text(
+                    text = "ग्रह निवडा"
+                )
+
+                SwitchRow(
+                    text = "🌙 चंद्र अलार्म",
+                    checked = moon
+                ) {
+
+                    moon = it
+                    prefs.moon = it
+                }
+
+                SwitchRow(
+                    text = "☀️ सूर्य अलार्म",
+                    checked = sun
+                ) {
+
+                    sun = it
+                    prefs.sun = it
+                }
+
+                Spacer(
+                    modifier =
+                        Modifier.height(12.dp)
+                )
+
+                Text(
+                    text = "ग्रह बदल"
+                )
+
+                SwitchRow(
+                    text = "राशी बदल",
+                    checked = rashi
+                ) {
+
+                    rashi = it
+                    prefs.rashi = it
+                }
+
+                SwitchRow(
+                    text = "नक्षत्र बदल",
+                    checked = nak
+                ) {
+
+                    nak = it
+                    prefs.nak = it
+                }
+
+                SwitchRow(
+                    text = "चरण बदल",
+                    checked = pada
+                ) {
+
+                    pada = it
+                    prefs.pada = it
+                }
+
+                Spacer(
+                    modifier =
+                        Modifier.height(12.dp)
+                )
+
+                Text(
+                    text = "पंचांग बदल"
+                )
+
+                SwitchRow(
+                    text = "तिथी बदल",
+                    checked = tithi
+                ) {
+
+                    tithi = it
+                    prefs.tithi = it
+                }
+
+                SwitchRow(
+                    text = "योग बदल",
+                    checked = yoga
+                ) {
+
+                    yoga = it
+                    prefs.yoga = it
+                }
+
+                SwitchRow(
+                    text = "करण बदल",
+                    checked = karana
+                ) {
+
+                    karana = it
+                    prefs.karana = it
+                }
+
+                SwitchRow(
+                    text = "पक्ष बदल",
+                    checked = paksha
+                ) {
+
+                    paksha = it
+                    prefs.paksha = it
+                }
+            }
+        },
+
+        confirmButton = {
+
+            Button(
+
+                onClick = {
+
+                    AlarmScheduler(context)
+                        .scheduleAll()
+
+                    onDismiss()
+                }
+
+            ) {
+
+                Text(
+                    "सेव्ह करा"
+                )
+            }
+        },
+
+        dismissButton = {
+
+            TextButton(
+
+                onClick = {
+                    onDismiss()
+                }
+
+            ) {
+
+                Text(
+                    "बंद करा"
+                )
+            }
+        }
+    )
+}
+
+
+@Composable
+private fun SwitchRow(
+
+    text: String,
+
+    checked: Boolean,
+
+    onCheckedChange: (
+        Boolean
+    ) -> Unit
+) {
+
+    Row(
+
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 4.dp
+                ),
+
+        verticalAlignment =
+            Alignment.CenterVertically
+
+    ) {
+
+        Text(
+
+            text = text,
+
+            modifier =
+                Modifier.weight(1f)
+        )
+
+        Switch(
+
+            checked = checked,
+
+            onCheckedChange =
+                onCheckedChange
         )
     }
 }
