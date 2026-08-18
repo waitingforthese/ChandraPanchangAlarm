@@ -10,7 +10,7 @@ import android.provider.Settings
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveSunCalculator
 import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
-
+import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
 
 class AlarmScheduler(
     private val context: Context
@@ -21,7 +21,45 @@ class AlarmScheduler(
             AlarmManager::class.java
         )
 
+        // ==========================================
+        // PANCHANG ALARMS
+        // ==========================================
 
+        val panchang =
+            LivePanchangCalculator
+                .getCurrentPanchangState()
+
+        schedule(
+            id = 21,
+            at = panchang.nextTithiMillis,
+            title = "🔔 तिथी बदल",
+            message =
+                "${panchang.tithi} → ${panchang.nextTithi}"
+        )
+
+        schedule(
+            id = 22,
+            at = panchang.nextYogaMillis,
+            title = "🔔 योग बदल",
+            message =
+                "${panchang.yoga} → ${panchang.nextYoga}"
+        )
+
+        schedule(
+            id = 23,
+            at = panchang.nextKaranaMillis,
+            title = "🔔 करण बदल",
+            message =
+                "${panchang.karana} → ${panchang.nextKarana}"
+        )
+
+        schedule(
+            id = 24,
+            at = panchang.nextPakshaMillis,
+            title = "🔔 पक्ष बदल",
+            message =
+                "${panchang.paksha} → ${panchang.nextPaksha}"
+        )
     // ==================================================
     // SCHEDULE ALL ENABLED ALARMS
     // ==================================================
@@ -345,9 +383,12 @@ class AlarmScheduler(
             cancel(id)
         }
 
-        for (
-            id in 11..13
-        ) {
+for (id in 11..13) {
+
+            cancel(id)
+        }
+
+        for (id in 21..24) {
 
             cancel(id)
         }
