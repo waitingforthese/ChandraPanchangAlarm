@@ -2,192 +2,83 @@ package com.mahaesuvidha.chandrapanchangalarm.settings
 
 import android.content.Context
 
-class AlarmPrefs(
-    context: Context
-) {
+class AlarmPrefs(context: Context) {
 
-    private val prefs =
+    private val p =
         context.getSharedPreferences(
             "alarm_prefs",
             Context.MODE_PRIVATE
         )
 
-    // ==========================================
-    // MOON
-    // ==========================================
-
     var moon: Boolean
-        get() =
-            prefs.getBoolean(
-                "moon",
-                true
-            )
+        get() = p.getBoolean("moon", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "moon",
-                    value
-                )
+            p.edit()
+                .putBoolean("moon", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // SUN
-    // ==========================================
 
     var sun: Boolean
-        get() =
-            prefs.getBoolean(
-                "sun",
-                true
-            )
+        get() = p.getBoolean("sun", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "sun",
-                    value
-                )
+            p.edit()
+                .putBoolean("sun", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // RASHI
-    // ==========================================
 
     var rashi: Boolean
-        get() =
-            prefs.getBoolean(
-                "rashi",
-                true
-            )
+        get() = p.getBoolean("rashi", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "rashi",
-                    value
-                )
+            p.edit()
+                .putBoolean("rashi", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // NAKSHATRA
-    // ==========================================
 
     var nak: Boolean
-        get() =
-            prefs.getBoolean(
-                "nak",
-                true
-            )
+        get() = p.getBoolean("nak", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "nak",
-                    value
-                )
+            p.edit()
+                .putBoolean("nak", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // PADA / CHARAN
-    // ==========================================
 
     var pada: Boolean
-        get() =
-            prefs.getBoolean(
-                "pada",
-                true
-            )
+        get() = p.getBoolean("pada", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "pada",
-                    value
-                )
+            p.edit()
+                .putBoolean("pada", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // PANCHANG - TITHI
-    // ==========================================
 
     var tithi: Boolean
-        get() =
-            prefs.getBoolean(
-                "tithi",
-                true
-            )
+        get() = p.getBoolean("tithi", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "tithi",
-                    value
-                )
+            p.edit()
+                .putBoolean("tithi", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // PANCHANG - YOGA
-    // ==========================================
 
     var yoga: Boolean
-        get() =
-            prefs.getBoolean(
-                "yoga",
-                true
-            )
+        get() = p.getBoolean("yoga", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "yoga",
-                    value
-                )
+            p.edit()
+                .putBoolean("yoga", value)
                 .apply()
         }
-
-
-    // ==========================================
-    // PANCHANG - KARANA
-    // ==========================================
 
     var karana: Boolean
-        get() =
-            prefs.getBoolean(
-                "karana",
-                true
-            )
+        get() = p.getBoolean("karana", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "karana",
-                    value
-                )
+            p.edit()
+                .putBoolean("karana", value)
                 .apply()
         }
 
-
-    // ==========================================
-    // PANCHANG - PAKSHA
-    // ==========================================
-
     var paksha: Boolean
-        get() =
-            prefs.getBoolean(
-                "paksha",
-                true
-            )
+        get() = p.getBoolean("paksha", true)
         set(value) {
-            prefs.edit()
-                .putBoolean(
-                    "paksha",
-                    value
-                )
+            p.edit()
+                .putBoolean("paksha", value)
                 .apply()
         }
 }
