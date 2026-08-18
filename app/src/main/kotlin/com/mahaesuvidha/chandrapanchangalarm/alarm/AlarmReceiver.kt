@@ -96,27 +96,21 @@ class AlarmReceiver : BroadcastReceiver() {
             )
         }
 
-        val notification =
-            NotificationCompat.Builder(
-                context,
-                channelId
-            )
-                .setSmallIcon(
-                    R.mipmap.ic_launcher
-                )
-                .setContentTitle(
-                    title
-                )
-                .setContentText(
-                    message
-                )
-                .setPriority(
-                    NotificationCompat.PRIORITY_HIGH
-                )
-                .setAutoCancel(
-                    true
-                )
-                .build()
+      val notification =
+    NotificationCompat.Builder(
+        context,
+        channelId
+    )
+        .setSmallIcon(
+            android.R.drawable.ic_dialog_info
+        )
+        .setContentTitle(title)
+        .setContentText(message)
+        .setPriority(
+            NotificationCompat.PRIORITY_HIGH
+        )
+        .setAutoCancel(true)
+        .build()
 
         notificationManager.notify(
             id,
