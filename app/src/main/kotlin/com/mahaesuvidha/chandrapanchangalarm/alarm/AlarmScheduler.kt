@@ -137,59 +137,69 @@ class AlarmScheduler(
         }
 
 
-        // ==================================================
-        // PANCHANG ALARMS
-        // ==================================================
+// ==================================================
+// PANCHANG ALARMS
+// ==================================================
 
-        val panchang =
-            LivePanchangCalculator
-                .getCurrentPanchangState()
-
-
-        // TITHI
-
-        schedule(
-            id = 21,
-            at = panchang.nextTithiMillis,
-            title = "🔔 तिथी बदल",
-            message =
-                "${panchang.tithi} → ${panchang.nextTithi}"
-        )
+val panchang =
+    LivePanchangCalculator
+        .getCurrentPanchangState()
 
 
-        // YOGA
+// TITHI
 
-        schedule(
-            id = 22,
-            at = panchang.nextYogaMillis,
-            title = "🔔 योग बदल",
-            message =
-                "${panchang.yoga} → ${panchang.nextYoga}"
-        )
+if (prefs.tithi) {
 
-
-        // KARANA
-
-        schedule(
-            id = 23,
-            at = panchang.nextKaranaMillis,
-            title = "🔔 करण बदल",
-            message =
-                "${panchang.karana} → ${panchang.nextKarana}"
-        )
+    schedule(
+        id = 21,
+        at = panchang.nextTithiMillis,
+        title = "🔔 तिथी बदल",
+        message =
+            "${panchang.tithi} → ${panchang.nextTithi}"
+    )
+}
 
 
-        // PAKSHA
+// YOGA
 
-        schedule(
-            id = 24,
-            at = panchang.nextPakshaMillis,
-            title = "🔔 पक्ष बदल",
-            message =
-                "${panchang.paksha} → ${panchang.nextPaksha}"
-        )
-    }
+if (prefs.yoga) {
 
+    schedule(
+        id = 22,
+        at = panchang.nextYogaMillis,
+        title = "🔔 योग बदल",
+        message =
+            "${panchang.yoga} → ${panchang.nextYoga}"
+    )
+}
+
+
+// KARANA
+
+if (prefs.karana) {
+
+    schedule(
+        id = 23,
+        at = panchang.nextKaranaMillis,
+        title = "🔔 करण बदल",
+        message =
+            "${panchang.karana} → ${panchang.nextKarana}"
+    )
+}
+
+
+// PAKSHA
+
+if (prefs.paksha) {
+
+    schedule(
+        id = 24,
+        at = panchang.nextPakshaMillis,
+        title = "🔔 पक्ष बदल",
+        message =
+            "${panchang.paksha} → ${panchang.nextPaksha}"
+    )
+}
 
     // ==================================================
     // RASHI ALARM
