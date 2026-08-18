@@ -2,13 +2,20 @@ package com.mahaesuvidha.chandrapanchangalarm.settings
 
 import android.content.Context
 
-class AlarmPrefs(context: Context) {
+class AlarmPrefs(
+    context: Context
+) {
 
     private val p =
         context.getSharedPreferences(
             "alarm_prefs",
             Context.MODE_PRIVATE
         )
+
+
+    // ==========================================
+    // GRAHA
+    // ==========================================
 
     var moon: Boolean
         get() = p.getBoolean("moon", true)
@@ -18,6 +25,7 @@ class AlarmPrefs(context: Context) {
                 .apply()
         }
 
+
     var sun: Boolean
         get() = p.getBoolean("sun", true)
         set(value) {
@@ -25,6 +33,11 @@ class AlarmPrefs(context: Context) {
                 .putBoolean("sun", value)
                 .apply()
         }
+
+
+    // ==========================================
+    // GRAHA BADAL
+    // ==========================================
 
     var rashi: Boolean
         get() = p.getBoolean("rashi", true)
@@ -34,6 +47,7 @@ class AlarmPrefs(context: Context) {
                 .apply()
         }
 
+
     var nak: Boolean
         get() = p.getBoolean("nak", true)
         set(value) {
@@ -41,6 +55,7 @@ class AlarmPrefs(context: Context) {
                 .putBoolean("nak", value)
                 .apply()
         }
+
 
     var pada: Boolean
         get() = p.getBoolean("pada", true)
@@ -50,6 +65,11 @@ class AlarmPrefs(context: Context) {
                 .apply()
         }
 
+
+    // ==========================================
+    // PANCHANG BADAL
+    // ==========================================
+
     var tithi: Boolean
         get() = p.getBoolean("tithi", true)
         set(value) {
@@ -57,6 +77,7 @@ class AlarmPrefs(context: Context) {
                 .putBoolean("tithi", value)
                 .apply()
         }
+
 
     var yoga: Boolean
         get() = p.getBoolean("yoga", true)
@@ -66,6 +87,7 @@ class AlarmPrefs(context: Context) {
                 .apply()
         }
 
+
     var karana: Boolean
         get() = p.getBoolean("karana", true)
         set(value) {
@@ -73,6 +95,7 @@ class AlarmPrefs(context: Context) {
                 .putBoolean("karana", value)
                 .apply()
         }
+
 
     var paksha: Boolean
         get() = p.getBoolean("paksha", true)
