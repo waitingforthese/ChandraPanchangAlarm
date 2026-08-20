@@ -184,7 +184,55 @@ class AlarmScheduler(
             message = "$type Test Alarm आहे."
         )
     }
+  // ==========================================
+    // TEST RASHI ALARM
+    // ==========================================
 
+    fun scheduleRashiAlarm(
+        delayMillis: Long = 10_000L
+    ) {
+
+        schedule(
+            id = 101,
+            at = System.currentTimeMillis() + delayMillis,
+            title = "🌙 चंद्र राशी बदल",
+            message = "चंद्र राशी बदल टेस्ट अलार्म आहे."
+        )
+    }
+
+
+    // ==========================================
+    // TEST NAKSHATRA ALARM
+    // ==========================================
+
+    fun scheduleNakshatraAlarm(
+        delayMillis: Long = 10_000L
+    ) {
+
+        schedule(
+            id = 102,
+            at = System.currentTimeMillis() + delayMillis,
+            title = "🌙 चंद्र नक्षत्र बदल",
+            message = "चंद्र नक्षत्र बदल टेस्ट अलार्म आहे."
+        )
+    }
+
+
+    // ==========================================
+    // TEST CHARAN ALARM
+    // ==========================================
+
+    fun scheduleCharanAlarm(
+        delayMillis: Long = 10_000L
+    ) {
+
+        schedule(
+            id = 103,
+            at = System.currentTimeMillis() + delayMillis,
+            title = "🌙 चंद्र चरण बदल",
+            message = "चंद्र चरण बदल टेस्ट अलार्म आहे."
+        )
+    }
     // ==========================================
     // MAIN SCHEDULE FUNCTION
     // ==========================================
@@ -284,6 +332,11 @@ class AlarmScheduler(
 
         cancel(99)
     }
+    cancel(99)
+
+        cancel(101)
+        cancel(102)
+        cancel(103)
 
     // ==========================================
     // CANCEL SINGLE ALARM
