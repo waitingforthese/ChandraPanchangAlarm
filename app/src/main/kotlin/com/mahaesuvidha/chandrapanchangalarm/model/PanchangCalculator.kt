@@ -158,6 +158,11 @@ object PanchangCalculator {
     // =========================================================
     // MAIN FUNCTION
     // =========================================================
+object PanchangCalculator {
+
+    fun getCurrentPanchang(): PanchangState {
+        return getCurrentPanchangState()
+    }
 
     fun getCurrentPanchangState(): PanchangState {
 
