@@ -99,6 +99,33 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    private fun scheduleRashiAlarm(
+    context: Context,
+    triggerAtMillis: Long,
+    title: String,
+    message: String
+) {
+    // सध्या compile साठी placeholder
+    // तुमचा actual alarm scheduling code नंतर येथे जोडू
+}
+
+private fun scheduleNakshatraAlarm(
+    context: Context,
+    triggerAtMillis: Long,
+    title: String,
+    message: String
+) {
+    // सध्या compile साठी placeholder
+}
+
+private fun scheduleCharanAlarm(
+    context: Context,
+    triggerAtMillis: Long,
+    title: String,
+    message: String
+) {
+    // सध्या compile साठी placeholder
+}
 }
 
 
