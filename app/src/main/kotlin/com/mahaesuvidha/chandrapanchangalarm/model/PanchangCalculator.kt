@@ -1211,3 +1211,4 @@ object PanchangCalculator {
         return getCurrentPanchangState()
     }
 }
+}
