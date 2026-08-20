@@ -100,7 +100,38 @@ object PanchangCalculator {
             "फाल्गुन"
         )
 
+private val masaNames =
+    listOf(
+        "चैत्र",
+        "वैशाख",
+        "ज्येष्ठ",
+        "आषाढ",
+        "श्रावण",
+        "भाद्रपद",
+        "आश्विन",
+        "कार्तिक",
+        "मार्गशीर्ष",
+        "पौष",
+        "माघ",
+        "फाल्गुन"
+    )
 
+
+private val lagnaNames =
+    listOf(
+        "मेष लग्न",
+        "वृषभ लग्न",
+        "मिथुन लग्न",
+        "कर्क लग्न",
+        "सिंह लग्न",
+        "कन्या लग्न",
+        "तुळ लग्न",
+        "वृश्चिक लग्न",
+        "धनु लग्न",
+        "मकर लग्न",
+        "कुंभ लग्न",
+        "मीन लग्न"
+    )
     // =========================================================
     // MAIN PANCHANG
     // =========================================================
@@ -225,35 +256,33 @@ object PanchangCalculator {
             )
 
 
-        // -----------------------------------------------------
-        // MAS
-        // -----------------------------------------------------
+// -----------------------------------------------------
+// MAS
+// -----------------------------------------------------
 
-        val masaIndex =
-            (sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
+val masaIndex =
+    (sun / 30.0)
+        .toInt()
+        .coerceIn(0, 11)
 
-        val masaName =
-            masaNames[masaIndex]
+val masaName =
+    masaNames[masaIndex]
 
-        val masaStart =
-            findPreviousMasaChange(
-                now,
-                masaIndex
-            )
+val masaData =
+    getMasaData(
+        now,
+        masaIndex
+    )
 
-        val nextMasa =
-            findNextMasaChange(
-                now,
-                masaIndex
-            )
+
 // -----------------------------------------------------
 // PRAHAR
 // -----------------------------------------------------
 
 val praharData =
-    getPraharData(now)
+    getPraharData(
+        now
+    )
 
 
 // -----------------------------------------------------
@@ -261,7 +290,9 @@ val praharData =
 // -----------------------------------------------------
 
 val lagnaData =
-    getLagnaData(now)
+    getLagnaData(
+        now
+    )
 
         // =====================================================
         // RETURN PANCHANG STATE
@@ -368,61 +399,73 @@ val lagnaData =
                     nextPaksha.second
                 ),
 
-            nextPakshaMillis =
-                toMillis(
-                    nextPaksha.second
-                ),
+           nextPakshaMillis =
+    toMillis(
+        nextPaksha.second
+    ),
 
 
-            // MAS
+// MAS
 
-            masa =
-                masaName,
+masa =
+    masaName,
 
-            nextMasa =
-                nextMasa.first,
+nextMasa =
+    masaData.next,
 
-            masaStartTime =
-                formatDateTime(
-                    masaStart
-                ),
+masaStartTime =
+    formatDateTime(
+        masaData.startTime
+    ),
 
-            nextMasaTime =
-                formatDateTime(
-                    nextMasa.second
-                ),
+nextMasaTime =
+    formatDateTime(
+        masaData.nextTime
+    ),
 
-            nextMasaMillis =
-                toMillis(
-                    nextMasa.second
-                )
-            // PRAHAR
+nextMasaMillis =
+    toMillis(
+        masaData.nextTime
+    ),
 
-prahar = praharData.current,
 
-nextPrahar = praharData.next,
+// PRAHAR
+
+prahar =
+    praharData.current,
+
+nextPrahar =
+    praharData.next,
 
 nextPraharTime =
-    formatDateTime(praharData.nextTime),
+    formatDateTime(
+        praharData.nextTime
+    ),
 
 nextPraharMillis =
-    toMillis(praharData.nextTime),
+    toMillis(
+        praharData.nextTime
+    ),
+
 
 // LAGNA
 
-lagna = lagnaData.current,
+lagna =
+    lagnaData.current,
 
-nextLagna = lagnaData.next,
+nextLagna =
+    lagnaData.next,
 
 nextLagnaTime =
-    formatDateTime(lagnaData.nextTime),
+    formatDateTime(
+        lagnaData.nextTime
+    ),
 
 nextLagnaMillis =
-    toMillis(lagnaData.nextTime)
-        )
-    }
-
-
+    toMillis(
+        lagnaData.nextTime
+    )
+    
     // =========================================================
     // PREVIOUS TITHI
     // =========================================================
@@ -1150,6 +1193,118 @@ nextLagnaMillis =
 
         return result
     }
+    
+    // =========================================================
+// MAS DATA
+// =========================================================
+
+private data class MasaData(
+
+    val next: String,
+
+    val startTime: LocalDateTime,
+
+    val nextTime: LocalDateTime
+)
+
+
+private fun getMasaData(
+
+    now: LocalDateTime,
+
+    currentIndex: Int
+
+): MasaData {
+
+    var previousCheck =
+        now
+
+    var startTime =
+        now
+
+
+    repeat(60000) {
+
+        previousCheck =
+            previousCheck.minusMinutes(1)
+
+        val sun =
+            getSunLongitude(
+                previousCheck
+            )
+
+        val index =
+            (sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        if (
+            index != currentIndex
+        ) {
+
+            startTime =
+                previousCheck.plusMinutes(1)
+
+            return@repeat
+        }
+    }
+
+
+    var nextCheck =
+        now
+
+    var nextIndex =
+        currentIndex
+
+    var nextTime =
+        now.plusDays(35)
+
+
+    repeat(60000) {
+
+        nextCheck =
+            nextCheck.plusMinutes(1)
+
+        val sun =
+            getSunLongitude(
+                nextCheck
+            )
+
+        val index =
+            (sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        if (
+            index != currentIndex
+        ) {
+
+            nextIndex =
+                index
+
+            nextTime =
+                nextCheck
+
+            return@repeat
+        }
+    }
+
+
+    return MasaData(
+
+        next =
+            masaNames[currentIndex] +
+                    " → " +
+                    masaNames[nextIndex],
+
+        startTime =
+            startTime,
+
+        nextTime =
+            nextTime
+    )
+}
+
     // =========================================================
 // PRAHAR DATA
 // =========================================================
