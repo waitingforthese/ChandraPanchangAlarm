@@ -19,6 +19,11 @@ object PanchangCalculator {
     private const val KARANA_SIZE =
         6.0
 
+
+    // =========================================================
+    // NAMES
+    // =========================================================
+
     private val tithiNames =
         listOf(
             "प्रतिपदा",
@@ -80,6 +85,11 @@ object PanchangCalculator {
             "शनिवार"
         )
 
+
+    // =========================================================
+    // MAIN PANCHANG
+    // =========================================================
+
     fun getCurrentPanchang(): PanchangState {
 
         val now =
@@ -94,6 +104,11 @@ object PanchangCalculator {
         val elongation =
             normalize(moon - sun)
 
+
+        // -----------------------------------------------------
+        // TITHI
+        // -----------------------------------------------------
+
         val tithiIndex =
             (elongation / TITHI_SIZE)
                 .toInt()
@@ -102,12 +117,46 @@ object PanchangCalculator {
         val tithiName =
             getTithiName(tithiIndex)
 
+        val tithiStart =
+            findPreviousTithiChange(
+                now,
+                tithiIndex
+            )
+
+        val nextTithi =
+            findNextTithiChange(
+                now,
+                tithiIndex
+            )
+
+
+        // -----------------------------------------------------
+        // PAKSHA
+        // -----------------------------------------------------
+
         val paksha =
             if (tithiIndex < 15) {
                 "शुक्ल पक्ष"
             } else {
                 "कृष्ण पक्ष"
             }
+
+        val pakshaStart =
+            findPreviousPakshaChange(
+                now,
+                paksha
+            )
+
+        val nextPaksha =
+            findNextPakshaChange(
+                now,
+                paksha
+            )
+
+
+        // -----------------------------------------------------
+        // YOGA
+        // -----------------------------------------------------
 
         val yogaIndex =
             (
@@ -121,6 +170,23 @@ object PanchangCalculator {
         val yogaName =
             yogaNames[yogaIndex]
 
+        val yogaStart =
+            findPreviousYogaChange(
+                now,
+                yogaIndex
+            )
+
+        val nextYoga =
+            findNextYogaChange(
+                now,
+                yogaIndex
+            )
+
+
+        // -----------------------------------------------------
+        // KARANA
+        // -----------------------------------------------------
+
         val karanaIndex =
             (
                 elongation / KARANA_SIZE
@@ -133,16 +199,10 @@ object PanchangCalculator {
                 karanaIndex
             )
 
-        val nextTithi =
-            findNextTithiChange(
+        val karanaStart =
+            findPreviousKaranaChange(
                 now,
-                tithiIndex
-            )
-
-        val nextYoga =
-            findNextYogaChange(
-                now,
-                yogaIndex
+                karanaIndex
             )
 
         val nextKarana =
@@ -151,13 +211,14 @@ object PanchangCalculator {
                 karanaIndex
             )
 
-        val nextPaksha =
-            findNextPakshaChange(
-                now,
-                paksha
-            )
+
+        // =====================================================
+        // RETURN PANCHANG STATE
+        // =====================================================
 
         return PanchangState(
+
+            // BASIC
 
             date =
                 formatDate(now),
@@ -167,8 +228,16 @@ object PanchangCalculator {
                     now.dayOfWeek.value % 7
                 ],
 
+
+            // TITHI
+
             tithi =
                 tithiName,
+
+            tithiStartTime =
+                formatDateTime(
+                    tithiStart
+                ),
 
             nextTithi =
                 nextTithi.first,
@@ -183,8 +252,16 @@ object PanchangCalculator {
                     nextTithi.second
                 ),
 
+
+            // YOGA
+
             yoga =
                 yogaName,
+
+            yogaStartTime =
+                formatDateTime(
+                    yogaStart
+                ),
 
             nextYoga =
                 nextYoga.first,
@@ -199,8 +276,16 @@ object PanchangCalculator {
                     nextYoga.second
                 ),
 
+
+            // KARANA
+
             karana =
                 karanaName,
+
+            karanaStartTime =
+                formatDateTime(
+                    karanaStart
+                ),
 
             nextKarana =
                 nextKarana.first,
@@ -215,8 +300,16 @@ object PanchangCalculator {
                     nextKarana.second
                 ),
 
+
+            // PAKSHA
+
             paksha =
                 paksha,
+
+            pakshaStartTime =
+                formatDateTime(
+                    pakshaStart
+                ),
 
             nextPaksha =
                 nextPaksha.first,
@@ -229,12 +322,51 @@ object PanchangCalculator {
             nextPakshaMillis =
                 toMillis(
                     nextPaksha.second
-
-
-            
                 )
         )
     }
+
+
+    // =========================================================
+    // PREVIOUS TITHI
+    // =========================================================
+
+    private fun findPreviousTithiChange(
+        now: LocalDateTime,
+        current: Int
+    ): LocalDateTime {
+
+        var check =
+            now
+
+        repeat(4320) {
+
+            check =
+                check.minusMinutes(1)
+
+            val sun =
+                getSunLongitude(check)
+
+            val moon =
+                getMoonLongitude(check)
+
+            val elongation =
+                normalize(moon - sun)
+
+            val previous =
+                (elongation / TITHI_SIZE)
+                    .toInt()
+                    .coerceIn(0, 29)
+
+            if (previous != current) {
+
+                return check.plusMinutes(1)
+            }
+        }
+
+        return now
+    }
+
 
     // =========================================================
     // NEXT TITHI
@@ -271,7 +403,7 @@ object PanchangCalculator {
 
                 return Pair(
                     "${getTithiName(current)} → " +
-                            "${getTithiName(next)}",
+                            getTithiName(next),
                     check
                 )
             }
@@ -282,6 +414,49 @@ object PanchangCalculator {
             now.plusDays(3)
         )
     }
+
+
+    // =========================================================
+    // PREVIOUS YOGA
+    // =========================================================
+
+    private fun findPreviousYogaChange(
+        now: LocalDateTime,
+        current: Int
+    ): LocalDateTime {
+
+        var check =
+            now
+
+        repeat(4320) {
+
+            check =
+                check.minusMinutes(1)
+
+            val sun =
+                getSunLongitude(check)
+
+            val moon =
+                getMoonLongitude(check)
+
+            val yoga =
+                (
+                    normalize(
+                        sun + moon
+                    ) / YOGA_SIZE
+                )
+                    .toInt()
+                    .coerceIn(0, 26)
+
+            if (yoga != current) {
+
+                return check.plusMinutes(1)
+            }
+        }
+
+        return now
+    }
+
 
     // =========================================================
     // NEXT YOGA
@@ -331,6 +506,50 @@ object PanchangCalculator {
         )
     }
 
+
+    // =========================================================
+    // PREVIOUS KARANA
+    // =========================================================
+
+    private fun findPreviousKaranaChange(
+        now: LocalDateTime,
+        current: Int
+    ): LocalDateTime {
+
+        var check =
+            now
+
+        repeat(4320) {
+
+            check =
+                check.minusMinutes(1)
+
+            val sun =
+                getSunLongitude(check)
+
+            val moon =
+                getMoonLongitude(check)
+
+            val elongation =
+                normalize(moon - sun)
+
+            val karana =
+                (
+                    elongation / KARANA_SIZE
+                )
+                    .toInt()
+                    .coerceIn(0, 59)
+
+            if (karana != current) {
+
+                return check.plusMinutes(1)
+            }
+        }
+
+        return now
+    }
+
+
     // =========================================================
     // NEXT KARANA
     // =========================================================
@@ -368,7 +587,7 @@ object PanchangCalculator {
 
                 return Pair(
                     "${getKaranaName(current)} → " +
-                            "${getKaranaName(karana)}",
+                            getKaranaName(karana),
                     check
                 )
             }
@@ -379,6 +598,57 @@ object PanchangCalculator {
             now.plusDays(3)
         )
     }
+
+
+    // =========================================================
+    // PREVIOUS PAKSHA
+    // =========================================================
+
+    private fun findPreviousPakshaChange(
+        now: LocalDateTime,
+        current: String
+    ): LocalDateTime {
+
+        var check =
+            now
+
+        repeat(50000) {
+
+            check =
+                check.minusMinutes(1)
+
+            val sun =
+                getSunLongitude(check)
+
+            val moon =
+                getMoonLongitude(check)
+
+            val elongation =
+                normalize(moon - sun)
+
+            val tithi =
+                (
+                    elongation / TITHI_SIZE
+                )
+                    .toInt()
+                    .coerceIn(0, 29)
+
+            val paksha =
+                if (tithi < 15) {
+                    "शुक्ल पक्ष"
+                } else {
+                    "कृष्ण पक्ष"
+                }
+
+            if (paksha != current) {
+
+                return check.plusMinutes(1)
+            }
+        }
+
+        return now
+    }
+
 
     // =========================================================
     // NEXT PAKSHA
@@ -435,6 +705,7 @@ object PanchangCalculator {
         )
     }
 
+
     // =========================================================
     // TITHI NAME
     // =========================================================
@@ -487,6 +758,7 @@ object PanchangCalculator {
         }
     }
 
+
     // =========================================================
     // KARANA NAME
     // =========================================================
@@ -532,6 +804,7 @@ object PanchangCalculator {
             (index - 1) % 7
         ]
     }
+
 
     // =========================================================
     // SUN LONGITUDE
@@ -594,13 +867,14 @@ object PanchangCalculator {
                     (
                         (jd - 2451545.0) /
                                 36525.0
-                    ) *
+                        ) *
                     1.396971
 
         return normalize(
             tropical - ayanamsa
         )
     }
+
 
     // =========================================================
     // MOON LONGITUDE
@@ -686,13 +960,14 @@ object PanchangCalculator {
                     (
                         (jd - 2451545.0) /
                                 36525.0
-                    ) *
+                        ) *
                     1.396971
 
         return normalize(
             moonLongitude - ayanamsa
         )
     }
+
 
     // =========================================================
     // JULIAN DAY
@@ -713,6 +988,7 @@ object PanchangCalculator {
             ) +
                 2440587.5
     }
+
 
     // =========================================================
     // TIME
@@ -749,6 +1025,7 @@ object PanchangCalculator {
             )
         )
     }
+
 
     // =========================================================
     // NORMALIZE
