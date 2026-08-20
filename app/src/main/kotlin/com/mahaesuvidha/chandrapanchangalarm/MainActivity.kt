@@ -1511,21 +1511,19 @@ PanchangInfoCard(
 
 PanchangInfoCard(
 
-    title =
-        "⭐ लग्न",
+            title = "⭐ लग्न",
 
-    current =
-        state.lagna,
+            current = state.lagna,
 
-    startTime =
-        state.lagnaStartTime,
+            startTime = state.lagnaStartTime,
 
-    next =
-        state.nextLagna,
+            next = state.nextLagna,
 
-    nextTime =
-        state.nextLagnaTime
-)
+            nextTime = state.nextLagnaTime
+        )
+    }
+}   // ← PanchangCard() इथे संपतो
+
 // ==========================================================
 // PANCHANG CHANGE SECTION
 // ==========================================================
@@ -1617,6 +1615,7 @@ private fun PanchangChangeSection(
                 verticalAlignment =
                     Alignment.CenterVertically
 
+                
             ) {
 
                 Text(
