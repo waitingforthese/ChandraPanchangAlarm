@@ -160,10 +160,6 @@ object PanchangCalculator {
     // =========================================================
 object PanchangCalculator {
 
-    fun getCurrentPanchang(): PanchangState {
-        return getCurrentPanchangState()
-    }
-
     fun getCurrentPanchangState(): PanchangState {
 
         val now =
@@ -1208,5 +1204,10 @@ object PanchangCalculator {
             .atZone(zoneId)
             .toInstant()
             .toEpochMilli()
+    }
+
+    // Compatibility function for MainActivity
+    fun getCurrentPanchang(): PanchangState {
+        return getCurrentPanchangState()
     }
 }
