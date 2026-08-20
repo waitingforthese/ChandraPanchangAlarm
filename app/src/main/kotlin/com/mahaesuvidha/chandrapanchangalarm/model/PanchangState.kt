@@ -33,19 +33,28 @@ data class PanchangState(
     val nextPakshaTime: String,
     val nextPakshaMillis: Long,
 
-    // ==========================================
-// MAS
-// ==========================================
+ // MAS
 
-val masa: String = "—",
+masa =
+    masaName,
 
-val nextMasa: String = "—",
+nextMasa =
+    nextMasa.first,
 
-val masaStartTime: String = "—",
+masaStartTime =
+    formatDateTime(
+        masaStart
+    ),
 
-val nextMasaTime: String = "—",
+nextMasaTime =
+    formatDateTime(
+        nextMasa.second
+    ),
 
-val nextMasaMillis: Long = 0L,
+nextMasaMillis =
+    toMillis(
+        nextMasa.second
+    ),
 
     // PRAHAR
     val prahar: String = "—",
