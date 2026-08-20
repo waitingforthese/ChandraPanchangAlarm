@@ -25,6 +25,7 @@ import com.mahaesuvidha.chandrapanchangalarm.alarm.AlarmScheduler
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.SunState
+import android.content.Context
 
 class MainActivity : ComponentActivity() {
 
@@ -99,12 +100,23 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    private fun scheduleRashiAlarm(
-    context: Context,
-    triggerAtMillis: Long,
-    title: String,
-    message: String
+fun scheduleRashiAlarm(
+    delayMillis: Long
 ) {
+    // Test alarm
+}
+
+fun scheduleNakshatraAlarm(
+    delayMillis: Long
+) {
+    // Test alarm
+}
+
+fun scheduleCharanAlarm(
+    delayMillis: Long
+) {
+    // Test alarm
+} {
     // सध्या compile साठी placeholder
     // तुमचा actual alarm scheduling code नंतर येथे जोडू
 }
