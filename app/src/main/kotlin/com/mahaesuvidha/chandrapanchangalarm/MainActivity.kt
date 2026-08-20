@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
 
                 val panchangState =
                     PanchangCalculator
-                        .getCurrentPanchang()
+                        .getCurrentPanchangState()
 
 
                 ChandraSuryaHome(
