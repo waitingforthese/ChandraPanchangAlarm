@@ -210,7 +210,45 @@ object PanchangCalculator {
                 now,
                 karanaIndex
             )
+        // -----------------------------------------------------
+        // MAS
+        // -----------------------------------------------------
 
+        val masaIndex =
+            (sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        val masaNames =
+            arrayOf(
+                "चैत्र",
+                "वैशाख",
+                "ज्येष्ठ",
+                "आषाढ",
+                "श्रावण",
+                "भाद्रपद",
+                "आश्विन",
+                "कार्तिक",
+                "मार्गशीर्ष",
+                "पौष",
+                "माघ",
+                "फाल्गुन"
+            )
+
+        val masaName =
+            masaNames[masaIndex]
+
+        val masaStart =
+            findPreviousMasaChange(
+                now,
+                masaIndex
+            )
+
+        val nextMasa =
+            findNextMasaChange(
+                now,
+                masaIndex
+            )
 
         // =====================================================
         // RETURN PANCHANG STATE
@@ -621,6 +659,81 @@ object PanchangCalculator {
             now.plusDays(3)
         )
     }
+// =========================================================
+// PREVIOUS MAS
+// =========================================================
+
+private fun findPreviousMasaChange(
+    now: LocalDateTime,
+    current: Int
+): LocalDateTime {
+
+    var check =
+        now
+
+    // साधारण 35 दिवस मागे शोधा
+    repeat(50400) {
+
+        check =
+            check.minusMinutes(1)
+
+        val sun =
+            getSunLongitude(check)
+
+        val masa =
+            (sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        if (masa != current) {
+
+            return check.plusMinutes(1)
+        }
+    }
+
+    return now
+}
+// =========================================================
+// NEXT MAS
+// =========================================================
+
+private fun findNextMasaChange(
+    now: LocalDateTime,
+    current: Int
+): Pair<String, LocalDateTime> {
+
+    var check =
+        now
+
+    // साधारण 35 दिवस पुढे शोधा
+    repeat(50400) {
+
+        check =
+            check.plusMinutes(1)
+
+        val sun =
+            getSunLongitude(check)
+
+        val masa =
+            (sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        if (masa != current) {
+
+            return Pair(
+                "${masaNames[current]} → " +
+                        masaNames[masa],
+                check
+            )
+        }
+    }
+
+    return Pair(
+        "पुढील मास शोधत आहे",
+        now.plusDays(35)
+    )
+}
 
 
     // =========================================================
