@@ -1509,76 +1509,35 @@ PanchangInfoCard(
 // LAGNA
 // ==================================================
 
-PanchangInfoCard(
-
-            title = "⭐ लग्न",
-
-            current = state.lagna,
-
-            startTime = state.lagnaStartTime,
-
-            next = state.nextLagna,
-
-            nextTime = state.nextLagnaTime
-        )
-    }
-}   // ← PanchangCard() इथे संपतो
-
 // ==========================================================
-// PANCHANG CHANGE SECTION
+// PANCHANG INFO CARD
 // ==========================================================
 
 @Composable
-private fun PanchangChangeSection(
+private fun PanchangInfoCard(
 
-    label: String,
+    title: String,
 
-    value: String,
+    current: String,
 
     startTime: String,
 
     next: String,
 
-    endTime: String
+    nextTime: String
 
 ) {
-
-    val icon =
-        when (label) {
-
-            "तिथी" ->
-                "🌙"
-
-            "योग" ->
-                "✨"
-
-            "करण" ->
-                "🔔"
-
-            "पक्ष" ->
-                "🌗"
-
-            "मास" ->
-                "📅"
-
-            "प्रहर" ->
-                "⌛"
-
-            "लग्न" ->
-                "⭐"
-
-            else ->
-                "📌"
-        }
-
 
     Card(
 
         modifier =
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth(),
 
         shape =
-            RoundedCornerShape(18.dp),
+            RoundedCornerShape(
+                18.dp
+            ),
 
         colors =
             CardDefaults.cardColors(
@@ -1599,61 +1558,24 @@ private fun PanchangChangeSection(
 
         ) {
 
+            Text(
 
-            // ==============================================
-            // TITLE + CURRENT VALUE
-            // ==============================================
+                text = title,
 
-            Row(
+                color =
+                    Color.Black,
 
-                modifier =
-                    Modifier.fillMaxWidth(),
+                fontSize =
+                    20.sp,
 
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-
-                verticalAlignment =
-                    Alignment.CenterVertically
-
-                
-            ) {
-
-                Text(
-
-                    text =
-                        "$icon $label",
-
-                    color =
-                        Color(0xFF006CA8),
-
-                    fontSize =
-                        21.sp,
-
-                    fontWeight =
-                        FontWeight.Bold
-                )
-
-
-                Text(
-
-                    text =
-                        value,
-
-                    color =
-                        Color.Black,
-
-                    fontSize =
-                        21.sp,
-
-                    fontWeight =
-                        FontWeight.Bold
-                )
-            }
+                fontWeight =
+                    FontWeight.Bold
+            )
 
 
             Spacer(
                 modifier =
-                    Modifier.height(7.dp)
+                    Modifier.height(8.dp)
             )
 
 
@@ -1669,9 +1591,7 @@ private fun PanchangChangeSection(
             )
 
 
-            // ==============================================
             // चालू आहे
-            // ==============================================
 
             Row(
 
@@ -1689,45 +1609,43 @@ private fun PanchangChangeSection(
                 Text(
 
                     text =
-                        "🟢 चालू आहे",
-
-                    color =
-                        Color(0xFF2E9E44),
+                        "चालू आहे",
 
                     fontSize =
-                        17.sp,
+                        16.sp,
 
                     fontWeight =
-                        FontWeight.Bold
+                        FontWeight.Bold,
+
+                    color =
+                        Color.Black
                 )
 
 
                 Text(
 
                     text =
-                        value,
-
-                    color =
-                        Color.Black,
+                        current,
 
                     fontSize =
-                        18.sp,
+                        17.sp,
 
                     fontWeight =
-                        FontWeight.Bold
+                        FontWeight.Bold,
+
+                    color =
+                        Color.Black
                 )
             }
 
 
             Spacer(
                 modifier =
-                    Modifier.height(7.dp)
+                    Modifier.height(6.dp)
             )
 
 
-            // ==============================================
             // प्रारंभ
-            // ==============================================
 
             Row(
 
@@ -1735,23 +1653,20 @@ private fun PanchangChangeSection(
                     Modifier.fillMaxWidth(),
 
                 horizontalArrangement =
-                    Arrangement.SpaceBetween,
-
-                verticalAlignment =
-                    Alignment.CenterVertically
+                    Arrangement.SpaceBetween
 
             ) {
 
                 Text(
 
                     text =
-                        "🟢 प्रारंभ",
-
-                    color =
-                        Color(0xFF388E3C),
+                        "प्रारंभ",
 
                     fontSize =
-                        16.sp
+                        15.sp,
+
+                    color =
+                        Color.DarkGray
                 )
 
 
@@ -1760,24 +1675,22 @@ private fun PanchangChangeSection(
                     text =
                         startTime,
 
-                    color =
-                        Color.DarkGray,
-
                     fontSize =
-                        16.sp
+                        15.sp,
+
+                    color =
+                        Color.DarkGray
                 )
             }
 
 
             Spacer(
                 modifier =
-                    Modifier.height(7.dp)
+                    Modifier.height(6.dp)
             )
 
 
-            // ==============================================
             // पुढील बदल
-            // ==============================================
 
             Row(
 
@@ -1785,26 +1698,20 @@ private fun PanchangChangeSection(
                     Modifier.fillMaxWidth(),
 
                 horizontalArrangement =
-                    Arrangement.SpaceBetween,
-
-                verticalAlignment =
-                    Alignment.CenterVertically
+                    Arrangement.SpaceBetween
 
             ) {
 
                 Text(
 
                     text =
-                        "🔔 पुढील बदल",
-
-                    color =
-                        Color(0xFF006CA8),
+                        "पुढील बदल",
 
                     fontSize =
-                        17.sp,
+                        15.sp,
 
-                    fontWeight =
-                        FontWeight.Bold
+                    color =
+                        Color.DarkGray
                 )
 
 
@@ -1813,27 +1720,25 @@ private fun PanchangChangeSection(
                     text =
                         next,
 
-                    color =
-                        Color.Black,
-
                     fontSize =
-                        17.sp,
+                        16.sp,
 
                     fontWeight =
-                        FontWeight.Medium
+                        FontWeight.Medium,
+
+                    color =
+                        Color.Black
                 )
             }
 
 
             Spacer(
                 modifier =
-                    Modifier.height(7.dp)
+                    Modifier.height(6.dp)
             )
 
 
-            // ==============================================
             // समाप्त
-            // ==============================================
 
             Row(
 
@@ -1841,38 +1746,35 @@ private fun PanchangChangeSection(
                     Modifier.fillMaxWidth(),
 
                 horizontalArrangement =
-                    Arrangement.SpaceBetween,
-
-                verticalAlignment =
-                    Alignment.CenterVertically
+                    Arrangement.SpaceBetween
 
             ) {
 
                 Text(
 
                     text =
-                        "🔴 समाप्त",
-
-                    color =
-                        Color(0xFFC62828),
+                        "समाप्त",
 
                     fontSize =
-                        16.sp
+                        15.sp,
+
+                    color =
+                        Color.DarkGray
                 )
 
 
                 Text(
 
                     text =
-                        endTime,
-
-                    color =
-                        Color.DarkGray,
+                        nextTime,
 
                     fontSize =
-                        16.sp
+                        15.sp,
+
+                    color =
+                        Color.DarkGray
                 )
-            }
+            )
         }
     }
 }
