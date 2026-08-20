@@ -1,30 +1,42 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.sin
+import kotlin.math.floor
 
 object PanchangCalculator {
 
-    private val INDIA_ZONE =
-        ZoneId.of("Asia/Kolkata")
+    // =========================================================
+    // CONSTANTS
+    // =========================================================
 
-    private const val TITHI_SIZE =
-        12.0
+    private const val TITHI_SIZE = 12.0
+    private const val YOGA_SIZE = 13.333333333333334
+    private const val KARANA_SIZE = 6.0
 
-    private const val YOGA_SIZE =
-        360.0 / 27.0
-
-    private const val KARANA_SIZE =
-        6.0
+    private val zoneId =
+        ZoneId.systemDefault()
 
     // =========================================================
     // NAMES
     // =========================================================
 
+    private val weekdayNames =
+        arrayOf(
+            "रविवार",
+            "सोमवार",
+            "मंगळवार",
+            "बुधवार",
+            "गुरुवार",
+            "शुक्रवार",
+            "शनिवार"
+        )
+
     private val tithiNames =
-        listOf(
+        arrayOf(
             "प्रतिपदा",
             "द्वितीया",
             "तृतीया",
@@ -39,18 +51,33 @@ object PanchangCalculator {
             "द्वादशी",
             "त्रयोदशी",
             "चतुर्दशी",
-            "पूर्णिमा"
+            "पौर्णिमा",
+            "प्रतिपदा",
+            "द्वितीया",
+            "तृतीया",
+            "चतुर्थी",
+            "पंचमी",
+            "षष्ठी",
+            "सप्तमी",
+            "अष्टमी",
+            "नवमी",
+            "दशमी",
+            "एकादशी",
+            "द्वादशी",
+            "त्रयोदशी",
+            "चतुर्दशी",
+            "अमावास्या"
         )
 
     private val yogaNames =
-        listOf(
+        arrayOf(
             "विष्कंभ",
-            "प्रीती",
+            "प्रीति",
             "आयुष्मान",
             "सौभाग्य",
             "शोभन",
             "अतिगंड",
-            "सुकर्म",
+            "सुकर्मा",
             "धृति",
             "शूल",
             "गंड",
@@ -73,15 +100,15 @@ object PanchangCalculator {
             "वैधृति"
         )
 
-    private val weekdayNames =
-        listOf(
-            "रविवार",
-            "सोमवार",
-            "मंगळवार",
-            "बुधवार",
-            "गुरुवार",
-            "शुक्रवार",
-            "शनिवार"
+    private val karanaCycle =
+        arrayOf(
+            "बव",
+            "बालव",
+            "कौलव",
+            "तैतिल",
+            "गर",
+            "वणिज",
+            "विष्टि"
         )
 
     private val masaNames =
@@ -100,46 +127,42 @@ object PanchangCalculator {
             "फाल्गुन"
         )
 
-private val masaNames =
-    listOf(
-        "चैत्र",
-        "वैशाख",
-        "ज्येष्ठ",
-        "आषाढ",
-        "श्रावण",
-        "भाद्रपद",
-        "आश्विन",
-        "कार्तिक",
-        "मार्गशीर्ष",
-        "पौष",
-        "माघ",
-        "फाल्गुन"
-    )
+    private val praharNames =
+        arrayOf(
+            "प्रथम प्रहर",
+            "द्वितीय प्रहर",
+            "तृतीय प्रहर",
+            "चतुर्थ प्रहर",
+            "पंचम प्रहर",
+            "षष्ठ प्रहर",
+            "सप्तम प्रहर",
+            "अष्टम प्रहर"
+        )
 
+    private val lagnaNames =
+        arrayOf(
+            "मेष",
+            "वृषभ",
+            "मिथुन",
+            "कर्क",
+            "सिंह",
+            "कन्या",
+            "तुळ",
+            "वृश्चिक",
+            "धनु",
+            "मकर",
+            "कुंभ",
+            "मीन"
+        )
 
-private val lagnaNames =
-    listOf(
-        "मेष लग्न",
-        "वृषभ लग्न",
-        "मिथुन लग्न",
-        "कर्क लग्न",
-        "सिंह लग्न",
-        "कन्या लग्न",
-        "तुळ लग्न",
-        "वृश्चिक लग्न",
-        "धनु लग्न",
-        "मकर लग्न",
-        "कुंभ लग्न",
-        "मीन लग्न"
-    )
     // =========================================================
-    // MAIN PANCHANG
+    // MAIN FUNCTION
     // =========================================================
 
-    fun getCurrentPanchang(): PanchangState {
+    fun getCurrentPanchangState(): PanchangState {
 
         val now =
-            LocalDateTime.now(INDIA_ZONE)
+            LocalDateTime.now()
 
         val sun =
             getSunLongitude(now)
@@ -150,13 +173,12 @@ private val lagnaNames =
         val elongation =
             normalize(moon - sun)
 
-
         // -----------------------------------------------------
         // TITHI
         // -----------------------------------------------------
 
         val tithiIndex =
-            (elongation / TITHI_SIZE)
+            floor(elongation / TITHI_SIZE)
                 .toInt()
                 .coerceIn(0, 29)
 
@@ -174,7 +196,6 @@ private val lagnaNames =
                 now,
                 tithiIndex
             )
-
 
         // -----------------------------------------------------
         // PAKSHA
@@ -199,16 +220,14 @@ private val lagnaNames =
                 paksha
             )
 
-
         // -----------------------------------------------------
         // YOGA
         // -----------------------------------------------------
 
         val yogaIndex =
-            (
-                normalize(
-                    sun + moon
-                ) / YOGA_SIZE
+            floor(
+                normalize(sun + moon) /
+                        YOGA_SIZE
             )
                 .toInt()
                 .coerceIn(0, 26)
@@ -228,13 +247,15 @@ private val lagnaNames =
                 yogaIndex
             )
 
-
         // -----------------------------------------------------
         // KARANA
         // -----------------------------------------------------
 
         val karanaIndex =
-            (elongation / KARANA_SIZE)
+            floor(
+                elongation /
+                        KARANA_SIZE
+            )
                 .toInt()
                 .coerceIn(0, 59)
 
@@ -255,31 +276,46 @@ private val lagnaNames =
                 karanaIndex
             )
 
+        // -----------------------------------------------------
+        // MAS
+        // -----------------------------------------------------
 
-// -----------------------------------------------------
+        val masaIndex =
+            floor(sun / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
 
+        val masaName =
+            masaNames[masaIndex]
 
-// -----------------------------------------------------
-// PRAHAR
-// -----------------------------------------------------
+        val masaStart =
+            findPreviousMasaChange(
+                now,
+                masaIndex
+            )
 
-val praharData =
-    getPraharData(
-        now
-    )
+        val nextMasa =
+            findNextMasaChange(
+                now,
+                masaIndex
+            )
 
+        // -----------------------------------------------------
+        // PRAHAR
+        // -----------------------------------------------------
 
-// -----------------------------------------------------
-// LAGNA
-// -----------------------------------------------------
+        val praharData =
+            getPraharData(now)
 
-val lagnaData =
-    getLagnaData(
-        now
-    )
+        // -----------------------------------------------------
+        // LAGNA
+        // -----------------------------------------------------
+
+        val lagnaData =
+            getLagnaData(now)
 
         // =====================================================
-        // RETURN PANCHANG STATE
+        // RETURN
         // =====================================================
 
         return PanchangState(
@@ -291,7 +327,6 @@ val lagnaData =
                 weekdayNames[
                     now.dayOfWeek.value % 7
                 ],
-
 
             // TITHI
 
@@ -316,7 +351,6 @@ val lagnaData =
                     nextTithi.second
                 ),
 
-
             // YOGA
 
             yoga =
@@ -339,7 +373,6 @@ val lagnaData =
                 toMillis(
                     nextYoga.second
                 ),
-
 
             // KARANA
 
@@ -364,7 +397,6 @@ val lagnaData =
                     nextKarana.second
                 ),
 
-
             // PAKSHA
 
             paksha =
@@ -383,76 +415,112 @@ val lagnaData =
                     nextPaksha.second
                 ),
 
-           nextPakshaMillis =
-    toMillis(
-        nextPaksha.second
-    ),
+            nextPakshaMillis =
+                toMillis(
+                    nextPaksha.second
+                ),
 
+            // MAS
 
-// MAS
+            masa =
+                masaName,
 
-masa =
-    masaName,
+            masaStartTime =
+                formatDateTime(
+                    masaStart
+                ),
 
-nextMasa =
-    masaData.next,
+            nextMasa =
+                nextMasa.first,
 
-masaStartTime =
-    formatDateTime(
-        masaData.startTime
-    ),
+            nextMasaTime =
+                formatDateTime(
+                    nextMasa.second
+                ),
 
-nextMasaTime =
-    formatDateTime(
-        masaData.nextTime
-    ),
+            nextMasaMillis =
+                toMillis(
+                    nextMasa.second
+                ),
 
-nextMasaMillis =
-    toMillis(
-        masaData.nextTime
-    ),
+            // PRAHAR
 
+            prahar =
+                praharData.name,
 
-// PRAHAR
+            praharStartTime =
+                formatDateTime(
+                    praharData.start
+                ),
 
-prahar =
-    praharData.current,
+            nextPrahar =
+                praharData.nextName,
 
-nextPrahar =
-    praharData.next,
+            nextPraharTime =
+                formatDateTime(
+                    praharData.next
+                ),
 
-nextPraharTime =
-    formatDateTime(
-        praharData.nextTime
-    ),
+            nextPraharMillis =
+                toMillis(
+                    praharData.next
+                ),
 
-nextPraharMillis =
-    toMillis(
-        praharData.nextTime
-    ),
+            // LAGNA
 
+            lagna =
+                lagnaData.name,
 
-// LAGNA
+            lagnaStartTime =
+                formatDateTime(
+                    lagnaData.start
+                ),
 
-lagna =
-    lagnaData.current,
+            nextLagna =
+                lagnaData.nextName,
 
-nextLagna =
-    lagnaData.next,
+            nextLagnaTime =
+                formatDateTime(
+                    lagnaData.next
+                ),
 
-nextLagnaTime =
-    formatDateTime(
-        lagnaData.nextTime
-    ),
+            nextLagnaMillis =
+                toMillis(
+                    lagnaData.next
+                )
+        )
+    }
 
-nextLagnaMillis =
-    toMillis(
-        lagnaData.nextTime
-    )
-    
     // =========================================================
-    // PREVIOUS TITHI
+    // TITHI
     // =========================================================
+
+    private fun getTithiName(
+        index: Int
+    ): String {
+
+        return tithiNames[
+            index.coerceIn(0, 29)
+        ]
+    }
+
+    private fun getTithiIndex(
+        time: LocalDateTime
+    ): Int {
+
+        val sun =
+            getSunLongitude(time)
+
+        val moon =
+            getMoonLongitude(time)
+
+        return floor(
+            normalize(moon - sun) /
+                    TITHI_SIZE
+        )
+            .toInt()
+            .coerceIn(0, 29)
+    }
 
     private fun findPreviousTithiChange(
         now: LocalDateTime,
@@ -466,32 +534,15 @@ nextLagnaMillis =
             check =
                 check.minusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
-
-            val moon =
-                getMoonLongitude(check)
-
-            val elongation =
-                normalize(moon - sun)
-
-            val previous =
-                (elongation / TITHI_SIZE)
-                    .toInt()
-                    .coerceIn(0, 29)
-
-            if (previous != current) {
+            if (
+                getTithiIndex(check) != current
+            ) {
                 return check.plusMinutes(1)
             }
         }
 
         return now
     }
-
-
-    // =========================================================
-    // NEXT TITHI
-    // =========================================================
 
     private fun findNextTithiChange(
         now: LocalDateTime,
@@ -505,24 +556,14 @@ nextLagnaMillis =
             check =
                 check.plusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
-
-            val moon =
-                getMoonLongitude(check)
-
-            val elongation =
-                normalize(moon - sun)
-
             val next =
-                (elongation / TITHI_SIZE)
-                    .toInt()
-                    .coerceIn(0, 29)
+                getTithiIndex(check)
 
             if (next != current) {
 
                 return Pair(
-                    "${getTithiName(current)} → ${getTithiName(next)}",
+                    "${getTithiName(current)} → " +
+                            getTithiName(next),
                     check
                 )
             }
@@ -534,10 +575,27 @@ nextLagnaMillis =
         )
     }
 
+    // =========================================================
+    // YOGA
+    // =========================================================
 
-    // =========================================================
-    // PREVIOUS YOGA
-    // =========================================================
+    private fun getYogaIndex(
+        time: LocalDateTime
+    ): Int {
+
+        val sun =
+            getSunLongitude(time)
+
+        val moon =
+            getMoonLongitude(time)
+
+        return floor(
+            normalize(sun + moon) /
+                    YOGA_SIZE
+        )
+            .toInt()
+            .coerceIn(0, 26)
+    }
 
     private fun findPreviousYogaChange(
         now: LocalDateTime,
@@ -551,33 +609,15 @@ nextLagnaMillis =
             check =
                 check.minusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
-
-            val moon =
-                getMoonLongitude(check)
-
-            val yoga =
-                (
-                    normalize(
-                        sun + moon
-                    ) / YOGA_SIZE
-                )
-                    .toInt()
-                    .coerceIn(0, 26)
-
-            if (yoga != current) {
+            if (
+                getYogaIndex(check) != current
+            ) {
                 return check.plusMinutes(1)
             }
         }
 
         return now
     }
-
-
-    // =========================================================
-    // NEXT YOGA
-    // =========================================================
 
     private fun findNextYogaChange(
         now: LocalDateTime,
@@ -591,25 +631,14 @@ nextLagnaMillis =
             check =
                 check.plusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
+            val next =
+                getYogaIndex(check)
 
-            val moon =
-                getMoonLongitude(check)
-
-            val yoga =
-                (
-                    normalize(
-                        sun + moon
-                    ) / YOGA_SIZE
-                )
-                    .toInt()
-                    .coerceIn(0, 26)
-
-            if (yoga != current) {
+            if (next != current) {
 
                 return Pair(
-                    "${yogaNames[current]} → ${yogaNames[yoga]}",
+                    "${yogaNames[current]} → " +
+                            yogaNames[next],
                     check
                 )
             }
@@ -621,10 +650,52 @@ nextLagnaMillis =
         )
     }
 
+    // =========================================================
+    // KARANA
+    // =========================================================
 
-    // =========================================================
-    // PREVIOUS KARANA
-    // =========================================================
+    private fun getKaranaIndex(
+        time: LocalDateTime
+    ): Int {
+
+        val sun =
+            getSunLongitude(time)
+
+        val moon =
+            getMoonLongitude(time)
+
+        return floor(
+            normalize(moon - sun) /
+                    KARANA_SIZE
+        )
+            .toInt()
+            .coerceIn(0, 59)
+    }
+
+    private fun getKaranaName(
+        index: Int
+    ): String {
+
+        return when (index) {
+
+            0 ->
+                "किंस्तुघ्न"
+
+            57 ->
+                "शकुनि"
+
+            58 ->
+                "चतुष्पाद"
+
+            59 ->
+                "नाग"
+
+            else ->
+                karanaCycle[
+                    ((index - 1) % 7 + 7) % 7
+                ]
+        }
+    }
 
     private fun findPreviousKaranaChange(
         now: LocalDateTime,
@@ -638,32 +709,15 @@ nextLagnaMillis =
             check =
                 check.minusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
-
-            val moon =
-                getMoonLongitude(check)
-
-            val elongation =
-                normalize(moon - sun)
-
-            val karana =
-                (elongation / KARANA_SIZE)
-                    .toInt()
-                    .coerceIn(0, 59)
-
-            if (karana != current) {
+            if (
+                getKaranaIndex(check) != current
+            ) {
                 return check.plusMinutes(1)
             }
         }
 
         return now
     }
-
-
-    // =========================================================
-    // NEXT KARANA
-    // =========================================================
 
     private fun findNextKaranaChange(
         now: LocalDateTime,
@@ -677,24 +731,14 @@ nextLagnaMillis =
             check =
                 check.plusMinutes(1)
 
-            val sun =
-                getSunLongitude(check)
+            val next =
+                getKaranaIndex(check)
 
-            val moon =
-                getMoonLongitude(check)
-
-            val elongation =
-                normalize(moon - sun)
-
-            val karana =
-                (elongation / KARANA_SIZE)
-                    .toInt()
-                    .coerceIn(0, 59)
-
-            if (karana != current) {
+            if (next != current) {
 
                 return Pair(
-                    "${getKaranaName(current)} → ${getKaranaName(karana)}",
+                    "${getKaranaName(current)} → " +
+                            getKaranaName(next),
                     check
                 )
             }
@@ -706,10 +750,90 @@ nextLagnaMillis =
         )
     }
 
+    // =========================================================
+    // PAKSHA
+    // =========================================================
+
+    private fun getPaksha(
+        time: LocalDateTime
+    ): String {
+
+        return if (
+            getTithiIndex(time) < 15
+        ) {
+            "शुक्ल पक्ष"
+        } else {
+            "कृष्ण पक्ष"
+        }
+    }
+
+    private fun findPreviousPakshaChange(
+        now: LocalDateTime,
+        current: String
+    ): LocalDateTime {
+
+        var check = now
+
+        repeat(25000) {
+
+            check =
+                check.minusMinutes(1)
+
+            if (
+                getPaksha(check) != current
+            ) {
+                return check.plusMinutes(1)
+            }
+        }
+
+        return now
+    }
+
+    private fun findNextPakshaChange(
+        now: LocalDateTime,
+        current: String
+    ): Pair<String, LocalDateTime> {
+
+        var check = now
+
+        repeat(25000) {
+
+            check =
+                check.plusMinutes(1)
+
+            val next =
+                getPaksha(check)
+
+            if (next != current) {
+
+                return Pair(
+                    "$current → $next",
+                    check
+                )
+            }
+        }
+
+        return Pair(
+            "पुढील पक्ष शोधत आहे",
+            now.plusDays(16)
+        )
+    }
 
     // =========================================================
-    // PREVIOUS MAS
+    // MAS
     // =========================================================
+
+    private fun getMasaIndex(
+        time: LocalDateTime
+    ): Int {
+
+        return floor(
+            getSunLongitude(time) /
+                    30.0
+        )
+            .toInt()
+            .coerceIn(0, 11)
+    }
 
     private fun findPreviousMasaChange(
         now: LocalDateTime,
@@ -718,31 +842,20 @@ nextLagnaMillis =
 
         var check = now
 
-        repeat(50400) {
+        repeat(60000) {
 
             check =
-                check.minusMinutes(1)
+                check.minusMinutes(10)
 
-            val sun =
-                getSunLongitude(check)
-
-            val masa =
-                (sun / 30.0)
-                    .toInt()
-                    .coerceIn(0, 11)
-
-            if (masa != current) {
-                return check.plusMinutes(1)
+            if (
+                getMasaIndex(check) != current
+            ) {
+                return check.plusMinutes(10)
             }
         }
 
         return now
     }
-
-
-    // =========================================================
-    // NEXT MAS
-    // =========================================================
 
     private fun findNextMasaChange(
         now: LocalDateTime,
@@ -751,23 +864,22 @@ nextLagnaMillis =
 
         var check = now
 
-        repeat(50400) {
+        repeat(60000) {
 
             check =
-                check.plusMinutes(1)
+                check.plusMinutes(10)
 
-            val sun =
-                getSunLongitude(check)
+            val next =
+                getMasaIndex(check)
 
-            val masa =
-                (sun / 30.0)
-                    .toInt()
-                    .coerceIn(0, 11)
-
-            if (masa != current) {
+            if (next != current) {
 
                 return Pair(
-                    "${masaNames[current]} → ${masaNames[masa]}",
+                    "${
+                        masaNames[current]
+                    } → ${
+                        masaNames[next]
+                    }",
                     check
                 )
             }
@@ -779,386 +891,257 @@ nextLagnaMillis =
         )
     }
 
-
     // =========================================================
-    // PREVIOUS PAKSHA
-    // =========================================================
-
-    private fun findPreviousPakshaChange(
-        now: LocalDateTime,
-        current: String
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(50000) {
-
-            check =
-                check.minusMinutes(1)
-
-            val sun =
-                getSunLongitude(check)
-
-            val moon =
-                getMoonLongitude(check)
-
-            val elongation =
-                normalize(moon - sun)
-
-            val tithi =
-                (elongation / TITHI_SIZE)
-                    .toInt()
-                    .coerceIn(0, 29)
-
-            val paksha =
-                if (tithi < 15) {
-                    "शुक्ल पक्ष"
-                } else {
-                    "कृष्ण पक्ष"
-                }
-
-            if (paksha != current) {
-                return check.plusMinutes(1)
-            }
-        }
-
-        return now
-    }
-
-
-    // =========================================================
-    // NEXT PAKSHA
+    // PRAHAR
     // =========================================================
 
-    private fun findNextPakshaChange(
-        now: LocalDateTime,
-        current: String
-    ): Pair<String, LocalDateTime> {
+    private data class PraharData(
 
-        var check = now
+        val name: String,
 
-        repeat(50000) {
+        val start: LocalDateTime,
 
-            check =
-                check.plusMinutes(1)
+        val nextName: String,
 
-            val sun =
-                getSunLongitude(check)
+        val next: LocalDateTime
+    )
 
-            val moon =
-                getMoonLongitude(check)
+    private fun getPraharData(
+        now: LocalDateTime
+    ): PraharData {
 
-            val elongation =
-                normalize(moon - sun)
+        val base =
+            now
+                .toLocalDate()
+                .atTime(6, 0)
 
-            val tithi =
-                (elongation / TITHI_SIZE)
-                    .toInt()
-                    .coerceIn(0, 29)
+        val minutes =
+            Duration.between(
+                base,
+                now
+            )
+                .toMinutes()
 
-            val paksha =
-                if (tithi < 15) {
-                    "शुक्ल पक्ष"
-                } else {
-                    "कृष्ण पक्ष"
-                }
+        val index =
+            floor(
+                minutes.toDouble() /
+                        180.0
+            )
+                .toInt()
 
-            if (paksha != current) {
+        val normalizedIndex =
+            ((index % 8) + 8) % 8
 
-                return Pair(
-                    "$current → $paksha",
-                    check
-                )
-            }
-        }
+        val start =
+            base.plusMinutes(
+                index.toLong() * 180L
+            )
 
-        return Pair(
-            "पुढील पक्ष शोधत आहे",
-            now.plusDays(20)
+        val next =
+            start.plusMinutes(
+                180L
+            )
+
+        return PraharData(
+
+            name =
+                praharNames[normalizedIndex],
+
+            start =
+                start,
+
+            nextName =
+                praharNames[
+                    (normalizedIndex + 1) % 8
+                ],
+
+            next =
+                next
         )
     }
 
-
     // =========================================================
-    // TITHI NAME
-    // =========================================================
-
-    private fun getTithiName(
-        index: Int
-    ): String {
-
-        val safe =
-            index.coerceIn(0, 29)
-
-        return if (safe < 15) {
-            tithiNames[safe]
-        } else {
-            when (safe) {
-                15 -> "प्रतिपदा"
-                16 -> "द्वितीया"
-                17 -> "तृतीया"
-                18 -> "चतुर्थी"
-                19 -> "पंचमी"
-                20 -> "षष्ठी"
-                21 -> "सप्तमी"
-                22 -> "अष्टमी"
-                23 -> "नवमी"
-                24 -> "दशमी"
-                25 -> "एकादशी"
-                26 -> "द्वादशी"
-                27 -> "त्रयोदशी"
-                28 -> "चतुर्दशी"
-                else -> "अमावस्या"
-            }
-        }
-    }
-
-
-    // =========================================================
-    // KARANA NAME
+    // LAGNA
     // =========================================================
 
-    private fun getKaranaName(
-        index: Int
-    ): String {
+    private data class LagnaData(
 
-        val names =
-            listOf(
-                "बव",
-                "बालव",
-                "कौलव",
-                "तैतिल",
-                "गर",
-                "वणिज",
-                "विष्टि"
+        val name: String,
+
+        val start: LocalDateTime,
+
+        val nextName: String,
+
+        val next: LocalDateTime
+    )
+
+    private fun getLagnaData(
+        now: LocalDateTime
+    ): LagnaData {
+
+        /*
+         * सध्याच्या version मध्ये
+         * Moon longitude आधारित zodiac segment वापरला आहे.
+         * पुढील version मध्ये latitude/longitude आधारित
+         * exact Ascendant calculation जोडता येईल.
+         */
+
+        val longitude =
+            getMoonLongitude(now)
+
+        val index =
+            floor(
+                longitude / 30.0
             )
+                .toInt()
+                .coerceIn(0, 11)
 
-        if (index == 0) {
-            return "किंस्तुघ्न"
-        }
+        val start =
+            now
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
 
-        if (index >= 57) {
-            return when (index) {
-                57 -> "शकुनि"
-                58 -> "चतुष्पाद"
-                59 -> "नाग"
-                else -> "—"
-            }
-        }
+        val next =
+            start.plusHours(2)
 
-        return names[
-            (index - 1) % 7
-        ]
+        return LagnaData(
+
+            name =
+                lagnaNames[index],
+
+            start =
+                start,
+
+            nextName =
+                lagnaNames[
+                    (index + 1) % 12
+                ],
+
+            next =
+                next
+        )
     }
-
 
     // =========================================================
     // SUN LONGITUDE
     // =========================================================
 
     private fun getSunLongitude(
-        dateTime: LocalDateTime
+        time: LocalDateTime
     ): Double {
 
-        val jd =
-            getJulianDay(dateTime)
-
-        val d =
-            jd - 2451545.0
+        val days =
+            getJulianDay(time) -
+                    2451545.0
 
         val meanLongitude =
             normalize(
-                280.46646 +
-                        0.98564736 * d
+                280.460 +
+                        0.9856474 * days
             )
 
         val meanAnomaly =
-            normalize(
-                357.52911 +
-                        0.98560028 * d
+            Math.toRadians(
+                normalize(
+                    357.528 +
+                            0.9856003 * days
+                )
             )
-
-        val equationOfCenter =
-            1.914602 *
-                    sin(
-                        Math.toRadians(
-                            meanAnomaly
-                        )
-                    ) +
-                    0.019993 *
-                    sin(
-                        Math.toRadians(
-                            2.0 * meanAnomaly
-                        )
-                    ) +
-                    0.000289 *
-                    sin(
-                        Math.toRadians(
-                            3.0 * meanAnomaly
-                        )
-                    )
-
-        val tropical =
-            normalize(
-                meanLongitude +
-                        equationOfCenter
-            )
-
-        val ayanamsa =
-            23.85675 +
-                    (
-                        (jd - 2451545.0) /
-                                36525.0
-                        ) *
-                    1.396971
 
         return normalize(
-            tropical - ayanamsa
+            meanLongitude +
+                    1.915 *
+                    kotlin.math.sin(meanAnomaly) +
+                    0.020 *
+                    kotlin.math.sin(
+                        2 * meanAnomaly
+                    )
         )
     }
-
 
     // =========================================================
     // MOON LONGITUDE
     // =========================================================
 
     private fun getMoonLongitude(
-        dateTime: LocalDateTime
+        time: LocalDateTime
     ): Double {
 
-        val jd =
-            getJulianDay(dateTime)
+        val days =
+            getJulianDay(time) -
+                    2451545.0
 
-        val d =
-            jd - 2451545.0
-
-        val l =
+        val l0 =
             normalize(
                 218.316 +
-                        13.176396 * d
+                        13.176396 * days
             )
 
-        val m =
-            normalize(
-                134.963 +
-                        13.064993 * d
+        val mMoon =
+            Math.toRadians(
+                normalize(
+                    134.963 +
+                            13.064993 * days
+                )
             )
 
-        val f =
-            normalize(
-                93.272 +
-                        13.229350 * d
+        val mSun =
+            Math.toRadians(
+                normalize(
+                    357.529 +
+                            0.98560028 * days
+                )
             )
 
-        val moonLongitude =
-            l +
-                    6.289 *
-                    sin(
-                        Math.toRadians(m)
-                    ) +
-                    1.274 *
-                    sin(
-                        Math.toRadians(
-                            2.0 * (l - 280.466) - m
-                        )
-                    ) +
-                    0.658 *
-                    sin(
-                        Math.toRadians(
-                            2.0 * (l - 280.466)
-                        )
-                    ) +
-                    0.214 *
-                    sin(
-                        Math.toRadians(
-                            2.0 * m
-                        )
-                    ) -
-                    0.186 *
-                    sin(
-                        Math.toRadians(
-                            357.529 +
-                                    0.98560028 * d
-                        )
-                    ) -
-                    0.114 *
-                    sin(
-                        Math.toRadians(
-                            2.0 * f
-                        )
-                    )
-
-        val ayanamsa =
-            23.85675 +
-                    (
-                        (jd - 2451545.0) /
-                                36525.0
-                        ) *
-                    1.396971
+        val d =
+            Math.toRadians(
+                normalize(
+                    297.850 +
+                            12.190749 * days
+                )
+            )
 
         return normalize(
-            moonLongitude - ayanamsa
+            l0 +
+                    6.289 *
+                    kotlin.math.sin(mMoon) +
+                    1.274 *
+                    kotlin.math.sin(
+                        2 * d - mMoon
+                    ) +
+                    0.658 *
+                    kotlin.math.sin(
+                        2 * d
+                    ) +
+                    0.214 *
+                    kotlin.math.sin(
+                        2 * mMoon
+                    ) -
+                    0.186 *
+                    kotlin.math.sin(mSun)
         )
     }
-
 
     // =========================================================
     // JULIAN DAY
     // =========================================================
 
     private fun getJulianDay(
-        dateTime: LocalDateTime
+        time: LocalDateTime
     ): Double {
 
         val instant =
-            dateTime
-                .atZone(INDIA_ZONE)
+            time
+                .atZone(zoneId)
                 .toInstant()
 
-        return (
-            instant.epochSecond /
-                    86400.0
-            ) +
-                2440587.5
+        return 2440587.5 +
+                instant
+                    .toEpochMilli()
+                    .toDouble() /
+                86400000.0
     }
-
-
-    // =========================================================
-    // TIME
-    // =========================================================
-
-    private fun toMillis(
-        dateTime: LocalDateTime
-    ): Long {
-
-        return dateTime
-            .atZone(INDIA_ZONE)
-            .toInstant()
-            .toEpochMilli()
-    }
-
-    private fun formatDate(
-        dateTime: LocalDateTime
-    ): String {
-
-        return dateTime.format(
-            DateTimeFormatter.ofPattern(
-                "dd-MM-yyyy"
-            )
-        )
-    }
-
-    private fun formatDateTime(
-        dateTime: LocalDateTime
-    ): String {
-
-        return dateTime.format(
-            DateTimeFormatter.ofPattern(
-                "dd-MM-yyyy HH:mm"
-            )
-        )
-    }
-
 
     // =========================================================
     // NORMALIZE
@@ -1177,371 +1160,48 @@ nextLagnaMillis =
 
         return result
     }
-    
-    // =========================================================
-// MAS DATA
-// =========================================================
-
-private data class MasaData(
-
-    val next: String,
-
-    val startTime: LocalDateTime,
-
-    val nextTime: LocalDateTime
-)
-
-
-private fun getMasaData(
-
-    now: LocalDateTime,
-
-    currentIndex: Int
-
-): MasaData {
-
-    var previousCheck =
-        now
-
-    var startTime =
-        now
-
-
-    repeat(60000) {
-
-        previousCheck =
-            previousCheck.minusMinutes(1)
-
-        val sun =
-            getSunLongitude(
-                previousCheck
-            )
-
-        val index =
-            (sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
-
-        if (
-            index != currentIndex
-        ) {
-
-            startTime =
-                previousCheck.plusMinutes(1)
-
-            return@repeat
-        }
-    }
-
-
-    var nextCheck =
-        now
-
-    var nextIndex =
-        currentIndex
-
-    var nextTime =
-        now.plusDays(35)
-
-
-    repeat(60000) {
-
-        nextCheck =
-            nextCheck.plusMinutes(1)
-
-        val sun =
-            getSunLongitude(
-                nextCheck
-            )
-
-        val index =
-            (sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
-
-        if (
-            index != currentIndex
-        ) {
-
-            nextIndex =
-                index
-
-            nextTime =
-                nextCheck
-
-            return@repeat
-        }
-    }
-
-
-    return MasaData(
-
-        next =
-            masaNames[currentIndex] +
-                    " → " +
-                    masaNames[nextIndex],
-
-        startTime =
-            startTime,
-
-        nextTime =
-            nextTime
-    )
-}
 
     // =========================================================
-// PRAHAR DATA
-// =========================================================
+    // FORMAT DATE
+    // =========================================================
 
-private data class PraharData(
-    val current: String,
-    val next: String,
-    val nextTime: LocalDateTime
-)
+    private fun formatDate(
+        time: LocalDateTime
+    ): String {
 
-private fun getPraharData(
-    now: LocalDateTime
-): PraharData {
-
-    val hour =
-        now.hour
-
-    val minute =
-        now.minute
-
-    val totalMinutes =
-        hour * 60 + minute
-
-
-    val praharIndex =
-        when {
-
-            totalMinutes >= 360 &&
-                    totalMinutes < 540 -> 0
-
-            totalMinutes >= 540 &&
-                    totalMinutes < 720 -> 1
-
-            totalMinutes >= 720 &&
-                    totalMinutes < 900 -> 2
-
-            totalMinutes >= 900 &&
-                    totalMinutes < 1080 -> 3
-
-            totalMinutes >= 1080 &&
-                    totalMinutes < 1260 -> 4
-
-            totalMinutes >= 1260 ||
-                    totalMinutes < 0 -> 5
-
-            totalMinutes >= 0 &&
-                    totalMinutes < 180 -> 6
-
-            else -> 7
-        }
-
-
-    val names =
-        listOf(
-            "दिवसाचा पहिला प्रहर",
-            "दिवसाचा दुसरा प्रहर",
-            "दिवसाचा तिसरा प्रहर",
-            "दिवसाचा चौथा प्रहर",
-            "रात्रीचा पहिला प्रहर",
-            "रात्रीचा दुसरा प्रहर",
-            "रात्रीचा तिसरा प्रहर",
-            "रात्रीचा चौथा प्रहर"
+        return time.format(
+            DateTimeFormatter.ofPattern(
+                "dd-MM-yyyy"
+            )
         )
-
-
-    val boundaries =
-        listOf(
-            360,
-            540,
-            720,
-            900,
-            1080,
-            1260,
-            1440,
-            180,
-            360
-        )
-
-
-    val nextIndex =
-        (praharIndex + 1) % 8
-
-    val nextBoundary =
-        boundaries[praharIndex + 1]
-
-
-    var nextTime =
-        now
-            .withSecond(0)
-            .withNano(0)
-
-
-    if (nextBoundary == 1440) {
-
-        nextTime =
-            nextTime
-                .toLocalDate()
-                .plusDays(1)
-                .atStartOfDay()
-
-    } else if (nextBoundary <= totalMinutes) {
-
-        nextTime =
-            nextTime
-                .toLocalDate()
-                .plusDays(1)
-                .atTime(
-                    nextBoundary / 60,
-                    nextBoundary % 60
-                )
-
-    } else {
-
-        nextTime =
-            nextTime
-                .toLocalDate()
-                .atTime(
-                    nextBoundary / 60,
-                    nextBoundary % 60
-                )
     }
 
+    // =========================================================
+    // FORMAT DATE TIME
+    // =========================================================
 
-    return PraharData(
-        current =
-            names[praharIndex],
+    private fun formatDateTime(
+        time: LocalDateTime
+    ): String {
 
-        next =
-            names[nextIndex],
-
-        nextTime =
-            nextTime
-    )
-}
-
-
-// =========================================================
-// LAGNA DATA
-// =========================================================
-
-private data class LagnaData(
-    val current: String,
-    val next: String,
-    val nextTime: LocalDateTime
-)
-
-private fun getLagnaData(
-    now: LocalDateTime
-): LagnaData {
-
-    val sun =
-        getSunLongitude(now)
-
-    val moon =
-        getMoonLongitude(now)
-
-
-    /*
-     * Approximate Lagna calculation.
-     *
-     * प्रत्येक 30 अंशाला एक लग्न.
-     * पुढील version मध्ये स्थानानुसार
-     * अधिक precise ascendant calculation
-     * जोडता येईल.
-     */
-
-    val localMinutes =
-        now.hour * 60 +
-                now.minute
-
-    val rotation =
-        (
-            localMinutes /
-                    1440.0
-        ) * 360.0
-
-
-    val ascendantLongitude =
-        normalize(
-            sun +
-                    rotation
-        )
-
-
-    val lagnaIndex =
-        (
-            ascendantLongitude / 30.0
-        )
-            .toInt()
-            .coerceIn(
-                0,
-                11
+        return time.format(
+            DateTimeFormatter.ofPattern(
+                "dd-MM-yyyy HH:mm"
             )
-
-
-    val lagnaNames =
-        listOf(
-            "मेष लग्न",
-            "वृषभ लग्न",
-            "मिथुन लग्न",
-            "कर्क लग्न",
-            "सिंह लग्न",
-            "कन्या लग्न",
-            "तुळ लग्न",
-            "वृश्चिक लग्न",
-            "धनु लग्न",
-            "मकर लग्न",
-            "कुंभ लग्न",
-            "मीन लग्न"
         )
+    }
 
+    // =========================================================
+    // TO MILLIS
+    // =========================================================
 
-    val nextIndex =
-        (lagnaIndex + 1) % 12
+    private fun toMillis(
+        time: LocalDateTime
+    ): Long {
 
-
-    val currentDegrees =
-        ascendantLongitude % 30.0
-
-    val remainingDegrees =
-        30.0 -
-                currentDegrees
-
-
-    val minutesRemaining =
-        (
-            remainingDegrees /
-                    360.0 *
-                    1440.0
-        )
-            .toLong()
-            .coerceAtLeast(1L)
-
-
-    val nextTime =
-        now
-            .withSecond(0)
-            .withNano(0)
-            .plusMinutes(
-                minutesRemaining
-            )
-
-
-    return LagnaData(
-
-        current =
-            lagnaNames[lagnaIndex],
-
-        next =
-            lagnaNames[nextIndex],
-
-        nextTime =
-            nextTime
-    )
-}
+        return time
+            .atZone(zoneId)
+            .toInstant()
+            .toEpochMilli()
+    }
 }
