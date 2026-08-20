@@ -100,44 +100,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-fun scheduleRashiAlarm(
-    delayMillis: Long
-) {
-    // Test alarm
-}
 
-fun scheduleNakshatraAlarm(
-    delayMillis: Long
-) {
-    // Test alarm
-}
-
-fun scheduleCharanAlarm(
-    delayMillis: Long
-) {
-    // Test alarm
-} {
-    // सध्या compile साठी placeholder
-    // तुमचा actual alarm scheduling code नंतर येथे जोडू
-}
-
-private fun scheduleNakshatraAlarm(
-    context: Context,
-    triggerAtMillis: Long,
-    title: String,
-    message: String
-) {
-    // सध्या compile साठी placeholder
-}
-
-private fun scheduleCharanAlarm(
-    context: Context,
-    triggerAtMillis: Long,
-    title: String,
-    message: String
-) {
-    // सध्या compile साठी placeholder
-}
 }
 
 
