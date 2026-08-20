@@ -67,61 +67,31 @@ data class PanchangState(
     // MAS
     // ==========================================
 
-    val masa: String,
+    val masa: String = "—",
 
 
     // ==========================================
     // PRAHAR
     // ==========================================
 
-    val prahar: String,
+    val prahar: String = "—",
 
-    val nextPrahar: String,
+    val nextPrahar: String = "—",
 
-    val nextPraharTime: String,
+    val nextPraharTime: String = "—",
 
-    val nextPraharMillis: Long,
+    val nextPraharMillis: Long = 0L,
 
 
     // ==========================================
     // LAGNA
     // ==========================================
 
-    val lagna: String,
+    val lagna: String = "—",
 
-    val nextLagna: String,
+    val nextLagna: String = "—",
 
-    val nextLagnaTime: String,
+    val nextLagnaTime: String = "—",
 
-    val nextLagnaMillis: Long
-
-    // ==========================================
-// MAS
-// ==========================================
-
-val masa: String = "—",
-
-// ==========================================
-// PRAHAR
-// ==========================================
-
-val prahar: String = "—",
-
-val nextPrahar: String = "—",
-
-val nextPraharTime: String = "—",
-
-val nextPraharMillis: Long = 0L,
-
-// ==========================================
-// LAGNA
-// ==========================================
-
-val lagna: String = "—",
-
-val nextLagna: String = "—",
-
-val nextLagnaTime: String = "—",
-
-val nextLagnaMillis: Long = 0L
+    val nextLagnaMillis: Long = 0L
 )
