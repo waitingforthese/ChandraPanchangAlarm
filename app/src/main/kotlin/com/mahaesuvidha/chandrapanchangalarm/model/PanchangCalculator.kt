@@ -248,7 +248,20 @@ object PanchangCalculator {
                 now,
                 masaIndex
             )
+// -----------------------------------------------------
+// PRAHAR
+// -----------------------------------------------------
 
+val praharData =
+    getPraharData(now)
+
+
+// -----------------------------------------------------
+// LAGNA
+// -----------------------------------------------------
+
+val lagnaData =
+    getLagnaData(now)
 
         // =====================================================
         // RETURN PANCHANG STATE
@@ -1114,4 +1127,259 @@ object PanchangCalculator {
 
         return result
     }
+    // =========================================================
+// PRAHAR DATA
+// =========================================================
+
+private data class PraharData(
+    val current: String,
+    val next: String,
+    val nextTime: LocalDateTime
+)
+
+private fun getPraharData(
+    now: LocalDateTime
+): PraharData {
+
+    val hour =
+        now.hour
+
+    val minute =
+        now.minute
+
+    val totalMinutes =
+        hour * 60 + minute
+
+
+    val praharIndex =
+        when {
+
+            totalMinutes >= 360 &&
+                    totalMinutes < 540 -> 0
+
+            totalMinutes >= 540 &&
+                    totalMinutes < 720 -> 1
+
+            totalMinutes >= 720 &&
+                    totalMinutes < 900 -> 2
+
+            totalMinutes >= 900 &&
+                    totalMinutes < 1080 -> 3
+
+            totalMinutes >= 1080 &&
+                    totalMinutes < 1260 -> 4
+
+            totalMinutes >= 1260 ||
+                    totalMinutes < 0 -> 5
+
+            totalMinutes >= 0 &&
+                    totalMinutes < 180 -> 6
+
+            else -> 7
+        }
+
+
+    val names =
+        listOf(
+            "दिवसाचा पहिला प्रहर",
+            "दिवसाचा दुसरा प्रहर",
+            "दिवसाचा तिसरा प्रहर",
+            "दिवसाचा चौथा प्रहर",
+            "रात्रीचा पहिला प्रहर",
+            "रात्रीचा दुसरा प्रहर",
+            "रात्रीचा तिसरा प्रहर",
+            "रात्रीचा चौथा प्रहर"
+        )
+
+
+    val boundaries =
+        listOf(
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            180,
+            360
+        )
+
+
+    val nextIndex =
+        (praharIndex + 1) % 8
+
+    val nextBoundary =
+        boundaries[praharIndex + 1]
+
+
+    var nextTime =
+        now
+            .withSecond(0)
+            .withNano(0)
+
+
+    if (nextBoundary == 1440) {
+
+        nextTime =
+            nextTime
+                .toLocalDate()
+                .plusDays(1)
+                .atStartOfDay()
+
+    } else if (nextBoundary <= totalMinutes) {
+
+        nextTime =
+            nextTime
+                .toLocalDate()
+                .plusDays(1)
+                .atTime(
+                    nextBoundary / 60,
+                    nextBoundary % 60
+                )
+
+    } else {
+
+        nextTime =
+            nextTime
+                .toLocalDate()
+                .atTime(
+                    nextBoundary / 60,
+                    nextBoundary % 60
+                )
+    }
+
+
+    return PraharData(
+        current =
+            names[praharIndex],
+
+        next =
+            names[nextIndex],
+
+        nextTime =
+            nextTime
+    )
+}
+
+
+// =========================================================
+// LAGNA DATA
+// =========================================================
+
+private data class LagnaData(
+    val current: String,
+    val next: String,
+    val nextTime: LocalDateTime
+)
+
+private fun getLagnaData(
+    now: LocalDateTime
+): LagnaData {
+
+    val sun =
+        getSunLongitude(now)
+
+    val moon =
+        getMoonLongitude(now)
+
+
+    /*
+     * Approximate Lagna calculation.
+     *
+     * प्रत्येक 30 अंशाला एक लग्न.
+     * पुढील version मध्ये स्थानानुसार
+     * अधिक precise ascendant calculation
+     * जोडता येईल.
+     */
+
+    val localMinutes =
+        now.hour * 60 +
+                now.minute
+
+    val rotation =
+        (
+            localMinutes /
+                    1440.0
+        ) * 360.0
+
+
+    val ascendantLongitude =
+        normalize(
+            sun +
+                    rotation
+        )
+
+
+    val lagnaIndex =
+        (
+            ascendantLongitude / 30.0
+        )
+            .toInt()
+            .coerceIn(
+                0,
+                11
+            )
+
+
+    val lagnaNames =
+        listOf(
+            "मेष लग्न",
+            "वृषभ लग्न",
+            "मिथुन लग्न",
+            "कर्क लग्न",
+            "सिंह लग्न",
+            "कन्या लग्न",
+            "तुळ लग्न",
+            "वृश्चिक लग्न",
+            "धनु लग्न",
+            "मकर लग्न",
+            "कुंभ लग्न",
+            "मीन लग्न"
+        )
+
+
+    val nextIndex =
+        (lagnaIndex + 1) % 12
+
+
+    val currentDegrees =
+        ascendantLongitude % 30.0
+
+    val remainingDegrees =
+        30.0 -
+                currentDegrees
+
+
+    val minutesRemaining =
+        (
+            remainingDegrees /
+                    360.0 *
+                    1440.0
+        )
+            .toLong()
+            .coerceAtLeast(1L)
+
+
+    val nextTime =
+        now
+            .withSecond(0)
+            .withNano(0)
+            .plusMinutes(
+                minutesRemaining
+            )
+
+
+    return LagnaData(
+
+        current =
+            lagnaNames[lagnaIndex],
+
+        next =
+            lagnaNames[nextIndex],
+
+        nextTime =
+            nextTime
+    )
+}
 }
