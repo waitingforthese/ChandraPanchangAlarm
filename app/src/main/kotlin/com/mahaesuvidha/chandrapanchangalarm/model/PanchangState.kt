@@ -41,14 +41,39 @@ data class PanchangState(
     val nextMasaMillis: Long = 0L,
 
     // PRAHAR
-    val prahar: String = "—",
-    val nextPrahar: String = "—",
-    val nextPraharTime: String = "—",
-    val nextPraharMillis: Long = 0L,
 
-    // LAGNA
-    val lagna: String = "—",
-    val nextLagna: String = "—",
-    val nextLagnaTime: String = "—",
-    val nextLagnaMillis: Long = 0L
+prahar =
+    praharData.current,
+
+nextPrahar =
+    praharData.next,
+
+nextPraharTime =
+    formatDateTime(
+        praharData.nextTime
+    ),
+
+nextPraharMillis =
+    toMillis(
+        praharData.nextTime
+    ),
+
+
+// LAGNA
+
+lagna =
+    lagnaData.current,
+
+nextLagna =
+    lagnaData.next,
+
+nextLagnaTime =
+    formatDateTime(
+        lagnaData.nextTime
+    ),
+
+nextLagnaMillis =
+    toMillis(
+        lagnaData.nextTime
+    )
 )
