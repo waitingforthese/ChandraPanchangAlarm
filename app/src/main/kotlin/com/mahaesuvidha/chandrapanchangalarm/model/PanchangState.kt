@@ -1,36 +1,70 @@
-// PRAHAR
+package com.mahaesuvidha.chandrapanchangalarm.model
 
-prahar =
-    praharData.current,
+data class PanchangState(
 
-nextPrahar =
-    praharData.next,
+    // BASIC
 
-nextPraharTime =
-    formatDateTime(
-        praharData.nextTime
-    ),
-
-nextPraharMillis =
-    toMillis(
-        praharData.nextTime
-    ),
+    val date: String,
+    val weekday: String,
 
 
-// LAGNA
+    // TITHI
 
-lagna =
-    lagnaData.current,
+    val tithi: String,
+    val tithiStartTime: String = "—",
+    val nextTithi: String,
+    val nextTithiTime: String,
+    val nextTithiMillis: Long,
 
-nextLagna =
-    lagnaData.next,
 
-nextLagnaTime =
-    formatDateTime(
-        lagnaData.nextTime
-    ),
+    // YOGA
 
-nextLagnaMillis =
-    toMillis(
-        lagnaData.nextTime
-    )
+    val yoga: String,
+    val yogaStartTime: String = "—",
+    val nextYoga: String,
+    val nextYogaTime: String,
+    val nextYogaMillis: Long,
+
+
+    // KARANA
+
+    val karana: String,
+    val karanaStartTime: String = "—",
+    val nextKarana: String,
+    val nextKaranaTime: String,
+    val nextKaranaMillis: Long,
+
+
+    // PAKSHA
+
+    val paksha: String,
+    val pakshaStartTime: String = "—",
+    val nextPaksha: String,
+    val nextPakshaTime: String,
+    val nextPakshaMillis: Long,
+
+
+    // MAS
+
+    val masa: String = "—",
+    val nextMasa: String = "—",
+    val masaStartTime: String = "—",
+    val nextMasaTime: String = "—",
+    val nextMasaMillis: Long = 0L,
+
+
+    // PRAHAR
+
+    val prahar: String = "—",
+    val nextPrahar: String = "—",
+    val nextPraharTime: String = "—",
+    val nextPraharMillis: Long = 0L,
+
+
+    // LAGNA
+
+    val lagna: String = "—",
+    val nextLagna: String = "—",
+    val nextLagnaTime: String = "—",
+    val nextLagnaMillis: Long = 0L
+)
