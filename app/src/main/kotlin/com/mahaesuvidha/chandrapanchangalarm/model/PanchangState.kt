@@ -2,6 +2,7 @@ package com.mahaesuvidha.chandrapanchangalarm.model
 
 data class PanchangState(
 
+    // BASIC
     val date: String,
     val weekday: String,
 
@@ -35,8 +36,8 @@ data class PanchangState(
 
     // MAS
     val masa: String = "—",
-    val nextMasa: String = "—",
     val masaStartTime: String = "—",
+    val nextMasa: String = "—",
     val nextMasaTime: String = "—",
     val nextMasaMillis: Long = 0L,
 
