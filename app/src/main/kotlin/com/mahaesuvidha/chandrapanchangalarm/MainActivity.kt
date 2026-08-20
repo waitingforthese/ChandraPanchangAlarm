@@ -1482,54 +1482,50 @@ private fun PanchangCard(
         )
 
 
-        // ==================================================
-        // PRAHAR
-        // ==================================================
+       // ==================================================
+// PRAHAR
+// ==================================================
 
-        PanchangChangeSection(
+PanchangInfoCard(
 
-            label =
-                "प्रहर",
+    title =
+        "⏳ प्रहर",
 
-            value =
-                state.prahar,
+    current =
+        state.prahar,
 
-            startTime =
-                "सध्या चालू",
+    startTime =
+        state.praharStartTime,
 
-            next =
-                state.nextPrahar,
+    next =
+        state.nextPrahar,
 
-            endTime =
-                state.nextPraharTime
-        )
-
-
-        // ==================================================
-        // LAGNA
-        // ==================================================
-
-        PanchangChangeSection(
-
-            label =
-                "लग्न",
-
-            value =
-                state.lagna,
-
-            startTime =
-                "सध्या चालू",
-
-            next =
-                state.nextLagna,
-
-            endTime =
-                state.nextLagnaTime
-        )
-    }
-}
+    nextTime =
+        state.nextPraharTime
+)
 
 
+// ==================================================
+// LAGNA
+// ==================================================
+
+PanchangInfoCard(
+
+    title =
+        "⭐ लग्न",
+
+    current =
+        state.lagna,
+
+    startTime =
+        state.lagnaStartTime,
+
+    next =
+        state.nextLagna,
+
+    nextTime =
+        state.nextLagnaTime
+)
 // ==========================================================
 // PANCHANG CHANGE SECTION
 // ==========================================================
