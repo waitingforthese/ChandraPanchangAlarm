@@ -257,22 +257,6 @@ private val lagnaNames =
 
 
 // -----------------------------------------------------
-// MAS
-// -----------------------------------------------------
-
-val masaIndex =
-    (sun / 30.0)
-        .toInt()
-        .coerceIn(0, 11)
-
-val masaName =
-    masaNames[masaIndex]
-
-val masaData =
-    getMasaData(
-        now,
-        masaIndex
-    )
 
 
 // -----------------------------------------------------
