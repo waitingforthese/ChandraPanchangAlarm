@@ -25,4 +25,21 @@ data class PanchangState(
     val nextPaksha: String,
     val nextPakshaTime: String,
     val nextPakshaMillis: Long
+    val sunrise: String
+    
+val sunset: String
+
+val moonrise: String
+val moonset: String
+
+val masa: String
+
+val prahar: String
+val nextPrahar: String
+val nextPraharTime: String
+
+val lagna: String
+val nextLagna: String
+val nextLagnaTime: String
+val nextLagnaMillis: Long
 )
