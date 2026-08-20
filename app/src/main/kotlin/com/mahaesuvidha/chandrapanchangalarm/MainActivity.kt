@@ -1288,7 +1288,7 @@ private fun TestButton(
 
 
 // ==========================================================
-// PANCHANG CARD - COMPACT VERSION
+// PANCHANG CARD
 // ==========================================================
 
 @Composable
@@ -1297,8 +1297,13 @@ private fun PanchangCard(
 ) {
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        verticalArrangement =
+            Arrangement.spacedBy(
+                10.dp
+            )
     ) {
 
         // ==================================================
@@ -1306,32 +1311,55 @@ private fun PanchangCard(
         // ==================================================
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
 
-            shape = RoundedCornerShape(18.dp),
+            modifier =
+                Modifier.fillMaxWidth(),
 
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF7F7F7)
-            )
+            shape =
+                RoundedCornerShape(
+                    18.dp
+                ),
+
+            colors =
+                CardDefaults.cardColors(
+                    containerColor =
+                        Color(0xFFF7F7F7)
+                )
+
         ) {
 
             Column(
-                modifier = Modifier.padding(
-                    horizontal = 14.dp,
-                    vertical = 12.dp
-                )
+
+                modifier =
+                    Modifier.padding(
+                        16.dp
+                    )
+
             ) {
 
                 Text(
-                    text = "📅 आजचे पंचांग",
-                    color = Color.Black,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
+
+                    text =
+                        "📅 आजचे पंचांग",
+
+                    color =
+                        Color.Black,
+
+                    fontSize =
+                        21.sp,
+
+                    fontWeight =
+                        FontWeight.Bold
                 )
 
+
                 Spacer(
-                    modifier = Modifier.height(8.dp)
+                    modifier =
+                        Modifier.height(
+                            10.dp
+                        )
                 )
+
 
                 PanchangRow(
                     "तारीख",
@@ -1350,12 +1378,22 @@ private fun PanchangCard(
         // TITHI
         // ==================================================
 
-        PanchangSeparateCard(
-            title = "🌙 तिथी",
-            value = state.tithi,
-            startTime = state.tithiStartTime,
-            nextValue = state.nextTithi,
-            endTime = state.nextTithiTime
+        PanchangInfoCard(
+
+            title =
+                "🌙 तिथी",
+
+            current =
+                state.tithi,
+
+            startTime =
+                state.tithiStartTime,
+
+            next =
+                state.nextTithi,
+
+            nextTime =
+                state.nextTithiTime
         )
 
 
@@ -1363,12 +1401,22 @@ private fun PanchangCard(
         // YOGA
         // ==================================================
 
-        PanchangSeparateCard(
-            title = "✨ योग",
-            value = state.yoga,
-            startTime = state.yogaStartTime,
-            nextValue = state.nextYoga,
-            endTime = state.nextYogaTime
+        PanchangInfoCard(
+
+            title =
+                "🕉️ योग",
+
+            current =
+                state.yoga,
+
+            startTime =
+                state.yogaStartTime,
+
+            next =
+                state.nextYoga,
+
+            nextTime =
+                state.nextYogaTime
         )
 
 
@@ -1376,12 +1424,22 @@ private fun PanchangCard(
         // KARANA
         // ==================================================
 
-        PanchangSeparateCard(
-            title = "🔔 करण",
-            value = state.karana,
-            startTime = state.karanaStartTime,
-            nextValue = state.nextKarana,
-            endTime = state.nextKaranaTime
+        PanchangInfoCard(
+
+            title =
+                "🔱 करण",
+
+            current =
+                state.karana,
+
+            startTime =
+                state.karanaStartTime,
+
+            next =
+                state.nextKarana,
+
+            nextTime =
+                state.nextKaranaTime
         )
 
 
@@ -1389,15 +1447,259 @@ private fun PanchangCard(
         // PAKSHA
         // ==================================================
 
-        PanchangSeparateCard(
-            title = "🌗 पक्ष",
-            value = state.paksha,
-            startTime = state.pakshaStartTime,
-            nextValue = state.nextPaksha,
-            endTime = state.nextPakshaTime
+        PanchangInfoCard(
+
+            title =
+                "🌗 पक्ष",
+
+            current =
+                state.paksha,
+
+            startTime =
+                state.pakshaStartTime,
+
+            next =
+                state.nextPaksha,
+
+            nextTime =
+                state.nextPakshaTime
+        )
+
+
+        // ==================================================
+        // MAS
+        // ==================================================
+
+        PanchangInfoCard(
+
+            title =
+                "📅 मास",
+
+            current =
+                state.masa,
+
+            startTime =
+                state.masaStartTime,
+
+            next =
+                state.nextMasa,
+
+            nextTime =
+                state.nextMasaTime
+        )
+
+
+        // ==================================================
+        // PRAHAR
+        // ==================================================
+
+        PanchangInfoCard(
+
+            title =
+                "⏳ प्रहर",
+
+            current =
+                state.prahar,
+
+            startTime =
+                "सध्या चालू",
+
+            next =
+                state.nextPrahar,
+
+            nextTime =
+                state.nextPraharTime
+        )
+
+
+        // ==================================================
+        // LAGNA
+        // ==================================================
+
+        PanchangInfoCard(
+
+            title =
+                "⭐ लग्न",
+
+            current =
+                state.lagna,
+
+            startTime =
+                "सध्या चालू",
+
+            next =
+                state.nextLagna,
+
+            nextTime =
+                state.nextLagnaTime
         )
     }
 }
+
+// ==========================================================
+// PANCHANG INFO CARD
+// ==========================================================
+
+@Composable
+private fun PanchangInfoCard(
+
+    title: String,
+
+    current: String,
+
+    startTime: String,
+
+    next: String,
+
+    nextTime: String
+
+) {
+
+    Card(
+
+        modifier =
+            Modifier.fillMaxWidth(),
+
+        shape =
+            RoundedCornerShape(
+                16.dp
+            ),
+
+        colors =
+            CardDefaults.cardColors(
+
+                containerColor =
+                    Color(0xFFF7F7F7)
+            )
+
+    ) {
+
+        Column(
+
+            modifier =
+                Modifier.padding(
+                    14.dp
+                )
+
+        ) {
+
+            // TITLE
+
+            Text(
+
+                text =
+                    title,
+
+                fontSize =
+                    18.sp,
+
+                fontWeight =
+                    FontWeight.Bold,
+
+                color =
+                    Color.Black
+            )
+
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        8.dp
+                    )
+            )
+
+
+            // CURRENT
+
+            Text(
+
+                text =
+                    "सध्या : $current",
+
+                fontSize =
+                    16.sp,
+
+                fontWeight =
+                    FontWeight.SemiBold
+            )
+
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        4.dp
+                    )
+            )
+
+
+            // START TIME
+
+            Text(
+
+                text =
+                    "प्रारंभ : $startTime",
+
+                fontSize =
+                    13.sp,
+
+                color =
+                    Color.Gray
+            )
+
+
+            HorizontalDivider(
+
+                modifier =
+                    Modifier.padding(
+                        vertical =
+                            8.dp
+                    ),
+
+                color =
+                    Color.LightGray
+            )
+
+
+            // NEXT
+
+            Text(
+
+                text =
+                    "🔔 पुढील : $next",
+
+                fontSize =
+                    15.sp,
+
+                fontWeight =
+                    FontWeight.Medium
+            )
+
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        4.dp
+                    )
+            )
+
+
+            // NEXT TIME
+
+            Text(
+
+                text =
+                    "वेळ : $nextTime",
+
+                fontSize =
+                    13.sp,
+
+                color =
+                    Color.Gray
+            )
+        }
+    }
+}
+
 // ==========================================================
 // COMPACT PANCHANG ITEM CARD
 // ==========================================================
