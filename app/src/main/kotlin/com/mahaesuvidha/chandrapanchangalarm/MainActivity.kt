@@ -1380,91 +1380,54 @@ private fun PanchangCard(
 
         PanchangInfoCard(
 
-            title =
-                "🌙 तिथी",
-
-            current =
-                state.tithi,
-
-            startTime =
-                state.tithiStartTime,
-
-            next =
-                state.nextTithi,
-
-            nextTime =
-                state.nextTithiTime
-        )
-
+          PanchangChangeSection(
+    label = "तिथी",
+    value = state.tithi,
+    startTime = state.tithiStartTime,
+    title = "पुढील तिथी बदल",
+    next = "${state.tithi} → ${state.nextTithi}",
+    endTime = state.nextTithiTime
+)
 
         // ==================================================
         // YOGA
         // ==================================================
 
-        PanchangInfoCard(
-
-            title =
-                "🕉️ योग",
-
-            current =
-                state.yoga,
-
-            startTime =
-                state.yogaStartTime,
-
-            next =
-                state.nextYoga,
-
-            nextTime =
-                state.nextYogaTime
-        )
+        PanchangChangeSection(
+    label = "योग",
+    value = state.yoga,
+    startTime = state.yogaStartTime,
+    title = "पुढील योग बदल",
+    next = "${state.yoga} → ${state.nextYoga}",
+    endTime = state.nextYogaTime
+)
 
 
         // ==================================================
         // KARANA
         // ==================================================
 
-        PanchangInfoCard(
-
-            title =
-                "🔱 करण",
-
-            current =
-                state.karana,
-
-            startTime =
-                state.karanaStartTime,
-
-            next =
-                state.nextKarana,
-
-            nextTime =
-                state.nextKaranaTime
-        )
-
+     PanchangChangeSection(
+    label = "करण",
+    value = state.karana,
+    startTime = state.karanaStartTime,
+    title = "पुढील करण बदल",
+    next = "${state.karana} → ${state.nextKarana}",
+    endTime = state.nextKaranaTime
+)
 
         // ==================================================
         // PAKSHA
         // ==================================================
 
-        PanchangInfoCard(
-
-            title =
-                "🌗 पक्ष",
-
-            current =
-                state.paksha,
-
-            startTime =
-                state.pakshaStartTime,
-
-            next =
-                state.nextPaksha,
-
-            nextTime =
-                state.nextPakshaTime
-        )
-
+    PanchangChangeSection(
+    label = "पक्ष",
+    value = state.paksha,
+    startTime = state.pakshaStartTime,
+    title = "पुढील पक्ष बदल",
+    next = "${state.paksha} → ${state.nextPaksha}",
+    endTime = state.nextPakshaTime
+)
 
         // ==================================================
         // MAS
@@ -1968,74 +1931,177 @@ private fun PanchangSeparateCard(
 
 @Composable
 private fun PanchangChangeSection(
-
     label: String,
-
     value: String,
-
+    startTime: String,
     title: String,
-
     next: String,
-
-    time: String
-
+    endTime: String
 ) {
 
-    PanchangRow(
-        label,
-        value
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+    ) {
+
+        // ==========================================
+        // HEADER
+        // ==========================================
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = when (label) {
+                    "तिथी" -> "🌙 $label"
+                    "योग" -> "✨ $label"
+                    "करण" -> "🔔 $label"
+                    "पक्ष" -> "🌗 $label"
+                    else -> label
+                },
+                color = Color(0xFF006CA8),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = value,
+                color = Color.Black,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        HorizontalDivider(
+            color = Color.LightGray
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
 
 
-    Text(
+        // ==========================================
+        // 🟢 चालू आहे
+        // ==========================================
 
-        text =
-            title,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-        color =
-            Color(0xFF1565C0),
+            Text(
+                text = "🟢 चालू आहे",
+                color = Color(0xFF2E9E44),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-        fontSize =
-            14.sp,
-
-        fontWeight =
-            FontWeight.Bold
-    )
-
-
-    Text(
-
-        text =
-            next,
-
-        color =
-            Color.Black,
-
-        fontSize =
-            13.sp
-    )
+            Text(
+                text = value,
+                color = Color.Black,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
 
-    Text(
-
-        text =
-            "📅 $time",
-
-        color =
-            Color.DarkGray,
-
-        fontSize =
-            11.sp
-    )
+        Spacer(
+            modifier = Modifier.height(6.dp)
+        )
 
 
-    Spacer(
-        Modifier.height(8.dp)
-    )
+        // ==========================================
+        // 🟢 प्रारंभ
+        // ==========================================
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = "🟢 प्रारंभ",
+                color = Color(0xFF2E9E44),
+                fontSize = 17.sp
+            )
+
+            Text(
+                text = startTime,
+                color = Color.DarkGray,
+                fontSize = 17.sp
+            )
+        }
+
+
+        Spacer(
+            modifier = Modifier.height(6.dp)
+        )
+
+
+        // ==========================================
+        // 🔔 पुढील बदल
+        // ==========================================
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = "🔔 पुढील बदल",
+                color = Color(0xFF006CA8),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = next,
+                color = Color.Black,
+                fontSize = 18.sp
+            )
+        }
+
+
+        Spacer(
+            modifier = Modifier.height(6.dp)
+        )
+
+
+        // ==========================================
+        // 🔴 समाप्त
+        // ==========================================
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = "🔴 समाप्त",
+                color = Color(0xFFC62828),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = endTime,
+                color = Color.DarkGray,
+                fontSize = 17.sp
+            )
+        }
+    }
 }
-
-
-
 // ==========================================================
 // PANCHANG ROW
 // ==========================================================
