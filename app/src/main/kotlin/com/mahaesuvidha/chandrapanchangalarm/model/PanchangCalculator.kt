@@ -1,169 +1,112 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
-import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.floor
+import kotlin.math.sin
 
 object PanchangCalculator {
 
-    // =========================================================
-    // CONSTANTS
-    // =========================================================
+    private val INDIA_ZONE =
+        ZoneId.of("Asia/Kolkata")
 
     private const val TITHI_SIZE = 12.0
-    private const val YOGA_SIZE = 13.333333333333334
+    private const val YOGA_SIZE = 360.0 / 27.0
     private const val KARANA_SIZE = 6.0
 
-    private val zoneId =
-        ZoneId.systemDefault()
+    private val tithiNames = listOf(
+        "प्रतिपदा",
+        "द्वितीया",
+        "तृतीया",
+        "चतुर्थी",
+        "पंचमी",
+        "षष्ठी",
+        "सप्तमी",
+        "अष्टमी",
+        "नवमी",
+        "दशमी",
+        "एकादशी",
+        "द्वादशी",
+        "त्रयोदशी",
+        "चतुर्दशी",
+        "पूर्णिमा"
+    )
 
-    // =========================================================
-    // NAMES
-    // =========================================================
+    private val yogaNames = listOf(
+        "विष्कंभ",
+        "प्रीती",
+        "आयुष्मान",
+        "सौभाग्य",
+        "शोभन",
+        "अतिगंड",
+        "सुकर्म",
+        "धृति",
+        "शूल",
+        "गंड",
+        "वृद्धि",
+        "ध्रुव",
+        "व्याघात",
+        "हर्षण",
+        "वज्र",
+        "सिद्धि",
+        "व्यतीपात",
+        "वरीयान",
+        "परिघ",
+        "शिव",
+        "सिद्ध",
+        "साध्य",
+        "शुभ",
+        "शुक्ल",
+        "ब्रह्म",
+        "इंद्र",
+        "वैधृति"
+    )
 
-    private val weekdayNames =
-        arrayOf(
-            "रविवार",
-            "सोमवार",
-            "मंगळवार",
-            "बुधवार",
-            "गुरुवार",
-            "शुक्रवार",
-            "शनिवार"
-        )
+    private val weekdayNames = listOf(
+        "रविवार",
+        "सोमवार",
+        "मंगळवार",
+        "बुधवार",
+        "गुरुवार",
+        "शुक्रवार",
+        "शनिवार"
+    )
 
-    private val tithiNames =
-        arrayOf(
-            "प्रतिपदा",
-            "द्वितीया",
-            "तृतीया",
-            "चतुर्थी",
-            "पंचमी",
-            "षष्ठी",
-            "सप्तमी",
-            "अष्टमी",
-            "नवमी",
-            "दशमी",
-            "एकादशी",
-            "द्वादशी",
-            "त्रयोदशी",
-            "चतुर्दशी",
-            "पौर्णिमा",
-            "प्रतिपदा",
-            "द्वितीया",
-            "तृतीया",
-            "चतुर्थी",
-            "पंचमी",
-            "षष्ठी",
-            "सप्तमी",
-            "अष्टमी",
-            "नवमी",
-            "दशमी",
-            "एकादशी",
-            "द्वादशी",
-            "त्रयोदशी",
-            "चतुर्दशी",
-            "अमावास्या"
-        )
+    private val masaNames = listOf(
+        "चैत्र",
+        "वैशाख",
+        "ज्येष्ठ",
+        "आषाढ",
+        "श्रावण",
+        "भाद्रपद",
+        "आश्विन",
+        "कार्तिक",
+        "मार्गशीर्ष",
+        "पौष",
+        "माघ",
+        "फाल्गुन"
+    )
 
-    private val yogaNames =
-        arrayOf(
-            "विष्कंभ",
-            "प्रीति",
-            "आयुष्मान",
-            "सौभाग्य",
-            "शोभन",
-            "अतिगंड",
-            "सुकर्मा",
-            "धृति",
-            "शूल",
-            "गंड",
-            "वृद्धि",
-            "ध्रुव",
-            "व्याघात",
-            "हर्षण",
-            "वज्र",
-            "सिद्धि",
-            "व्यतीपात",
-            "वरीयान",
-            "परिघ",
-            "शिव",
-            "सिद्ध",
-            "साध्य",
-            "शुभ",
-            "शुक्ल",
-            "ब्रह्म",
-            "इंद्र",
-            "वैधृति"
-        )
+    private val lagnaNames = listOf(
+        "मेष",
+        "वृषभ",
+        "मिथुन",
+        "कर्क",
+        "सिंह",
+        "कन्या",
+        "तुळ",
+        "वृश्चिक",
+        "धनु",
+        "मकर",
+        "कुंभ",
+        "मीन"
+    )
 
-    private val karanaCycle =
-        arrayOf(
-            "बव",
-            "बालव",
-            "कौलव",
-            "तैतिल",
-            "गर",
-            "वणिज",
-            "विष्टि"
-        )
-
-    private val masaNames =
-        arrayOf(
-            "चैत्र",
-            "वैशाख",
-            "ज्येष्ठ",
-            "आषाढ",
-            "श्रावण",
-            "भाद्रपद",
-            "आश्विन",
-            "कार्तिक",
-            "मार्गशीर्ष",
-            "पौष",
-            "माघ",
-            "फाल्गुन"
-        )
-
-    private val praharNames =
-        arrayOf(
-            "प्रथम प्रहर",
-            "द्वितीय प्रहर",
-            "तृतीय प्रहर",
-            "चतुर्थ प्रहर",
-            "पंचम प्रहर",
-            "षष्ठ प्रहर",
-            "सप्तम प्रहर",
-            "अष्टम प्रहर"
-        )
-
-    private val lagnaNames =
-        arrayOf(
-            "मेष",
-            "वृषभ",
-            "मिथुन",
-            "कर्क",
-            "सिंह",
-            "कन्या",
-            "तुळ",
-            "वृश्चिक",
-            "धनु",
-            "मकर",
-            "कुंभ",
-            "मीन"
-        )
-
-    // =========================================================
-    // MAIN FUNCTION
-    // =========================================================
-object PanchangCalculator {
-
-    fun getCurrentPanchangState(): PanchangState {
+    fun getCurrentPanchang(): PanchangState {
 
         val now =
-            LocalDateTime.now()
+            LocalDateTime.now(INDIA_ZONE)
 
         val sun =
             getSunLongitude(now)
@@ -174,9 +117,10 @@ object PanchangCalculator {
         val elongation =
             normalize(moon - sun)
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // TITHI
-        // -----------------------------------------------------
+        // =====================================================
 
         val tithiIndex =
             floor(elongation / TITHI_SIZE)
@@ -198,9 +142,10 @@ object PanchangCalculator {
                 tithiIndex
             )
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // PAKSHA
-        // -----------------------------------------------------
+        // =====================================================
 
         val paksha =
             if (tithiIndex < 15) {
@@ -221,17 +166,13 @@ object PanchangCalculator {
                 paksha
             )
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // YOGA
-        // -----------------------------------------------------
+        // =====================================================
 
         val yogaIndex =
-            floor(
-                normalize(sun + moon) /
-                        YOGA_SIZE
-            )
-                .toInt()
-                .coerceIn(0, 26)
+            getYogaIndex(now)
 
         val yogaName =
             yogaNames[yogaIndex]
@@ -248,22 +189,18 @@ object PanchangCalculator {
                 yogaIndex
             )
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // KARANA
-        // -----------------------------------------------------
+        // =====================================================
 
         val karanaIndex =
-            floor(
-                elongation /
-                        KARANA_SIZE
-            )
+            floor(elongation / KARANA_SIZE)
                 .toInt()
                 .coerceIn(0, 59)
 
         val karanaName =
-            getKaranaName(
-                karanaIndex
-            )
+            getKaranaName(karanaIndex)
 
         val karanaStart =
             findPreviousKaranaChange(
@@ -277,43 +214,30 @@ object PanchangCalculator {
                 karanaIndex
             )
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // MAS
-        // -----------------------------------------------------
+        // =====================================================
 
-        val masaIndex =
-            floor(sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
+        val masaData =
+            getMasaData(now)
 
-        val masaName =
-            masaNames[masaIndex]
 
-        val masaStart =
-            findPreviousMasaChange(
-                now,
-                masaIndex
-            )
-
-        val nextMasa =
-            findNextMasaChange(
-                now,
-                masaIndex
-            )
-
-        // -----------------------------------------------------
+        // =====================================================
         // PRAHAR
-        // -----------------------------------------------------
+        // =====================================================
 
         val praharData =
             getPraharData(now)
 
-        // -----------------------------------------------------
+
+        // =====================================================
         // LAGNA
-        // -----------------------------------------------------
+        // =====================================================
 
         val lagnaData =
             getLagnaData(now)
+
 
         // =====================================================
         // RETURN
@@ -329,28 +253,24 @@ object PanchangCalculator {
                     now.dayOfWeek.value % 7
                 ],
 
+
             // TITHI
 
             tithi =
                 tithiName,
 
             tithiStartTime =
-                formatDateTime(
-                    tithiStart
-                ),
+                formatDateTime(tithiStart),
 
             nextTithi =
                 nextTithi.first,
 
             nextTithiTime =
-                formatDateTime(
-                    nextTithi.second
-                ),
+                formatDateTime(nextTithi.second),
 
             nextTithiMillis =
-                toMillis(
-                    nextTithi.second
-                ),
+                toMillis(nextTithi.second),
+
 
             // YOGA
 
@@ -358,22 +278,17 @@ object PanchangCalculator {
                 yogaName,
 
             yogaStartTime =
-                formatDateTime(
-                    yogaStart
-                ),
+                formatDateTime(yogaStart),
 
             nextYoga =
                 nextYoga.first,
 
             nextYogaTime =
-                formatDateTime(
-                    nextYoga.second
-                ),
+                formatDateTime(nextYoga.second),
 
             nextYogaMillis =
-                toMillis(
-                    nextYoga.second
-                ),
+                toMillis(nextYoga.second),
+
 
             // KARANA
 
@@ -381,22 +296,17 @@ object PanchangCalculator {
                 karanaName,
 
             karanaStartTime =
-                formatDateTime(
-                    karanaStart
-                ),
+                formatDateTime(karanaStart),
 
             nextKarana =
                 nextKarana.first,
 
             nextKaranaTime =
-                formatDateTime(
-                    nextKarana.second
-                ),
+                formatDateTime(nextKarana.second),
 
             nextKaranaMillis =
-                toMillis(
-                    nextKarana.second
-                ),
+                toMillis(nextKarana.second),
+
 
             // PAKSHA
 
@@ -404,106 +314,71 @@ object PanchangCalculator {
                 paksha,
 
             pakshaStartTime =
-                formatDateTime(
-                    pakshaStart
-                ),
+                formatDateTime(pakshaStart),
 
             nextPaksha =
                 nextPaksha.first,
 
             nextPakshaTime =
-                formatDateTime(
-                    nextPaksha.second
-                ),
+                formatDateTime(nextPaksha.second),
 
             nextPakshaMillis =
-                toMillis(
-                    nextPaksha.second
-                ),
+                toMillis(nextPaksha.second),
+
 
             // MAS
 
             masa =
-                masaName,
-
-            masaStartTime =
-                formatDateTime(
-                    masaStart
-                ),
+                masaData.first,
 
             nextMasa =
-                nextMasa.first,
+                masaData.second,
+
+            masaStartTime =
+                formatDateTime(masaData.third),
 
             nextMasaTime =
-                formatDateTime(
-                    nextMasa.second
-                ),
+                formatDateTime(masaData.fourth),
 
             nextMasaMillis =
-                toMillis(
-                    nextMasa.second
-                ),
+                toMillis(masaData.fourth),
+
 
             // PRAHAR
 
             prahar =
-                praharData.name,
-
-            praharStartTime =
-                formatDateTime(
-                    praharData.start
-                ),
+                praharData.first,
 
             nextPrahar =
-                praharData.nextName,
+                praharData.second,
 
             nextPraharTime =
-                formatDateTime(
-                    praharData.next
-                ),
+                formatDateTime(praharData.third),
 
             nextPraharMillis =
-                toMillis(
-                    praharData.next
-                ),
+                toMillis(praharData.third),
+
 
             // LAGNA
 
             lagna =
-                lagnaData.name,
-
-            lagnaStartTime =
-                formatDateTime(
-                    lagnaData.start
-                ),
+                lagnaData.first,
 
             nextLagna =
-                lagnaData.nextName,
+                lagnaData.second,
 
             nextLagnaTime =
-                formatDateTime(
-                    lagnaData.next
-                ),
+                formatDateTime(lagnaData.third),
 
             nextLagnaMillis =
-                toMillis(
-                    lagnaData.next
-                )
+                toMillis(lagnaData.third)
         )
     }
+
 
     // =========================================================
     // TITHI
     // =========================================================
-
-    private fun getTithiName(
-        index: Int
-    ): String {
-
-        return tithiNames[
-            index.coerceIn(0, 29)
-        ]
-    }
 
     private fun getTithiIndex(
         time: LocalDateTime
@@ -521,6 +396,23 @@ object PanchangCalculator {
         )
             .toInt()
             .coerceIn(0, 29)
+    }
+
+    private fun getTithiName(
+        index: Int
+    ): String {
+
+        val base =
+            tithiNames[index % 15]
+
+        return if (index < 15) {
+            base
+        } else {
+            when (index % 15) {
+                14 -> "अमावस्या"
+                else -> base
+            }
+        }
     }
 
     private fun findPreviousTithiChange(
@@ -563,8 +455,7 @@ object PanchangCalculator {
             if (next != current) {
 
                 return Pair(
-                    "${getTithiName(current)} → " +
-                            getTithiName(next),
+                    "${getTithiName(current)} → ${getTithiName(next)}",
                     check
                 )
             }
@@ -575,6 +466,7 @@ object PanchangCalculator {
             now.plusDays(3)
         )
     }
+
 
     // =========================================================
     // YOGA
@@ -638,8 +530,7 @@ object PanchangCalculator {
             if (next != current) {
 
                 return Pair(
-                    "${yogaNames[current]} → " +
-                            yogaNames[next],
+                    "${yogaNames[current]} → ${yogaNames[next]}",
                     check
                 )
             }
@@ -650,6 +541,7 @@ object PanchangCalculator {
             now.plusDays(3)
         )
     }
+
 
     // =========================================================
     // KARANA
@@ -679,22 +571,29 @@ object PanchangCalculator {
 
         return when (index) {
 
-            0 ->
-                "किंस्तुघ्न"
+            0 -> "किंस्तुघ्न"
 
-            57 ->
-                "शकुनि"
+            1 -> "बव"
 
-            58 ->
-                "चतुष्पाद"
+            58 -> "चतुष्पाद"
 
-            59 ->
-                "नाग"
+            59 -> "नाग"
 
-            else ->
-                karanaCycle[
-                    ((index - 1) % 7 + 7) % 7
-                ]
+            else -> {
+
+                val names =
+                    listOf(
+                        "बालव",
+                        "कौलव",
+                        "तैतिल",
+                        "गर",
+                        "वणिज",
+                        "विष्टि",
+                        "बव"
+                    )
+
+                names[(index - 2) % names.size]
+            }
         }
     }
 
@@ -738,8 +637,7 @@ object PanchangCalculator {
             if (next != current) {
 
                 return Pair(
-                    "${getKaranaName(current)} → " +
-                            getKaranaName(next),
+                    "${getKaranaName(current)} → ${getKaranaName(next)}",
                     check
                 )
             }
@@ -747,9 +645,10 @@ object PanchangCalculator {
 
         return Pair(
             "पुढील करण शोधत आहे",
-            now.plusDays(3)
+            now.plusDays(2)
         )
     }
+
 
     // =========================================================
     // PAKSHA
@@ -775,15 +674,15 @@ object PanchangCalculator {
 
         var check = now
 
-        repeat(25000) {
+        repeat(50000) {
 
             check =
-                check.minusMinutes(1)
+                check.minusMinutes(5)
 
             if (
                 getPaksha(check) != current
             ) {
-                return check.plusMinutes(1)
+                return check.plusMinutes(5)
             }
         }
 
@@ -797,10 +696,10 @@ object PanchangCalculator {
 
         var check = now
 
-        repeat(25000) {
+        repeat(50000) {
 
             check =
-                check.plusMinutes(1)
+                check.plusMinutes(5)
 
             val next =
                 getPaksha(check)
@@ -820,209 +719,144 @@ object PanchangCalculator {
         )
     }
 
+
     // =========================================================
     // MAS
     // =========================================================
+
+    private fun getMasaData(
+        now: LocalDateTime
+    ): MasaData {
+
+        val currentIndex =
+            getMasaIndex(now)
+
+        val currentName =
+            masaNames[currentIndex]
+
+        val start =
+            LocalDateTime.of(
+                now.year,
+                now.month,
+                1,
+                0,
+                0
+            )
+
+        val nextStart =
+            start.plusMonths(1)
+
+        val nextIndex =
+            (currentIndex + 1) % 12
+
+        return MasaData(
+            currentName,
+            masaNames[nextIndex],
+            start,
+            nextStart
+        )
+    }
 
     private fun getMasaIndex(
         time: LocalDateTime
     ): Int {
 
-        return floor(
-            getSunLongitude(time) /
-                    30.0
-        )
-            .toInt()
-            .coerceIn(0, 11)
+        return (time.monthValue + 9) % 12
     }
 
-    private fun findPreviousMasaChange(
-        now: LocalDateTime,
-        current: Int
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(60000) {
-
-            check =
-                check.minusMinutes(10)
-
-            if (
-                getMasaIndex(check) != current
-            ) {
-                return check.plusMinutes(10)
-            }
-        }
-
-        return now
-    }
-
-    private fun findNextMasaChange(
-        now: LocalDateTime,
-        current: Int
-    ): Pair<String, LocalDateTime> {
-
-        var check = now
-
-        repeat(60000) {
-
-            check =
-                check.plusMinutes(10)
-
-            val next =
-                getMasaIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    "${
-                        masaNames[current]
-                    } → ${
-                        masaNames[next]
-                    }",
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            "पुढील मास शोधत आहे",
-            now.plusDays(35)
-        )
-    }
 
     // =========================================================
     // PRAHAR
     // =========================================================
 
-    private data class PraharData(
-
-        val name: String,
-
-        val start: LocalDateTime,
-
-        val nextName: String,
-
-        val next: LocalDateTime
-    )
-
     private fun getPraharData(
         now: LocalDateTime
-    ): PraharData {
+    ): Triple<String, String, LocalDateTime> {
 
-        val base =
+        val hour =
+            now.hour
+
+        val currentIndex =
+            hour / 3
+
+        val praharNames = listOf(
+            "पहिला प्रहर",
+            "दुसरा प्रहर",
+            "तिसरा प्रहर",
+            "चौथा प्रहर",
+            "पाचवा प्रहर",
+            "सहावा प्रहर",
+            "सातवा प्रहर",
+            "आठवा प्रहर"
+        )
+
+        val nextIndex =
+            (currentIndex + 1) % 8
+
+        val startHour =
+            currentIndex * 3
+
+        val nextTime =
             now
-                .toLocalDate()
-                .atTime(6, 0)
+                .withHour(startHour)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
+                .plusHours(3)
 
-        val minutes =
-            Duration.between(
-                base,
-                now
-            )
-                .toMinutes()
-
-        val index =
-            floor(
-                minutes.toDouble() /
-                        180.0
-            )
-                .toInt()
-
-        val normalizedIndex =
-            ((index % 8) + 8) % 8
-
-        val start =
-            base.plusMinutes(
-                index.toLong() * 180L
-            )
-
-        val next =
-            start.plusMinutes(
-                180L
-            )
-
-        return PraharData(
-
-            name =
-                praharNames[normalizedIndex],
-
-            start =
-                start,
-
-            nextName =
-                praharNames[
-                    (normalizedIndex + 1) % 8
-                ],
-
-            next =
-                next
+        return Triple(
+            praharNames[currentIndex],
+            praharNames[nextIndex],
+            nextTime
         )
     }
+
 
     // =========================================================
     // LAGNA
     // =========================================================
 
-    private data class LagnaData(
-
-        val name: String,
-
-        val start: LocalDateTime,
-
-        val nextName: String,
-
-        val next: LocalDateTime
-    )
-
     private fun getLagnaData(
         now: LocalDateTime
-    ): LagnaData {
+    ): Triple<String, String, LocalDateTime> {
 
-        /*
-         * सध्याच्या version मध्ये
-         * Moon longitude आधारित zodiac segment वापरला आहे.
-         * पुढील version मध्ये latitude/longitude आधारित
-         * exact Ascendant calculation जोडता येईल.
-         */
+        val sun =
+            getSunLongitude(now)
 
-        val longitude =
+        val moon =
             getMoonLongitude(now)
 
-        val index =
+        val approximateLongitude =
+            normalize(
+                moon +
+                        sun / 12.0 +
+                        now.hour * 15.0
+            )
+
+        val currentIndex =
             floor(
-                longitude / 30.0
+                approximateLongitude / 30.0
             )
                 .toInt()
                 .coerceIn(0, 11)
 
-        val start =
+        val nextIndex =
+            (currentIndex + 1) % 12
+
+        val nextTime =
             now
                 .withMinute(0)
                 .withSecond(0)
                 .withNano(0)
+                .plusHours(2)
 
-        val next =
-            start.plusHours(2)
-
-        return LagnaData(
-
-            name =
-                lagnaNames[index],
-
-            start =
-                start,
-
-            nextName =
-                lagnaNames[
-                    (index + 1) % 12
-                ],
-
-            next =
-                next
+        return Triple(
+            lagnaNames[currentIndex],
+            lagnaNames[nextIndex],
+            nextTime
         )
     }
+
 
     // =========================================================
     // SUN LONGITUDE
@@ -1038,28 +872,26 @@ object PanchangCalculator {
 
         val meanLongitude =
             normalize(
-                280.460 +
-                        0.9856474 * days
+                280.46646 +
+                        0.98564736 * days
             )
 
         val meanAnomaly =
             Math.toRadians(
                 normalize(
-                    357.528 +
-                            0.9856003 * days
+                    357.52911 +
+                            0.98560028 * days
                 )
             )
 
         return normalize(
             meanLongitude +
-                    1.915 *
-                    kotlin.math.sin(meanAnomaly) +
+                    1.915 * sin(meanAnomaly) +
                     0.020 *
-                    kotlin.math.sin(
-                        2 * meanAnomaly
-                    )
+                    sin(2 * meanAnomaly)
         )
     }
+
 
     // =========================================================
     // MOON LONGITUDE
@@ -1106,23 +938,18 @@ object PanchangCalculator {
         return normalize(
             l0 +
                     6.289 *
-                    kotlin.math.sin(mMoon) +
+                    sin(mMoon) +
                     1.274 *
-                    kotlin.math.sin(
-                        2 * d - mMoon
-                    ) +
+                    sin(2 * d - mMoon) +
                     0.658 *
-                    kotlin.math.sin(
-                        2 * d
-                    ) +
+                    sin(2 * d) +
                     0.214 *
-                    kotlin.math.sin(
-                        2 * mMoon
-                    ) -
+                    sin(2 * mMoon) -
                     0.186 *
-                    kotlin.math.sin(mSun)
+                    sin(mSun)
         )
     }
+
 
     // =========================================================
     // JULIAN DAY
@@ -1134,7 +961,7 @@ object PanchangCalculator {
 
         val instant =
             time
-                .atZone(zoneId)
+                .atZone(INDIA_ZONE)
                 .toInstant()
 
         return 2440587.5 +
@@ -1143,6 +970,7 @@ object PanchangCalculator {
                     .toDouble() /
                 86400000.0
     }
+
 
     // =========================================================
     // NORMALIZE
@@ -1162,8 +990,9 @@ object PanchangCalculator {
         return result
     }
 
+
     // =========================================================
-    // FORMAT DATE
+    // FORMAT
     // =========================================================
 
     private fun formatDate(
@@ -1177,10 +1006,6 @@ object PanchangCalculator {
         )
     }
 
-    // =========================================================
-    // FORMAT DATE TIME
-    // =========================================================
-
     private fun formatDateTime(
         time: LocalDateTime
     ): String {
@@ -1192,8 +1017,9 @@ object PanchangCalculator {
         )
     }
 
+
     // =========================================================
-    // TO MILLIS
+    // MILLIS
     // =========================================================
 
     private fun toMillis(
@@ -1201,14 +1027,24 @@ object PanchangCalculator {
     ): Long {
 
         return time
-            .atZone(zoneId)
+            .atZone(INDIA_ZONE)
             .toInstant()
             .toEpochMilli()
     }
 
-    // Compatibility function for MainActivity
-    fun getCurrentPanchang(): PanchangState {
-        return getCurrentPanchangState()
-    }
-}
+
+    // =========================================================
+    // HELPER DATA
+    // =========================================================
+
+    private data class MasaData(
+
+        val first: String,
+
+        val second: String,
+
+        val third: LocalDateTime,
+
+        val fourth: LocalDateTime
+    )
 }
