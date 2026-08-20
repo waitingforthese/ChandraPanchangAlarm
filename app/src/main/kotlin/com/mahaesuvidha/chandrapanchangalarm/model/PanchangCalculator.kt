@@ -19,7 +19,6 @@ object PanchangCalculator {
     private const val KARANA_SIZE =
         6.0
 
-
     // =========================================================
     // NAMES
     // =========================================================
@@ -84,29 +83,23 @@ object PanchangCalculator {
             "शुक्रवार",
             "शनिवार"
         )
-// -----------------------------------------------------
-// MAS
-// -----------------------------------------------------
 
-val masaIndex =
-    (sun / 30.0)
-        .toInt()
-        .coerceIn(0, 11)
+    private val masaNames =
+        arrayOf(
+            "चैत्र",
+            "वैशाख",
+            "ज्येष्ठ",
+            "आषाढ",
+            "श्रावण",
+            "भाद्रपद",
+            "आश्विन",
+            "कार्तिक",
+            "मार्गशीर्ष",
+            "पौष",
+            "माघ",
+            "फाल्गुन"
+        )
 
-val masaName =
-    masaNames[masaIndex]
-
-val masaStart =
-    findPreviousMasaChange(
-        now,
-        masaIndex
-    )
-
-val nextMasa =
-    findNextMasaChange(
-        now,
-        masaIndex
-    )
 
     // =========================================================
     // MAIN PANCHANG
@@ -210,9 +203,7 @@ val nextMasa =
         // -----------------------------------------------------
 
         val karanaIndex =
-            (
-                elongation / KARANA_SIZE
-            )
+            (elongation / KARANA_SIZE)
                 .toInt()
                 .coerceIn(0, 59)
 
@@ -232,6 +223,8 @@ val nextMasa =
                 now,
                 karanaIndex
             )
+
+
         // -----------------------------------------------------
         // MAS
         // -----------------------------------------------------
@@ -240,22 +233,6 @@ val nextMasa =
             (sun / 30.0)
                 .toInt()
                 .coerceIn(0, 11)
-
-        val masaNames =
-            arrayOf(
-                "चैत्र",
-                "वैशाख",
-                "ज्येष्ठ",
-                "आषाढ",
-                "श्रावण",
-                "भाद्रपद",
-                "आश्विन",
-                "कार्तिक",
-                "मार्गशीर्ष",
-                "पौष",
-                "माघ",
-                "फाल्गुन"
-            )
 
         val masaName =
             masaNames[masaIndex]
@@ -272,13 +249,12 @@ val nextMasa =
                 masaIndex
             )
 
+
         // =====================================================
         // RETURN PANCHANG STATE
         // =====================================================
 
         return PanchangState(
-
-            // BASIC
 
             date =
                 formatDate(now),
@@ -361,7 +337,7 @@ val nextMasa =
                 ),
 
 
-                       // PAKSHA
+            // PAKSHA
 
             paksha =
                 paksha,
@@ -408,6 +384,7 @@ val nextMasa =
                     nextMasa.second
                 )
         )
+    }
 
 
     // =========================================================
@@ -419,8 +396,7 @@ val nextMasa =
         current: Int
     ): LocalDateTime {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -442,7 +418,6 @@ val nextMasa =
                     .coerceIn(0, 29)
 
             if (previous != current) {
-
                 return check.plusMinutes(1)
             }
         }
@@ -460,8 +435,7 @@ val nextMasa =
         current: Int
     ): Pair<String, LocalDateTime> {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -485,8 +459,7 @@ val nextMasa =
             if (next != current) {
 
                 return Pair(
-                    "${getTithiName(current)} → " +
-                            getTithiName(next),
+                    "${getTithiName(current)} → ${getTithiName(next)}",
                     check
                 )
             }
@@ -508,8 +481,7 @@ val nextMasa =
         current: Int
     ): LocalDateTime {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -532,7 +504,6 @@ val nextMasa =
                     .coerceIn(0, 26)
 
             if (yoga != current) {
-
                 return check.plusMinutes(1)
             }
         }
@@ -550,8 +521,7 @@ val nextMasa =
         current: Int
     ): Pair<String, LocalDateTime> {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -576,8 +546,7 @@ val nextMasa =
             if (yoga != current) {
 
                 return Pair(
-                    "${yogaNames[current]} → " +
-                            yogaNames[yoga],
+                    "${yogaNames[current]} → ${yogaNames[yoga]}",
                     check
                 )
             }
@@ -599,8 +568,7 @@ val nextMasa =
         current: Int
     ): LocalDateTime {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -617,14 +585,11 @@ val nextMasa =
                 normalize(moon - sun)
 
             val karana =
-                (
-                    elongation / KARANA_SIZE
-                )
+                (elongation / KARANA_SIZE)
                     .toInt()
                     .coerceIn(0, 59)
 
             if (karana != current) {
-
                 return check.plusMinutes(1)
             }
         }
@@ -642,8 +607,7 @@ val nextMasa =
         current: Int
     ): Pair<String, LocalDateTime> {
 
-        var check =
-            now
+        var check = now
 
         repeat(4320) {
 
@@ -660,17 +624,14 @@ val nextMasa =
                 normalize(moon - sun)
 
             val karana =
-                (
-                    elongation / KARANA_SIZE
-                )
+                (elongation / KARANA_SIZE)
                     .toInt()
                     .coerceIn(0, 59)
 
             if (karana != current) {
 
                 return Pair(
-                    "${getKaranaName(current)} → " +
-                            getKaranaName(karana),
+                    "${getKaranaName(current)} → ${getKaranaName(karana)}",
                     check
                 )
             }
@@ -681,81 +642,79 @@ val nextMasa =
             now.plusDays(3)
         )
     }
-// =========================================================
-// PREVIOUS MAS
-// =========================================================
 
-private fun findPreviousMasaChange(
-    now: LocalDateTime,
-    current: Int
-): LocalDateTime {
 
-    var check =
-        now
+    // =========================================================
+    // PREVIOUS MAS
+    // =========================================================
 
-    // साधारण 35 दिवस मागे शोधा
-    repeat(50400) {
+    private fun findPreviousMasaChange(
+        now: LocalDateTime,
+        current: Int
+    ): LocalDateTime {
 
-        check =
-            check.minusMinutes(1)
+        var check = now
 
-        val sun =
-            getSunLongitude(check)
+        repeat(50400) {
 
-        val masa =
-            (sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
+            check =
+                check.minusMinutes(1)
 
-        if (masa != current) {
+            val sun =
+                getSunLongitude(check)
 
-            return check.plusMinutes(1)
+            val masa =
+                (sun / 30.0)
+                    .toInt()
+                    .coerceIn(0, 11)
+
+            if (masa != current) {
+                return check.plusMinutes(1)
+            }
         }
+
+        return now
     }
 
-    return now
-}
-// =========================================================
-// NEXT MAS
-// =========================================================
 
-private fun findNextMasaChange(
-    now: LocalDateTime,
-    current: Int
-): Pair<String, LocalDateTime> {
+    // =========================================================
+    // NEXT MAS
+    // =========================================================
 
-    var check =
-        now
+    private fun findNextMasaChange(
+        now: LocalDateTime,
+        current: Int
+    ): Pair<String, LocalDateTime> {
 
-    // साधारण 35 दिवस पुढे शोधा
-    repeat(50400) {
+        var check = now
 
-        check =
-            check.plusMinutes(1)
+        repeat(50400) {
 
-        val sun =
-            getSunLongitude(check)
+            check =
+                check.plusMinutes(1)
 
-        val masa =
-            (sun / 30.0)
-                .toInt()
-                .coerceIn(0, 11)
+            val sun =
+                getSunLongitude(check)
 
-        if (masa != current) {
+            val masa =
+                (sun / 30.0)
+                    .toInt()
+                    .coerceIn(0, 11)
 
-            return Pair(
-                "${masaNames[current]} → " +
-                        masaNames[masa],
-                check
-            )
+            if (masa != current) {
+
+                return Pair(
+                    "${masaNames[current]} → ${masaNames[masa]}",
+                    check
+                )
+            }
         }
-    }
 
-    return Pair(
-        "पुढील मास शोधत आहे",
-        now.plusDays(35)
-    )
-}
+        return Pair(
+            "पुढील मास शोधत आहे",
+            now.plusDays(35)
+        )
+    }
 
 
     // =========================================================
@@ -767,8 +726,7 @@ private fun findNextMasaChange(
         current: String
     ): LocalDateTime {
 
-        var check =
-            now
+        var check = now
 
         repeat(50000) {
 
@@ -785,9 +743,7 @@ private fun findNextMasaChange(
                 normalize(moon - sun)
 
             val tithi =
-                (
-                    elongation / TITHI_SIZE
-                )
+                (elongation / TITHI_SIZE)
                     .toInt()
                     .coerceIn(0, 29)
 
@@ -799,7 +755,6 @@ private fun findNextMasaChange(
                 }
 
             if (paksha != current) {
-
                 return check.plusMinutes(1)
             }
         }
@@ -817,8 +772,7 @@ private fun findNextMasaChange(
         current: String
     ): Pair<String, LocalDateTime> {
 
-        var check =
-            now
+        var check = now
 
         repeat(50000) {
 
@@ -835,9 +789,7 @@ private fun findNextMasaChange(
                 normalize(moon - sun)
 
             val tithi =
-                (
-                    elongation / TITHI_SIZE
-                )
+                (elongation / TITHI_SIZE)
                     .toInt()
                     .coerceIn(0, 29)
 
@@ -876,41 +828,23 @@ private fun findNextMasaChange(
             index.coerceIn(0, 29)
 
         return if (safe < 15) {
-
             tithiNames[safe]
-
         } else {
-
             when (safe) {
-
                 15 -> "प्रतिपदा"
-
                 16 -> "द्वितीया"
-
                 17 -> "तृतीया"
-
                 18 -> "चतुर्थी"
-
                 19 -> "पंचमी"
-
                 20 -> "षष्ठी"
-
                 21 -> "सप्तमी"
-
                 22 -> "अष्टमी"
-
                 23 -> "नवमी"
-
                 24 -> "दशमी"
-
                 25 -> "एकादशी"
-
                 26 -> "द्वादशी"
-
                 27 -> "त्रयोदशी"
-
                 28 -> "चतुर्दशी"
-
                 else -> "अमावस्या"
             }
         }
@@ -933,11 +867,7 @@ private fun findNextMasaChange(
                 "तैतिल",
                 "गर",
                 "वणिज",
-                "विष्टि",
-                "शकुनि",
-                "चतुष्पाद",
-                "नाग",
-                "किंस्तुघ्न"
+                "विष्टि"
             )
 
         if (index == 0) {
@@ -945,15 +875,10 @@ private fun findNextMasaChange(
         }
 
         if (index >= 57) {
-
             return when (index) {
-
                 57 -> "शकुनि"
-
                 58 -> "चतुष्पाद"
-
                 59 -> "नाग"
-
                 else -> "—"
             }
         }
@@ -997,20 +922,16 @@ private fun findNextMasaChange(
                             meanAnomaly
                         )
                     ) +
-
                     0.019993 *
                     sin(
                         Math.toRadians(
-                            2.0 *
-                                    meanAnomaly
+                            2.0 * meanAnomaly
                         )
                     ) +
-
                     0.000289 *
                     sin(
                         Math.toRadians(
-                            3.0 *
-                                    meanAnomaly
+                            3.0 * meanAnomaly
                         )
                     )
 
@@ -1068,36 +989,28 @@ private fun findNextMasaChange(
 
         val moonLongitude =
             l +
-
                     6.289 *
                     sin(
                         Math.toRadians(m)
                     ) +
-
                     1.274 *
                     sin(
                         Math.toRadians(
-                            2.0 *
-                                    (l - 280.466) -
-                                    m
+                            2.0 * (l - 280.466) - m
                         )
                     ) +
-
                     0.658 *
                     sin(
                         Math.toRadians(
-                            2.0 *
-                                    (l - 280.466)
+                            2.0 * (l - 280.466)
                         )
                     ) +
-
                     0.214 *
                     sin(
                         Math.toRadians(
                             2.0 * m
                         )
                     ) -
-
                     0.186 *
                     sin(
                         Math.toRadians(
@@ -1105,7 +1018,6 @@ private fun findNextMasaChange(
                                     0.98560028 * d
                         )
                     ) -
-
                     0.114 *
                     sin(
                         Math.toRadians(
