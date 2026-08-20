@@ -84,20 +84,28 @@ object PanchangCalculator {
             "शुक्रवार",
             "शनिवार"
         )
-private val masaNames =
-    arrayOf(
-        "चैत्र",
-        "वैशाख",
-        "ज्येष्ठ",
-        "आषाढ",
-        "श्रावण",
-        "भाद्रपद",
-        "आश्विन",
-        "कार्तिक",
-        "मार्गशीर्ष",
-        "पौष",
-        "माघ",
-        "फाल्गुन"
+// -----------------------------------------------------
+// MAS
+// -----------------------------------------------------
+
+val masaIndex =
+    (sun / 30.0)
+        .toInt()
+        .coerceIn(0, 11)
+
+val masaName =
+    masaNames[masaIndex]
+
+val masaStart =
+    findPreviousMasaChange(
+        now,
+        masaIndex
+    )
+
+val nextMasa =
+    findNextMasaChange(
+        now,
+        masaIndex
     )
 
     // =========================================================
