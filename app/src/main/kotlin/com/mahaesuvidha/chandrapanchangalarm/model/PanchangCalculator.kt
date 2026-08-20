@@ -229,6 +229,29 @@ object PanchangCalculator {
             nextPakshaMillis =
                 toMillis(
                     nextPaksha.second
+
+                    masa = "श्रावण",
+
+prahar = "दिवसाचा दुसरा प्रहर",
+
+nextPrahar = "दिवसाचा तिसरा प्रहर",
+
+nextPraharTime = "19-08-2026 12:30",
+
+nextPraharMillis =
+    System.currentTimeMillis() +
+            (30 * 60 * 1000),
+
+lagna = "कर्क लग्न",
+
+nextLagna = "सिंह लग्न",
+
+nextLagnaTime = "19-08-2026 11:45",
+
+nextLagnaMillis =
+    System.currentTimeMillis() +
+            (45 * 60 * 1000)
+            
                 )
         )
     }
