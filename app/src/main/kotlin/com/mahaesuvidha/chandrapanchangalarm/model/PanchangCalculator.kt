@@ -301,7 +301,7 @@ object PanchangCalculator {
                 ),
 
 
-            // PAKSHA
+                       // PAKSHA
 
             paksha =
                 paksha,
@@ -322,9 +322,32 @@ object PanchangCalculator {
             nextPakshaMillis =
                 toMillis(
                     nextPaksha.second
+                ),
+
+
+            // MAS
+
+            masa =
+                masaName,
+
+            nextMasa =
+                nextMasa.first,
+
+            masaStartTime =
+                formatDateTime(
+                    masaStart
+                ),
+
+            nextMasaTime =
+                formatDateTime(
+                    nextMasa.second
+                ),
+
+            nextMasaMillis =
+                toMillis(
+                    nextMasa.second
                 )
         )
-    }
 
 
     // =========================================================
