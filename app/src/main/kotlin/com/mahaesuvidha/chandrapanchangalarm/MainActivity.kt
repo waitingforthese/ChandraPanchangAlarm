@@ -34,6 +34,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+
 
 import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
 
@@ -81,47 +85,60 @@ class MainActivity : ComponentActivity() {
 
     setContent {
 var panchangState by remember {
-    mutableStateOf<PanchangState?>(null)
+    mutableStateOf(
+        PanchangState(
+            date = "",
+            weekday = "",
+            tithi = "लोड होत आहे...",
+            nextTithi = "",
+            nextTithiTime = "",
+            nextTithiMillis = 0L,
+            yoga = "लोड होत आहे...",
+            nextYoga = "",
+            nextYogaTime = "",
+            nextYogaMillis = 0L,
+            karana = "लोड होत आहे...",
+            nextKarana = "",
+            nextKaranaTime = "",
+            nextKaranaMillis = 0L,
+            paksha = "लोड होत आहे...",
+            nextPaksha = "",
+            nextPakshaTime = "",
+            nextPakshaMillis = 0L
+        )
+    )
 }
 
 LaunchedEffect(Unit) {
 
-    kotlinx.coroutines.withContext(
-        kotlinx.coroutines.Dispatchers.Default
-    ) {
+    panchangState =
+        withContext(Dispatchers.Default) {
 
-        LivePanchangCalculator
-            .getCurrentPanchangState()
-    }.also {
-
-        panchangState = it
-    }
+            LivePanchangCalculator
+                .getCurrentPanchangState()
+        }
 }
         MaterialTheme {
-
-if (panchangState != null) {
 
     ChandraSuryaHome(
         moonState = moonState,
         sunState = sunState,
-        panchangState = panchangState!!,
+        panchangState = panchangState,
 
-                onTestRashi = {
-                    scheduler.scheduleTest("राशी बदल")
-                },
+        onTestRashi = {
+            scheduler.scheduleTest("राशी बदल")
+        },
 
-                onTestNakshatra = {
-                    scheduler.scheduleTest("नक्षत्र बदल")
-                },
+        onTestNakshatra = {
+            scheduler.scheduleTest("नक्षत्र बदल")
+        },
 
-                onTestCharan = {
-                    scheduler.scheduleTest("चरण बदल")
-                }
-            )
+        onTestCharan = {
+            scheduler.scheduleTest("चरण बदल")
         }
-    }
+    )
 }
-} 
+
 
 
 @Composable
