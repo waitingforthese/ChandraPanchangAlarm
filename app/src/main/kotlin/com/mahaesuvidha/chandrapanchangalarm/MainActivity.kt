@@ -784,6 +784,8 @@ private fun PanchangCard(
         )
           } // Column बंद
 } // PanchangCard बंद
+
+
 // ==========================================================
 // PANCHANG ROW
 // आजचे पंचांग - तारीख / वार
