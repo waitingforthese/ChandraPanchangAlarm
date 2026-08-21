@@ -7,159 +7,28 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.math.floor
 
 object LivePanchangCalculator {
 
-    // ==========================================
-    // TITHI NAMES
-    // ==========================================
+    private const val TITHI_SIZE = 12.0
+    private const val KARANA_SIZE = 6.0
+    private const val YOGA_SIZE = 360.0 / 27.0
 
-    private val tithiNames = arrayOf(
-        "प्रतिपदा",
-        "द्वितीया",
-        "तृतीया",
-        "चतुर्थी",
-        "पंचमी",
-        "षष्ठी",
-        "सप्तमी",
-        "अष्टमी",
-        "नवमी",
-        "दशमी",
-        "एकादशी",
-        "द्वादशी",
-        "त्रयोदशी",
-        "चतुर्दशी",
-        "पौर्णिमा",
-        "प्रतिपदा",
-        "द्वितीया",
-        "तृतीया",
-        "चतुर्थी",
-        "पंचमी",
-        "षष्ठी",
-        "सप्तमी",
-        "अष्टमी",
-        "नवमी",
-        "दशमी",
-        "एकादशी",
-        "द्वादशी",
-        "त्रयोदशी",
-        "चतुर्दशी",
-        "अमावस्या"
-    )
+    private val indiaTimeZone =
+        TimeZone.getTimeZone("Asia/Kolkata")
+
 
     // ==========================================
-    // YOGA NAMES
+    // CURRENT JULIAN DAY
     // ==========================================
 
-    private val yogaNames = arrayOf(
-        "विष्कंभ",
-        "प्रीति",
-        "आयुष्मान",
-        "सौभाग्य",
-        "शोभन",
-        "अतिगंड",
-        "सुकर्मा",
-        "धृति",
-        "शूल",
-        "गंड",
-        "वृद्धि",
-        "ध्रुव",
-        "व्याघात",
-        "हर्षण",
-        "वज्र",
-        "सिद्धी",
-        "व्यतीपात",
-        "वरीयान",
-        "परिघ",
-        "शिव",
-        "सिद्ध",
-        "साध्य",
-        "शुभ",
-        "शुक्ल",
-        "ब्रह्म",
-        "इंद्र",
-        "वैधृति"
-    )
-
-    // ==========================================
-    // DATE / TIME FORMAT
-    // ==========================================
-
-    private fun formatDateTime(
-        millis: Long
-    ): String {
-
-        val formatter =
-            SimpleDateFormat(
-                "dd-MM-yyyy HH:mm",
-                Locale.getDefault()
-            )
-
-        formatter.timeZone =
-            TimeZone.getDefault()
-
-        return formatter.format(millis)
-    }
-
-    private fun formatDate(
-        millis: Long
-    ): String {
-
-        val formatter =
-            SimpleDateFormat(
-                "dd-MM-yyyy",
-                Locale.getDefault()
-            )
-
-        formatter.timeZone =
-            TimeZone.getDefault()
-
-        return formatter.format(millis)
-    }
-
-    // ==========================================
-    // WEEKDAY
-    // ==========================================
-
-    private fun getWeekday(
-        millis: Long
-    ): String {
-
-        val calendar =
-            Calendar.getInstance()
-
-        calendar.timeInMillis =
-            millis
-
-        return when (
-            calendar.get(Calendar.DAY_OF_WEEK)
-        ) {
-            Calendar.SUNDAY -> "रविवार"
-            Calendar.MONDAY -> "सोमवार"
-            Calendar.TUESDAY -> "मंगळवार"
-            Calendar.WEDNESDAY -> "बुधवार"
-            Calendar.THURSDAY -> "गुरुवार"
-            Calendar.FRIDAY -> "शुक्रवार"
-            Calendar.SATURDAY -> "शनिवार"
-            else -> ""
-        }
-    }
-
-    // ==========================================
-    // JULIAN DAY
-    // ==========================================
-
-    private fun getJulianDay(
-        millis: Long
-    ): Double {
+    private fun getJulianDay(): Double {
 
         val calendar =
             Calendar.getInstance(
                 TimeZone.getTimeZone("UTC")
             )
-
-        calendar.timeInMillis =
-            millis
 
         val year =
             calendar.get(Calendar.YEAR)
@@ -173,8 +42,7 @@ object LivePanchangCalculator {
         val hour =
             calendar.get(Calendar.HOUR_OF_DAY) +
                     calendar.get(Calendar.MINUTE) / 60.0 +
-                    calendar.get(Calendar.SECOND) / 3600.0 +
-                    calendar.get(Calendar.MILLISECOND) / 3600000.0
+                    calendar.get(Calendar.SECOND) / 3600.0
 
         return SweDate.getJulDay(
             year,
@@ -185,13 +53,14 @@ object LivePanchangCalculator {
         )
     }
 
+
     // ==========================================
-    // SIDEREAL LONGITUDE
+    // PLANET LONGITUDE
     // ==========================================
 
     private fun getLongitude(
         planet: Int,
-        millis: Long
+        jd: Double
     ): Double {
 
         val swe =
@@ -210,7 +79,7 @@ object LivePanchangCalculator {
             StringBuffer()
 
         swe.swe_calc_ut(
-            getJulianDay(millis),
+            jd,
             planet,
             SweConst.SEFLG_SWIEPH or
                     SweConst.SEFLG_SIDEREAL,
@@ -218,36 +87,34 @@ object LivePanchangCalculator {
             serr
         )
 
-        return xx[0]
+        return normalize(xx[0])
     }
 
+
     // ==========================================
-    // SUN LONGITUDE
+    // SUN + MOON LONGITUDE
     // ==========================================
 
     private fun getSunLongitude(
-        millis: Long
+        jd: Double
     ): Double {
 
         return getLongitude(
             SweConst.SE_SUN,
-            millis
+            jd
         )
     }
 
-    // ==========================================
-    // MOON LONGITUDE
-    // ==========================================
-
     private fun getMoonLongitude(
-        millis: Long
+        jd: Double
     ): Double {
 
         return getLongitude(
             SweConst.SE_MOON,
-            millis
+            jd
         )
     }
+
 
     // ==========================================
     // NORMALIZE
@@ -260,136 +127,69 @@ object LivePanchangCalculator {
         var result =
             value % 360.0
 
-        if (result < 0.0) {
+        if (result < 0) {
             result += 360.0
         }
 
         return result
     }
 
+
     // ==========================================
-    // TITHI INDEX
+    // TITHI
     // ==========================================
 
     private fun getTithiIndex(
-        millis: Long
+        sun: Double,
+        moon: Double
     ): Int {
-
-        val sun =
-            getSunLongitude(millis)
-
-        val moon =
-            getMoonLongitude(millis)
 
         val difference =
-            normalize(moon - sun)
+            normalize(
+                moon - sun
+            )
 
-        return (
-            difference / 12.0
-        ).toInt()
-            .coerceIn(0, 29)
+        return floor(
+            difference / TITHI_SIZE
+        ).toInt() + 1
     }
 
-    // ==========================================
-    // YOGA INDEX
-    // ==========================================
 
-    private fun getYogaIndex(
-        millis: Long
-    ): Int {
-
-        val sun =
-            getSunLongitude(millis)
-
-        val moon =
-            getMoonLongitude(millis)
-
-        val value =
-            normalize(sun + moon)
-
-        val yogaSize =
-            360.0 / 27.0
-
-        return (
-            value / yogaSize
-        ).toInt()
-            .coerceIn(0, 26)
-    }
-
-    // ==========================================
-    // KARANA INDEX
-    // ==========================================
-
-    private fun getKaranaIndex(
-        millis: Long
-    ): Int {
-
-        val sun =
-            getSunLongitude(millis)
-
-        val moon =
-            getMoonLongitude(millis)
-
-        val difference =
-            normalize(moon - sun)
-
-        return (
-            difference / 6.0
-        ).toInt()
-            .coerceIn(0, 59)
-    }
-
-    // ==========================================
-    // KARANA NAME
-    // ==========================================
-
-    private fun getKaranaName(
+    private fun getTithiName(
         index: Int
     ): String {
 
-        return when (index) {
+        val names = arrayOf(
 
-            0 -> "किंस्तुघ्न"
+            "प्रतिपदा",
+            "द्वितीया",
+            "तृतीया",
+            "चतुर्थी",
+            "पंचमी",
+            "षष्ठी",
+            "सप्तमी",
+            "अष्टमी",
+            "नवमी",
+            "दशमी",
+            "एकादशी",
+            "द्वादशी",
+            "त्रयोदशी",
+            "चतुर्दशी",
+            "पौर्णिमा"
+        )
 
-            1 -> "बव"
+        return if (index == 30) {
 
-            2 -> "बालव"
+            "अमावस्या"
 
-            3 -> "कौलव"
+        } else {
 
-            4 -> "तैतिल"
-
-            5 -> "गर"
-
-            6 -> "वणिज"
-
-            7 -> "विष्टि"
-
-            57 -> "शकुनि"
-
-            58 -> "चतुष्पाद"
-
-            59 -> "नाग"
-
-            else -> {
-
-                val repeating =
-                    arrayOf(
-                        "बव",
-                        "बालव",
-                        "कौलव",
-                        "तैतिल",
-                        "गर",
-                        "वणिज",
-                        "विष्टि"
-                    )
-
-                repeating[
-                    (index - 1) % 7
-                ]
-            }
+            names[
+                (index - 1) % 15
+            ]
         }
     }
+
 
     // ==========================================
     // PAKSHA
@@ -399,151 +199,203 @@ object LivePanchangCalculator {
         tithiIndex: Int
     ): String {
 
-        return if (tithiIndex < 15) {
+        return if (
+            tithiIndex <= 15
+        ) {
+
             "शुक्ल पक्ष"
+
         } else {
+
             "कृष्ण पक्ष"
         }
     }
 
+
     // ==========================================
-    // FIND NEXT TITHI
+    // KARANA
     // ==========================================
 
-    private fun findNextTithi(
-        now: Long,
-        current: Int
-    ): Pair<Int, Long> {
+    private fun getKaranaIndex(
+        sun: Double,
+        moon: Double
+    ): Int {
 
-        var check =
+        val difference =
+            normalize(
+                moon - sun
+            )
+
+        return floor(
+            difference / KARANA_SIZE
+        ).toInt()
+    }
+
+
+    private fun getKaranaName(
+        index: Int
+    ): String {
+
+        val repeating = arrayOf(
+
+            "बव",
+            "बालव",
+            "कौलव",
+            "तैतिल",
+            "गर",
+            "वणिज",
+            "विष्टि"
+        )
+
+        return when (index) {
+
+            0 ->
+                "किंस्तुघ्न"
+
+            57 ->
+                "शकुनि"
+
+            58 ->
+                "चतुष्पाद"
+
+            59 ->
+                "नाग"
+
+            else ->
+                repeating[
+                    (index - 1) % 7
+                ]
+        }
+    }
+
+
+    // ==========================================
+    // YOGA
+    // ==========================================
+
+    private fun getYogaIndex(
+        sun: Double,
+        moon: Double
+    ): Int {
+
+        val total =
+            normalize(
+                sun + moon
+            )
+
+        return floor(
+            total / YOGA_SIZE
+        ).toInt()
+    }
+
+
+    private fun getYogaName(
+        index: Int
+    ): String {
+
+        val names = arrayOf(
+
+            "विष्कंभ",
+            "प्रीति",
+            "आयुष्मान",
+            "सौभाग्य",
+            "शोभन",
+            "अतिगंड",
+            "सुकर्मा",
+            "धृति",
+            "शूल",
+            "गंड",
+            "वृद्धि",
+            "ध्रुव",
+            "व्याघात",
+            "हर्षण",
+            "वज्र",
+            "सिद्धि",
+            "व्यतीपात",
+            "वरीयान",
+            "परिघ",
+            "शिव",
+            "सिद्ध",
+            "साध्य",
+            "शुभ",
+            "शुक्ल",
+            "ब्रह्म",
+            "इंद्र",
+            "वैधृति"
+        )
+
+        return names[
+            index.coerceIn(
+                0,
+                26
+            )
+        ]
+    }
+
+
+    // ==========================================
+    // FIND NEXT CHANGE
+    // ==========================================
+
+    private fun findNextChange(
+        currentIndex: Int,
+        getIndex: (Double) -> Int
+    ): Long {
+
+        val now =
+            System.currentTimeMillis()
+
+        var checkMillis =
             now
 
-        repeat(3000) {
+        repeat(10080) {
 
-            check += 60_000L
+            checkMillis +=
+                60_000L
 
-            val next =
-                getTithiIndex(check)
+            val jd =
+                2440587.5 +
+                        checkMillis /
+                        86400000.0
 
-            if (next != current) {
+            val newIndex =
+                getIndex(jd)
 
-                return Pair(
-                    next,
-                    check
-                )
+            if (
+                newIndex !=
+                currentIndex
+            ) {
+
+                return checkMillis
             }
         }
 
-        return Pair(
-            current,
-            now + 24L * 60 * 60 * 1000
+        return now
+    }
+
+
+    // ==========================================
+    // FORMAT TIME
+    // ==========================================
+
+    private fun formatTime(
+        millis: Long
+    ): String {
+
+        val formatter =
+            SimpleDateFormat(
+                "dd-MM-yyyy HH:mm",
+                Locale.getDefault()
+            )
+
+        formatter.timeZone =
+            indiaTimeZone
+
+        return formatter.format(
+            millis
         )
     }
 
-    // ==========================================
-    // FIND NEXT YOGA
-    // ==========================================
-
-    private fun findNextYoga(
-        now: Long,
-        current: Int
-    ): Pair<Int, Long> {
-
-        var check =
-            now
-
-        repeat(3000) {
-
-            check += 60_000L
-
-            val next =
-                getYogaIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    next,
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            current,
-            now + 24L * 60 * 60 * 1000
-        )
-    }
-
-    // ==========================================
-    // FIND NEXT KARANA
-    // ==========================================
-
-    private fun findNextKarana(
-        now: Long,
-        current: Int
-    ): Pair<Int, Long> {
-
-        var check =
-            now
-
-        repeat(1500) {
-
-            check += 60_000L
-
-            val next =
-                getKaranaIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    next,
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            current,
-            now + 12L * 60 * 60 * 1000
-        )
-    }
-
-    // ==========================================
-    // FIND NEXT PAKSHA
-    // ==========================================
-
-    private fun findNextPaksha(
-        now: Long,
-        currentPaksha: String
-    ): Pair<String, Long> {
-
-        var check =
-            now
-
-        repeat(25000) {
-
-            check += 60_000L
-
-            val tithi =
-                getTithiIndex(check)
-
-            val paksha =
-                getPaksha(tithi)
-
-            if (paksha != currentPaksha) {
-
-                return Pair(
-                    paksha,
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            currentPaksha,
-            now + 15L * 24 * 60 * 60 * 1000
-        )
-    }
 
     // ==========================================
     // MAIN PANCHANG STATE
@@ -551,199 +403,246 @@ object LivePanchangCalculator {
 
     fun getCurrentPanchangState(): PanchangState {
 
-        val now =
-            System.currentTimeMillis()
+        val jd =
+            getJulianDay()
 
-        // CURRENT
+        val sun =
+            getSunLongitude(jd)
 
-        val currentTithiIndex =
-            getTithiIndex(now)
+        val moon =
+            getMoonLongitude(jd)
 
-        val currentYogaIndex =
-            getYogaIndex(now)
 
-        val currentKaranaIndex =
-            getKaranaIndex(now)
+        // TITHI
 
-        val currentPaksha =
-            getPaksha(currentTithiIndex)
-
-        // NEXT
-
-        val nextTithi =
-            findNextTithi(
-                now,
-                currentTithiIndex
+        val tithiIndex =
+            getTithiIndex(
+                sun,
+                moon
             )
 
-        val nextYoga =
-            findNextYoga(
-                now,
-                currentYogaIndex
+        val nextTithiMillis =
+            findNextChange(
+                tithiIndex
+            ) { checkJd ->
+
+                val checkSun =
+                    getSunLongitude(
+                        checkJd
+                    )
+
+                val checkMoon =
+                    getMoonLongitude(
+                        checkJd
+                    )
+
+                getTithiIndex(
+                    checkSun,
+                    checkMoon
+                )
+            }
+
+        val nextTithiIndex =
+            getTithiIndex(
+                getSunLongitude(
+                    2440587.5 +
+                            nextTithiMillis /
+                            86400000.0
+                ),
+                getMoonLongitude(
+                    2440587.5 +
+                            nextTithiMillis /
+                            86400000.0
+                )
             )
 
-        val nextKarana =
-            findNextKarana(
-                now,
-                currentKaranaIndex
+
+        // YOGA
+
+        val yogaIndex =
+            getYogaIndex(
+                sun,
+                moon
             )
 
-        val nextPaksha =
-            findNextPaksha(
-                now,
-                currentPaksha
+        val nextYogaMillis =
+            findNextChange(
+                yogaIndex
+            ) { checkJd ->
+
+                getYogaIndex(
+                    getSunLongitude(checkJd),
+                    getMoonLongitude(checkJd)
+                )
+            }
+
+
+        // KARANA
+
+        val karanaIndex =
+            getKaranaIndex(
+                sun,
+                moon
             )
+
+        val nextKaranaMillis =
+            findNextChange(
+                karanaIndex
+            ) { checkJd ->
+
+                getKaranaIndex(
+                    getSunLongitude(checkJd),
+                    getMoonLongitude(checkJd)
+                )
+            }
+
+
+        // CURRENT DATE
+
+        val calendar =
+            Calendar.getInstance(
+                indiaTimeZone
+            )
+
+        val dateFormatter =
+            SimpleDateFormat(
+                "dd-MM-yyyy",
+                Locale.getDefault()
+            )
+
+        dateFormatter.timeZone =
+            indiaTimeZone
+
+        val weekdayFormatter =
+            SimpleDateFormat(
+                "EEEE",
+                Locale(
+                    "mr",
+                    "IN"
+                )
+            )
+
+        weekdayFormatter.timeZone =
+            indiaTimeZone
+
 
         return PanchangState(
 
-            // BASIC
-
             date =
-                formatDate(now),
+                dateFormatter.format(
+                    calendar.time
+                ),
 
             weekday =
-                getWeekday(now),
+                weekdayFormatter.format(
+                    calendar.time
+                ),
 
 
             // TITHI
 
             tithi =
-                tithiNames[currentTithiIndex],
-
-            tithiStartTime =
-                "चालू",
+                getTithiName(
+                    tithiIndex
+                ),
 
             nextTithi =
-                tithiNames[nextTithi.first],
+                getTithiName(
+                    nextTithiIndex
+                ),
 
             nextTithiTime =
-                formatDateTime(
-                    nextTithi.second
+                formatTime(
+                    nextTithiMillis
                 ),
 
             nextTithiMillis =
-                nextTithi.second,
+                nextTithiMillis,
 
 
             // YOGA
 
             yoga =
-                yogaNames[currentYogaIndex],
-
-            yogaStartTime =
-                "चालू",
+                getYogaName(
+                    yogaIndex
+                ),
 
             nextYoga =
-                yogaNames[nextYoga.first],
+                getYogaName(
+                    getYogaIndex(
+                        getSunLongitude(
+                            2440587.5 +
+                                    nextYogaMillis /
+                                    86400000.0
+                        ),
+                        getMoonLongitude(
+                            2440587.5 +
+                                    nextYogaMillis /
+                                    86400000.0
+                        )
+                    )
+                ),
 
             nextYogaTime =
-                formatDateTime(
-                    nextYoga.second
+                formatTime(
+                    nextYogaMillis
                 ),
 
             nextYogaMillis =
-                nextYoga.second,
+                nextYogaMillis,
 
 
             // KARANA
 
             karana =
                 getKaranaName(
-                    currentKaranaIndex
+                    karanaIndex
                 ),
-
-            karanaStartTime =
-                "चालू",
 
             nextKarana =
                 getKaranaName(
-                    nextKarana.first
+                    getKaranaIndex(
+                        getSunLongitude(
+                            2440587.5 +
+                                    nextKaranaMillis /
+                                    86400000.0
+                        ),
+                        getMoonLongitude(
+                            2440587.5 +
+                                    nextKaranaMillis /
+                                    86400000.0
+                        )
+                    )
                 ),
 
             nextKaranaTime =
-                formatDateTime(
-                    nextKarana.second
+                formatTime(
+                    nextKaranaMillis
                 ),
 
             nextKaranaMillis =
-                nextKarana.second,
+                nextKaranaMillis,
 
 
             // PAKSHA
 
             paksha =
-                currentPaksha,
-
-            pakshaStartTime =
-                "चालू",
+                getPaksha(
+                    tithiIndex
+                ),
 
             nextPaksha =
-                nextPaksha.first,
+                getPaksha(
+                    nextTithiIndex
+                ),
 
             nextPakshaTime =
-                formatDateTime(
-                    nextPaksha.second
+                formatTime(
+                    nextTithiMillis
                 ),
 
             nextPakshaMillis =
-                nextPaksha.second,
-
-
-            // MAS
-            // पुढच्या स्टेपमध्ये astronomical calculation
-
-            masa =
-                "—",
-
-            masaStartTime =
-                "—",
-
-            nextMasa =
-                "—",
-
-            nextMasaTime =
-                "—",
-
-            nextMasaMillis =
-                0L,
-
-
-            // PRAHAR
-            // पुढच्या स्टेपमध्ये सूर्योदय/सूर्यास्तावर आधारित
-
-            prahar =
-                "—",
-
-            praharStartTime =
-                "—",
-
-            nextPrahar =
-                "—",
-
-            nextPraharTime =
-                "—",
-
-            nextPraharMillis =
-                0L,
-
-
-            // LAGNA
-            // पुढच्या स्टेपमध्ये location-based calculation
-
-            lagna =
-                "—",
-
-            lagnaStartTime =
-                "—",
-
-            nextLagna =
-                "—",
-
-            nextLagnaTime =
-                "—",
-
-            nextLagnaMillis =
-                0L
+                nextTithiMillis
         )
     }
 }
