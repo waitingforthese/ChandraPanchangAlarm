@@ -64,10 +64,6 @@ class MainActivity : ComponentActivity() {
     val sunState =
         LiveSunCalculator.getCurrentSunState()
 
-    // LIVE PANCHANG
-    val panchangState =
-        LivePanchangCalculator.getCurrentPanchangState()
-
     // Notification Permission
     if (android.os.Build.VERSION.SDK_INT >= 33) {
         notificationPermission.launch(
@@ -84,13 +80,31 @@ class MainActivity : ComponentActivity() {
     )
 
     setContent {
+var panchangState by remember {
+    mutableStateOf<PanchangState?>(null)
+}
 
+LaunchedEffect(Unit) {
+
+    kotlinx.coroutines.withContext(
+        kotlinx.coroutines.Dispatchers.Default
+    ) {
+
+        LivePanchangCalculator
+            .getCurrentPanchangState()
+    }.also {
+
+        panchangState = it
+    }
+}
         MaterialTheme {
 
-            ChandraSuryaHome(
-                moonState = moonState,
-                sunState = sunState,
-                panchangState = panchangState,
+if (panchangState != null) {
+
+    ChandraSuryaHome(
+        moonState = moonState,
+        sunState = sunState,
+        panchangState = panchangState!!,
 
                 onTestRashi = {
                     scheduler.scheduleTest("राशी बदल")
