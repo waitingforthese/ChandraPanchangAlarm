@@ -289,6 +289,10 @@ SunColumn(
         Spacer(
             modifier = Modifier.height(12.dp)
         )
+            } // Column end
+
+} // ChandraSuryaHome end
+
 // ==========================================================
 // PANCHANG CARD
 // ==========================================================
@@ -334,77 +338,6 @@ private fun PanchangCard(
             Spacer(
                 modifier = Modifier.height(12.dp)
             )
-
-            PanchangChangeSection(
-                title = "🌙 तिथी",
-                current = state.tithi,
-                startTime = state.tithiStartTime,
-                next = state.nextTithi,
-                nextTime = state.nextTithiTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "🧘 योग",
-                current = state.yoga,
-                startTime = state.yogaStartTime,
-                next = state.nextYoga,
-                nextTime = state.nextYogaTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "🔄 करण",
-                current = state.karana,
-                startTime = state.karanaStartTime,
-                next = state.nextKarana,
-                nextTime = state.nextKaranaTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "🌗 पक्ष",
-                current = state.paksha,
-                startTime = state.pakshaStartTime,
-                next = state.nextPaksha,
-                nextTime = state.nextPakshaTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "📆 मास",
-                current = state.masa,
-                startTime = state.masaStartTime,
-                next = state.nextMasa,
-                nextTime = state.nextMasaTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "🕐 प्रहर",
-                current = state.prahar,
-                startTime = state.praharStartTime,
-                next = state.nextPrahar,
-                nextTime = state.nextPraharTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "♈ लग्न",
-                current = state.lagna,
-                startTime = state.lagnaStartTime,
-                next = state.nextLagna,
-                nextTime = state.nextLagnaTime,
-                accentColor = accentColor,
-                textColor = textColor
-            )
-        }
     }
 }
 
