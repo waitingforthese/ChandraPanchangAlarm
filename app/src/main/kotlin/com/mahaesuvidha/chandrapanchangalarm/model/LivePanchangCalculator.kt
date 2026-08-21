@@ -1,6 +1,39 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+
 object LivePanchangCalculator {
+
+    // ==========================================
+    // DATE TIME → MILLIS
+    // ==========================================
+
+    private fun toMillis(
+        dateTime: String
+    ): Long {
+
+        return try {
+
+            val formatter =
+                SimpleDateFormat(
+                    "dd-MM-yyyy HH:mm",
+                    Locale.getDefault()
+                )
+
+            formatter.timeZone =
+                TimeZone.getDefault()
+
+            formatter.parse(dateTime)?.time
+                ?: 0L
+
+        } catch (_: Exception) {
+
+            0L
+        }
+    }
+
 
     fun getCurrentPanchangState(): PanchangState {
 
@@ -28,8 +61,9 @@ object LivePanchangCalculator {
             nextTithiTime = "19-08-2026 19:14",
 
             nextTithiMillis =
-                System.currentTimeMillis() +
-                        (60 * 60 * 1000),
+                toMillis(
+                    "19-08-2026 19:14"
+                ),
 
 
             // ==========================================
@@ -45,8 +79,9 @@ object LivePanchangCalculator {
             nextYogaTime = "19-08-2026 03:00",
 
             nextYogaMillis =
-                System.currentTimeMillis() +
-                        (2 * 60 * 60 * 1000),
+                toMillis(
+                    "19-08-2026 03:00"
+                ),
 
 
             // ==========================================
@@ -62,8 +97,9 @@ object LivePanchangCalculator {
             nextKaranaTime = "19-08-2026 06:09",
 
             nextKaranaMillis =
-                System.currentTimeMillis() +
-                        (3 * 60 * 60 * 1000),
+                toMillis(
+                    "19-08-2026 06:09"
+                ),
 
 
             // ==========================================
@@ -79,8 +115,9 @@ object LivePanchangCalculator {
             nextPakshaTime = "28-08-2026 12:59",
 
             nextPakshaMillis =
-                System.currentTimeMillis() +
-                        (24 * 60 * 60 * 1000),
+                toMillis(
+                    "28-08-2026 12:59"
+                ),
 
 
             // ==========================================
@@ -96,8 +133,9 @@ object LivePanchangCalculator {
             nextMasaTime = "23-08-2026 12:18",
 
             nextMasaMillis =
-                System.currentTimeMillis() +
-                        (4 * 24 * 60 * 60 * 1000),
+                toMillis(
+                    "23-08-2026 12:18"
+                ),
 
 
             // ==========================================
@@ -113,8 +151,9 @@ object LivePanchangCalculator {
             nextPraharTime = "19-08-2026 12:30",
 
             nextPraharMillis =
-                System.currentTimeMillis() +
-                        (30 * 60 * 1000),
+                toMillis(
+                    "19-08-2026 12:30"
+                ),
 
 
             // ==========================================
@@ -130,8 +169,9 @@ object LivePanchangCalculator {
             nextLagnaTime = "19-08-2026 11:45",
 
             nextLagnaMillis =
-                System.currentTimeMillis() +
-                        (45 * 60 * 1000)
+                toMillis(
+                    "19-08-2026 11:45"
+                )
         )
     }
 }
