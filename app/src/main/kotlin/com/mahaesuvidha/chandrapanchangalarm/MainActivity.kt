@@ -26,6 +26,8 @@ import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
 import com.mahaesuvidha.chandrapanchangalarm.model.SunState
 import android.content.Context
+import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
+import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 
 class MainActivity : ComponentActivity() {
 
@@ -53,6 +55,9 @@ class MainActivity : ComponentActivity() {
         val sunState =
     LiveSunCalculator.getCurrentSunState()
 
+        val panchangState =
+    LivePanchangCalculator.getCurrentPanchangState()
+    
         // Existing automatic Moon alarm
       // scheduler.scheduleNextLiveAlarm()
 
@@ -284,6 +289,234 @@ SunColumn(
         Spacer(
             modifier = Modifier.height(12.dp)
         )
+// ==========================================================
+// PANCHANG CARD
+// ==========================================================
+
+@Composable
+private fun PanchangCard(
+    state: PanchangState
+) {
+
+    val cardColor = Color(0xFF10263D)
+    val accentColor = Color(0xFF4DA3FF)
+    val textColor = Color(0xFFF5F7FA)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor
+        )
+    ) {
+
+        Column(
+            modifier = Modifier.padding(14.dp)
+        ) {
+
+            Text(
+                text = "📅 पंचांग",
+                color = textColor,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
+
+            Text(
+                text = "${state.weekday} • ${state.date}",
+                color = Color.LightGray,
+                fontSize = 12.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+
+            PanchangChangeSection(
+                title = "🌙 तिथी",
+                current = state.tithi,
+                startTime = state.tithiStartTime,
+                next = state.nextTithi,
+                nextTime = state.nextTithiTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "🧘 योग",
+                current = state.yoga,
+                startTime = state.yogaStartTime,
+                next = state.nextYoga,
+                nextTime = state.nextYogaTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "🔄 करण",
+                current = state.karana,
+                startTime = state.karanaStartTime,
+                next = state.nextKarana,
+                nextTime = state.nextKaranaTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "🌗 पक्ष",
+                current = state.paksha,
+                startTime = state.pakshaStartTime,
+                next = state.nextPaksha,
+                nextTime = state.nextPakshaTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "📆 मास",
+                current = state.masa,
+                startTime = state.masaStartTime,
+                next = state.nextMasa,
+                nextTime = state.nextMasaTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "🕐 प्रहर",
+                current = state.prahar,
+                startTime = state.praharStartTime,
+                next = state.nextPrahar,
+                nextTime = state.nextPraharTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+
+            PanchangChangeSection(
+                title = "♈ लग्न",
+                current = state.lagna,
+                startTime = state.lagnaStartTime,
+                next = state.nextLagna,
+                nextTime = state.nextLagnaTime,
+                accentColor = accentColor,
+                textColor = textColor
+            )
+        }
+    }
+}
+
+
+// ==========================================================
+// PANCHANG CHANGE SECTION
+// ==========================================================
+
+@Composable
+private fun PanchangChangeSection(
+    title: String,
+    current: String,
+    startTime: String,
+    next: String,
+    nextTime: String,
+    accentColor: Color,
+    textColor: Color
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp)
+    ) {
+
+        Text(
+            text = title,
+            color = accentColor,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(
+            modifier = Modifier.height(4.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    text = "चालू आहे",
+                    color = Color(0xFF39D353),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = current,
+                    color = textColor,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    text = "प्रारंभ",
+                    color = Color.LightGray,
+                    fontSize = 11.sp
+                )
+
+                Text(
+                    text = startTime,
+                    color = textColor,
+                    fontSize = 12.sp
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    text = "पुढील बदल",
+                    color = Color.LightGray,
+                    fontSize = 11.sp
+                )
+
+                Text(
+                    text = next,
+                    color = textColor,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = nextTime,
+                    color = Color.LightGray,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(
+                top = 8.dp
+            ),
+            color = Color.White.copy(
+                alpha = 0.12f
+            )
+        )
+    }
+}
 // ------------------------------------------------
 // PANCHANG CARD
 // ------------------------------------------------
