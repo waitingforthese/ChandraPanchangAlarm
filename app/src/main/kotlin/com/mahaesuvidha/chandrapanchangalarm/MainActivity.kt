@@ -190,10 +190,10 @@ Row(
         text = "⚙️",
         fontSize = 25.sp,
         modifier = Modifier
-            .clickable {
-                // Settings click
-            }
-            .padding(8.dp)
+    .clickable {
+        showSettings = true
+    }
+    .padding(8.dp)
     )
 }
         // ------------------------------------------------
