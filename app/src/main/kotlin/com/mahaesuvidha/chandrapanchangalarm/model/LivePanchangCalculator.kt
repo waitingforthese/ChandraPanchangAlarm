@@ -21,6 +21,8 @@ object LivePanchangCalculator {
 
             tithi = "सप्तमी",
 
+            tithiStartTime = "18-08-2026 18:42",
+
             nextTithi = "अष्टमी",
 
             nextTithiTime = "19-08-2026 19:14",
@@ -35,6 +37,8 @@ object LivePanchangCalculator {
             // ==========================================
 
             yoga = "शुक्ल",
+
+            yogaStartTime = "18-08-2026 03:02",
 
             nextYoga = "ब्रह्म",
 
@@ -51,6 +55,8 @@ object LivePanchangCalculator {
 
             karana = "गर",
 
+            karanaStartTime = "18-08-2026 17:52",
+
             nextKarana = "वणिज",
 
             nextKaranaTime = "19-08-2026 06:09",
@@ -65,6 +71,8 @@ object LivePanchangCalculator {
             // ==========================================
 
             paksha = "शुक्ल पक्ष",
+
+            pakshaStartTime = "14-08-2026 12:10",
 
             nextPaksha = "कृष्ण पक्ष",
 
@@ -81,12 +89,24 @@ object LivePanchangCalculator {
 
             masa = "श्रावण",
 
+            masaStartTime = "25-07-2026 08:31",
+
+            nextMasa = "भाद्रपद",
+
+            nextMasaTime = "23-08-2026 12:18",
+
+            nextMasaMillis =
+                System.currentTimeMillis() +
+                        (4 * 24 * 60 * 60 * 1000),
+
 
             // ==========================================
             // PRAHAR
             // ==========================================
 
             prahar = "दिवसाचा दुसरा प्रहर",
+
+            praharStartTime = "19-08-2026 09:30",
 
             nextPrahar = "दिवसाचा तिसरा प्रहर",
 
@@ -102,6 +122,8 @@ object LivePanchangCalculator {
             // ==========================================
 
             lagna = "कर्क लग्न",
+
+            lagnaStartTime = "19-08-2026 09:45",
 
             nextLagna = "सिंह लग्न",
 
