@@ -5,34 +5,70 @@ import swisseph.SweDate
 import swisseph.SwissEph
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
 object LiveMoonCalculator {
 
     // ==========================================
-    // CONSTANTS
+    // RASHI NAMES
     // ==========================================
 
-    private const val RASHI_SIZE = 30.0
-
-    private const val NAKSHATRA_SIZE =
-        360.0 / 27.0
-
-    private const val PADA_SIZE =
-        360.0 / 108.0
-
-    private const val SEARCH_STEP_MILLIS =
-        60_000L
-
+    private val rashiNames = arrayOf(
+        "मेष",
+        "वृषभ",
+        "मिथुन",
+        "कर्क",
+        "सिंह",
+        "कन्या",
+        "तुळ",
+        "वृश्चिक",
+        "धनु",
+        "मकर",
+        "कुंभ",
+        "मीन"
+    )
 
     // ==========================================
-    // JULIAN DAY FOR GIVEN TIME
+    // NAKSHATRA NAMES
+    // ==========================================
+
+    private val nakshatraNames = arrayOf(
+        "अश्विनी",
+        "भरणी",
+        "कृत्तिका",
+        "रोहिणी",
+        "मृगशीर्ष",
+        "आर्द्रा",
+        "पुनर्वसू",
+        "पुष्य",
+        "आश्लेषा",
+        "मघा",
+        "पूर्वाफाल्गुनी",
+        "उत्तराफाल्गुनी",
+        "हस्त",
+        "चित्रा",
+        "स्वाती",
+        "विशाखा",
+        "अनुराधा",
+        "ज्येष्ठा",
+        "मूळ",
+        "पूर्वाषाढा",
+        "उत्तराषाढा",
+        "श्रवण",
+        "धनिष्ठा",
+        "शततारका",
+        "पूर्वाभाद्रपदा",
+        "उत्तराभाद्रपदा",
+        "रेवती"
+    )
+
+    // ==========================================
+    // DATE → JULIAN DAY
     // ==========================================
 
     private fun getJulianDay(
-        millis: Long
+        millis: Long = System.currentTimeMillis()
     ): Double {
 
         val calendar =
@@ -56,7 +92,7 @@ object LiveMoonCalculator {
             calendar.get(Calendar.HOUR_OF_DAY) +
                     calendar.get(Calendar.MINUTE) / 60.0 +
                     calendar.get(Calendar.SECOND) / 3600.0 +
-                    calendar.get(Calendar.MILLISECOND) / 3_600_000.0
+                    calendar.get(Calendar.MILLISECOND) / 3600000.0
 
         return SweDate.getJulDay(
             year,
@@ -67,13 +103,12 @@ object LiveMoonCalculator {
         )
     }
 
-
     // ==========================================
     // MOON LONGITUDE
     // ==========================================
 
-    private fun getMoonLongitudeAt(
-        millis: Long
+    private fun getMoonLongitude(
+        millis: Long = System.currentTimeMillis()
     ): Double {
 
         val swe =
@@ -103,57 +138,45 @@ object LiveMoonCalculator {
         return xx[0]
     }
 
-
-    // ==========================================
-    // CURRENT MOON LONGITUDE
-    // ==========================================
-
-    fun getMoonLongitude(): Double {
-
-        return getMoonLongitudeAt(
-            System.currentTimeMillis()
-        )
-    }
-
-
     // ==========================================
     // CURRENT RASHI
     // ==========================================
 
-    fun getCurrentRashi(): Rashi {
+    fun getCurrentRashi(): String {
 
         val longitude =
             getMoonLongitude()
 
         val index =
-            (longitude / RASHI_SIZE)
+            (longitude / 30.0)
                 .toInt()
                 .coerceIn(0, 11)
 
-        return Rashi.entries[index]
+        return rashiNames[index]
     }
-
 
     // ==========================================
     // CURRENT NAKSHATRA
     // ==========================================
 
-    fun getCurrentNakshatra(): Nakshatra {
+    fun getCurrentNakshatra(): String {
 
         val longitude =
             getMoonLongitude()
 
+        val nakshatraSize =
+            360.0 / 27.0
+
         val index =
-            (longitude / NAKSHATRA_SIZE)
+            (longitude / nakshatraSize)
                 .toInt()
                 .coerceIn(0, 26)
 
-        return Nakshatra.entries[index]
+        return nakshatraNames[index]
     }
 
-
     // ==========================================
-    // CURRENT PADA
+    // CURRENT CHARAN
     // ==========================================
 
     fun getCurrentCharan(): Int {
@@ -161,304 +184,24 @@ object LiveMoonCalculator {
         val longitude =
             getMoonLongitude()
 
-        return (
-            (longitude % NAKSHATRA_SIZE) /
-                    PADA_SIZE
-            ).toInt() + 1
-    }
+        val nakshatraSize =
+            360.0 / 27.0
 
-
-    // ==========================================
-    // NEXT RASHI INDEX
-    // ==========================================
-
-    private fun getRashiIndexAt(
-        millis: Long
-    ): Int {
+        val padaSize =
+            nakshatraSize / 4.0
 
         return (
-            getMoonLongitudeAt(millis) /
-                    RASHI_SIZE
-            )
-            .toInt()
-            .coerceIn(0, 11)
+            (longitude % nakshatraSize) /
+                    padaSize
+        ).toInt()
+            .coerceIn(0, 3) + 1
     }
-
-
-    // ==========================================
-    // NEXT NAKSHATRA INDEX
-    // ==========================================
-
-    private fun getNakshatraIndexAt(
-        millis: Long
-    ): Int {
-
-        return (
-            getMoonLongitudeAt(millis) /
-                    NAKSHATRA_SIZE
-            )
-            .toInt()
-            .coerceIn(0, 26)
-    }
-
-
-    // ==========================================
-    // CURRENT PADA INDEX
-    // ==========================================
-
-    private fun getPadaNumberAt(
-        millis: Long
-    ): Int {
-
-        val longitude =
-            getMoonLongitudeAt(millis)
-
-        return (
-            (longitude % NAKSHATRA_SIZE) /
-                    PADA_SIZE
-            ).toInt() + 1
-    }
-
-
-    // ==========================================
-    // FIND NEXT RASHI CHANGE
-    // ==========================================
-
-    private fun findNextRashiChange(): Long {
-
-        val now =
-            System.currentTimeMillis()
-
-        val currentIndex =
-            getRashiIndexAt(now)
-
-        var checkTime =
-            now
-
-        val maxTime =
-            now + (3 * 24 * 60 * 60 * 1000L)
-
-        while (checkTime < maxTime) {
-
-            val index =
-                getRashiIndexAt(checkTime)
-
-            if (index != currentIndex) {
-
-                return refineRashiChange(
-                    checkTime - SEARCH_STEP_MILLIS,
-                    checkTime,
-                    currentIndex
-                )
-            }
-
-            checkTime +=
-                SEARCH_STEP_MILLIS
-        }
-
-        return now
-    }
-
-
-    // ==========================================
-    // REFINE RASHI CHANGE
-    // ==========================================
-
-    private fun refineRashiChange(
-        start: Long,
-        end: Long,
-        oldIndex: Int
-    ): Long {
-
-        var low =
-            start
-
-        var high =
-            end
-
-        while (high - low > 1000L) {
-
-            val mid =
-                (low + high) / 2
-
-            if (
-                getRashiIndexAt(mid) ==
-                oldIndex
-            ) {
-
-                low = mid
-
-            } else {
-
-                high = mid
-            }
-        }
-
-        return high
-    }
-
-
-    // ==========================================
-    // FIND NEXT NAKSHATRA CHANGE
-    // ==========================================
-
-    private fun findNextNakshatraChange(): Long {
-
-        val now =
-            System.currentTimeMillis()
-
-        val currentIndex =
-            getNakshatraIndexAt(now)
-
-        var checkTime =
-            now
-
-        val maxTime =
-            now + (2 * 24 * 60 * 60 * 1000L)
-
-        while (checkTime < maxTime) {
-
-            val index =
-                getNakshatraIndexAt(checkTime)
-
-            if (index != currentIndex) {
-
-                return refineNakshatraChange(
-                    checkTime - SEARCH_STEP_MILLIS,
-                    checkTime,
-                    currentIndex
-                )
-            }
-
-            checkTime +=
-                SEARCH_STEP_MILLIS
-        }
-
-        return now
-    }
-
-
-    // ==========================================
-    // REFINE NAKSHATRA CHANGE
-    // ==========================================
-
-    private fun refineNakshatraChange(
-        start: Long,
-        end: Long,
-        oldIndex: Int
-    ): Long {
-
-        var low =
-            start
-
-        var high =
-            end
-
-        while (high - low > 1000L) {
-
-            val mid =
-                (low + high) / 2
-
-            if (
-                getNakshatraIndexAt(mid) ==
-                oldIndex
-            ) {
-
-                low = mid
-
-            } else {
-
-                high = mid
-            }
-        }
-
-        return high
-    }
-
-
-    // ==========================================
-    // FIND NEXT PADA CHANGE
-    // ==========================================
-
-    private fun findNextPadaChange(): Long {
-
-        val now =
-            System.currentTimeMillis()
-
-        val currentPada =
-            getPadaNumberAt(now)
-
-        var checkTime =
-            now
-
-        val maxTime =
-            now + (12 * 60 * 60 * 1000L)
-
-        while (checkTime < maxTime) {
-
-            val pada =
-                getPadaNumberAt(checkTime)
-
-            if (pada != currentPada) {
-
-                return refinePadaChange(
-                    checkTime - SEARCH_STEP_MILLIS,
-                    checkTime,
-                    currentPada
-                )
-            }
-
-            checkTime +=
-                SEARCH_STEP_MILLIS
-        }
-
-        return now
-    }
-
-
-    // ==========================================
-    // REFINE PADA CHANGE
-    // ==========================================
-
-    private fun refinePadaChange(
-        start: Long,
-        end: Long,
-        oldPada: Int
-    ): Long {
-
-        var low =
-            start
-
-        var high =
-            end
-
-        while (high - low > 1000L) {
-
-            val mid =
-                (low + high) / 2
-
-            if (
-                getPadaNumberAt(mid) ==
-                oldPada
-            ) {
-
-                low = mid
-
-            } else {
-
-                high = mid
-            }
-        }
-
-        return high
-    }
-
 
     // ==========================================
     // FORMAT TIME
     // ==========================================
 
-    private fun formatTime(
+    private fun formatDateTime(
         millis: Long
     ): String {
 
@@ -468,127 +211,260 @@ object LiveMoonCalculator {
                 Locale.getDefault()
             )
 
+        formatter.timeZone =
+            TimeZone.getDefault()
+
         return formatter.format(
-            Date(millis)
+            millis
         )
     }
 
+    // ==========================================
+    // FIND NEXT RASHI
+    // ==========================================
+
+    private fun findNextRashiChange(
+        now: Long,
+        currentRashi: Int
+    ): Pair<String, Long> {
+
+        var check =
+            now
+
+        // Moon change साधारण 2.5 दिवसात होतो
+        repeat(5000) {
+
+            check += 60_000L
+
+            val longitude =
+                getMoonLongitude(check)
+
+            val index =
+                (longitude / 30.0)
+                    .toInt()
+                    .coerceIn(0, 11)
+
+            if (index != currentRashi) {
+
+                return Pair(
+                    "${rashiNames[currentRashi]} → ${rashiNames[index]}",
+                    check
+                )
+            }
+        }
+
+        return Pair(
+            "पुढील राशी बदल शोधत आहे",
+            now + (3L * 24 * 60 * 60 * 1000)
+        )
+    }
 
     // ==========================================
-    // CURRENT MOON STATE
+    // FIND NEXT NAKSHATRA
+    // ==========================================
+
+    private fun findNextNakshatraChange(
+        now: Long,
+        currentNakshatra: Int
+    ): Pair<String, Long> {
+
+        var check =
+            now
+
+        repeat(3000) {
+
+            check += 60_000L
+
+            val longitude =
+                getMoonLongitude(check)
+
+            val nakshatraSize =
+                360.0 / 27.0
+
+            val index =
+                (longitude / nakshatraSize)
+                    .toInt()
+                    .coerceIn(0, 26)
+
+            if (index != currentNakshatra) {
+
+                return Pair(
+                    "${nakshatraNames[currentNakshatra]} → ${nakshatraNames[index]}",
+                    check
+                )
+            }
+        }
+
+        return Pair(
+            "पुढील नक्षत्र बदल शोधत आहे",
+            now + (2L * 24 * 60 * 60 * 1000)
+        )
+    }
+
+    // ==========================================
+    // FIND NEXT CHARAN
+    // ==========================================
+
+    private fun findNextCharanChange(
+        now: Long,
+        currentNakshatra: Int,
+        currentCharan: Int
+    ): Pair<String, Long> {
+
+        var check =
+            now
+
+        repeat(1000) {
+
+            check += 60_000L
+
+            val longitude =
+                getMoonLongitude(check)
+
+            val nakshatraSize =
+                360.0 / 27.0
+
+            val padaSize =
+                nakshatraSize / 4.0
+
+            val nakshatra =
+                (longitude / nakshatraSize)
+                    .toInt()
+                    .coerceIn(0, 26)
+
+            val charan =
+                (
+                    (longitude % nakshatraSize) /
+                            padaSize
+                ).toInt()
+                    .coerceIn(0, 3) + 1
+
+            if (
+                nakshatra != currentNakshatra ||
+                charan != currentCharan
+            ) {
+
+                val nextCharan =
+                    if (
+                        nakshatra != currentNakshatra
+                    ) {
+                        1
+                    } else {
+                        charan
+                    }
+
+                return Pair(
+                    "चरण $currentCharan → चरण $nextCharan",
+                    check
+                )
+            }
+        }
+
+        return Pair(
+            "पुढील चरण बदल शोधत आहे",
+            now + (8L * 60 * 60 * 1000)
+        )
+    }
+
+    // ==========================================
+    // MAIN MOON STATE
     // ==========================================
 
     fun getCurrentMoonState(): MoonState {
 
-        val currentRashi =
-            getCurrentRashi()
+        val now =
+            System.currentTimeMillis()
 
-        val currentNakshatra =
-            getCurrentNakshatra()
+        val longitude =
+            getMoonLongitude(now)
+
+        val rashiIndex =
+            (longitude / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        val nakshatraSize =
+            360.0 / 27.0
+
+        val nakshatraIndex =
+            (longitude / nakshatraSize)
+                .toInt()
+                .coerceIn(0, 26)
+
+        val padaSize =
+            nakshatraSize / 4.0
 
         val currentPada =
-            getCurrentCharan()
+            (
+                (longitude % nakshatraSize) /
+                        padaSize
+            ).toInt()
+                .coerceIn(0, 3) + 1
 
-
-        // ======================================
-        // CALCULATE EXACT NEXT CHANGES
-        // ======================================
-
-        val nextRashiMillis =
-            findNextRashiChange()
-
-        val nextNakshatraMillis =
-            findNextNakshatraChange()
-
-        val nextCharanMillis =
-            findNextPadaChange()
-
-
-        // ======================================
-        // NEXT VALUES
-        // ======================================
-
-        val nextRashiIndex =
-            getRashiIndexAt(
-                nextRashiMillis + 1000L
+        val nextRashi =
+            findNextRashiChange(
+                now,
+                rashiIndex
             )
 
-        val nextNakshatraIndex =
-            getNakshatraIndexAt(
-                nextNakshatraMillis + 1000L
+        val nextNakshatra =
+            findNextNakshatraChange(
+                now,
+                nakshatraIndex
             )
 
-        val nextPada =
-            getPadaNumberAt(
-                nextCharanMillis + 1000L
+        val nextCharan =
+            findNextCharanChange(
+                now,
+                nakshatraIndex,
+                currentPada
             )
-
 
         return MoonState(
 
-            location =
-                "Daund",
+            location = "भारत",
 
             rashi =
-                currentRashi,
+                Rashi.entries[rashiIndex],
 
             nakshatra =
-                currentNakshatra,
+                Nakshatra.entries[nakshatraIndex],
 
             pada =
                 currentPada,
 
-
-            // ==================================
-            // NEXT RASHI
-            // ==================================
-
             nextRashi =
-                Rashi.entries[
-                    nextRashiIndex
-                ].marathi,
+                nextRashi.first,
 
             nextRashiTime =
-                formatTime(
-                    nextRashiMillis
+                formatDateTime(
+                    nextRashi.second
                 ),
 
             nextRashiMillis =
-                nextRashiMillis,
-
-
-            // ==================================
-            // NEXT NAKSHATRA
-            // ==================================
+                nextRashi.second,
 
             nextNakshatra =
-                Nakshatra.entries[
-                    nextNakshatraIndex
-                ].marathi,
+                nextNakshatra.first,
 
             nextNakshatraTime =
-                formatTime(
-                    nextNakshatraMillis
+                formatDateTime(
+                    nextNakshatra.second
                 ),
 
             nextNakshatraMillis =
-                nextNakshatraMillis,
-
-
-            // ==================================
-            // NEXT CHARAN
-            // ==================================
+                nextNakshatra.second,
 
             nextCharan =
-                "चरण $nextPada",
+                nextCharan.first,
 
             nextCharanTime =
-                formatTime(
-                    nextCharanMillis
+                formatDateTime(
+                    nextCharan.second
                 ),
 
             nextCharanMillis =
-                nextCharanMillis
+                nextCharan.second
         )
     }
 }
