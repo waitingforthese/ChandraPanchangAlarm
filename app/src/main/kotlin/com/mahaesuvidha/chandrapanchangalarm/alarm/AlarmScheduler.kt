@@ -203,6 +203,52 @@ class AlarmScheduler(
                         "${panchang.paksha} → ${panchang.nextPaksha}"
                 )
             }
+            // ==========================================
+// MASA ALARM
+// ==========================================
+
+if (prefs.masa) {
+
+    schedule(
+        id = 25,
+        at = panchang.nextMasaMillis,
+        title = "📅 मास बदल",
+        message =
+            "${panchang.masa} → ${panchang.nextMasa}"
+    )
+}
+
+
+// ==========================================
+// PRAHAR ALARM
+// ==========================================
+
+if (prefs.prahar) {
+
+    schedule(
+        id = 26,
+        at = panchang.nextPraharMillis,
+        title = "⌛ प्रहर बदल",
+        message =
+            "${panchang.prahar} → ${panchang.nextPrahar}"
+    )
+}
+
+
+// ==========================================
+// LAGNA ALARM
+// ==========================================
+
+if (prefs.lagna) {
+
+    schedule(
+        id = 27,
+        at = panchang.nextLagnaMillis,
+        title = "⭐ लग्न बदल",
+        message =
+            "${panchang.lagna} → ${panchang.nextLagna}"
+    )
+}
         }
     }
 
@@ -314,9 +360,9 @@ class AlarmScheduler(
             cancel(id)
         }
 
-        for (id in 21..24) {
-            cancel(id)
-        }
+     for (id in 21..27) {
+    cancel(id)
+}
 
         cancel(99)
         cancel(101)
