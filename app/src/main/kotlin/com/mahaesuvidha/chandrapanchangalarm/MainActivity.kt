@@ -608,7 +608,7 @@ private fun SunColumn(
 }
 
 // ==========================================================
-// PANCHANG CARD
+// PANCHANG CARD - SECOND PHOTO STYLE
 // ==========================================================
 
 @Composable
@@ -616,115 +616,261 @@ private fun PanchangCard(
     state: PanchangState
 ) {
 
-    val cardColor = Color(0xFF10243A)
-    val accent = Color(0xFFFFC83D)
-    val textColor = Color(0xFFF5F7FA)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+
+        // ==================================================
+        // TITHI
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "🌙",
+            title = "तिथी",
+            current = state.tithi,
+            startTime = state.tithiStartTime,
+            next = state.nextTithi,
+            nextTime = state.nextTithiTime
+        )
+
+
+        // ==================================================
+        // YOGA
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "✨",
+            title = "योग",
+            current = state.yoga,
+            startTime = state.yogaStartTime,
+            next = state.nextYoga,
+            nextTime = state.nextYogaTime
+        )
+
+
+        // ==================================================
+        // KARANA
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "🔄",
+            title = "करण",
+            current = state.karana,
+            startTime = state.karanaStartTime,
+            next = state.nextKarana,
+            nextTime = state.nextKaranaTime
+        )
+
+
+        // ==================================================
+        // PAKSHA
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "🌗",
+            title = "पक्ष",
+            current = state.paksha,
+            startTime = state.pakshaStartTime,
+            next = state.nextPaksha,
+            nextTime = state.nextPakshaTime
+        )
+
+
+        // ==================================================
+        // MASA
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "📅",
+            title = "मास",
+            current = state.masa,
+            startTime = state.masaStartTime,
+            next = state.nextMasa,
+            nextTime = state.nextMasaTime
+        )
+
+
+        // ==================================================
+        // PRAHAR
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "⌛",
+            title = "प्रहर",
+            current = state.prahar,
+            startTime = state.praharStartTime,
+            next = state.nextPrahar,
+            nextTime = state.nextPraharTime
+        )
+
+
+        // ==================================================
+        // LAGNA
+        // ==================================================
+
+        PanchangItemCard(
+            icon = "⭐",
+            title = "लग्न",
+            current = state.lagna,
+            startTime = state.lagnaStartTime,
+            next = state.nextLagna,
+            nextTime = state.nextLagnaTime
+        )
+    }
+}
+
+
+// ==========================================================
+// SINGLE PANCHANG CARD
+// ==========================================================
+
+@Composable
+private fun PanchangItemCard(
+    icon: String,
+    title: String,
+    current: String,
+    startTime: String,
+    next: String,
+    nextTime: String
+) {
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 8.dp
+            ),
+
+        shape = RoundedCornerShape(24.dp),
+
         colors = CardDefaults.cardColors(
-            containerColor = cardColor
+            containerColor = Color(0xFFF8F8F8)
+        ),
+
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
         )
     ) {
 
         Column(
-            modifier = Modifier.padding(14.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = 14.dp
+                )
         ) {
 
-            Text(
-                text = "📅 पंचांग",
-                color = textColor,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            // ==================================================
+            // HEADER
+            // ==================================================
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+
+                Text(
+                    text = icon,
+                    fontSize = 25.sp
+                )
+
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
+                Text(
+                    text = title,
+                    color = Color(0xFF007A9E),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    text = current,
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End
+                )
+            }
+
 
             Spacer(
-                modifier = Modifier.height(6.dp)
+                modifier = Modifier.height(8.dp)
             )
 
-            Text(
-                text = "${state.weekday} • ${state.date}",
-                color = Color.LightGray,
-                fontSize = 13.sp
-            )
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
 
             HorizontalDivider(
-                color = Color.White.copy(alpha = 0.15f)
+                color = Color.LightGray.copy(
+                    alpha = 0.7f
+                )
             )
 
-            PanchangChangeSection(
-                title = "🌙 तिथी",
-                current = state.tithi,
-                startTime = state.tithiStartTime,
-                next = state.nextTithi,
-                nextTime = state.nextTithiTime,
-                accent = accent,
-                textColor = textColor
+
+            // ==================================================
+            // चालू आहे
+            // ==================================================
+
+            PanchangStatusRow(
+                icon = "🟢",
+                label = "चालू आहे",
+                value = current,
+                valueColor = Color(0xFF008F39)
             )
 
-            PanchangChangeSection(
-                title = "✨ योग",
-                current = state.yoga,
-                startTime = state.yogaStartTime,
-                next = state.nextYoga,
-                nextTime = state.nextYogaTime,
-                accent = accent,
-                textColor = textColor
+
+            // ==================================================
+            // प्रारंभ
+            // ==================================================
+
+            PanchangStatusRow(
+                icon = "🟢",
+                label = "प्रारंभ",
+                value =
+                    if (startTime.isBlank())
+                        "—"
+                    else
+                        startTime,
+                valueColor = Color(0xFF555555)
             )
 
-            PanchangChangeSection(
-                title = "🔄 करण",
-                current = state.karana,
-                startTime = state.karanaStartTime,
-                next = state.nextKarana,
-                nextTime = state.nextKaranaTime,
-                accent = accent,
-                textColor = textColor
+
+            // ==================================================
+            // पुढील बदल
+            // ==================================================
+
+            PanchangStatusRow(
+                icon = "🔔",
+                label = "पुढील बदल",
+                value = next,
+                valueColor = Color(0xFF111111),
+                labelColor = Color(0xFF007A9E)
             )
 
-            PanchangChangeSection(
-                title = "🌗 पक्ष",
-                current = state.paksha,
-                startTime = state.pakshaStartTime,
-                next = state.nextPaksha,
-                nextTime = state.nextPakshaTime,
-                accent = accent,
-                textColor = textColor
-            )
 
-            PanchangChangeSection(
-                title = "📅 मास",
-                current = state.masa,
-                startTime = state.masaStartTime,
-                next = state.nextMasa,
-                nextTime = state.nextMasaTime,
-                accent = accent,
-                textColor = textColor
-            )
+            // ==================================================
+            // समाप्त
+            // ==================================================
 
-            PanchangChangeSection(
-                title = "⏳ प्रहर",
-                current = state.prahar,
-                startTime = state.praharStartTime,
-                next = state.nextPrahar,
-                nextTime = state.nextPraharTime,
-                accent = accent,
-                textColor = textColor
-            )
-
-            PanchangChangeSection(
-                title = "⭐ लग्न",
-                current = state.lagna,
-                startTime = state.lagnaStartTime,
-                next = state.nextLagna,
-                nextTime = state.nextLagnaTime,
-                accent = accent,
-                textColor = textColor
+            PanchangStatusRow(
+                icon = "🔴",
+                label = "समाप्त",
+                value =
+                    if (nextTime.isBlank())
+                        "—"
+                    else
+                        nextTime,
+                valueColor = Color(0xFF555555),
+                labelColor = Color(0xFFD32F2F)
             )
         }
     }
@@ -732,121 +878,72 @@ private fun PanchangCard(
 
 
 // ==========================================================
-// PANCHANG CHANGE SECTION
+// PANCHANG STATUS ROW
 // ==========================================================
 
 @Composable
-private fun PanchangChangeSection(
-    title: String,
-    current: String,
-    startTime: String,
-    next: String,
-    nextTime: String,
-    accent: Color,
-    textColor: Color
+private fun PanchangStatusRow(
+    icon: String,
+    label: String,
+    value: String,
+    valueColor: Color,
+    labelColor: Color = Color(0xFF008F39)
 ) {
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
+            .padding(
+                vertical = 6.dp
+            ),
+
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
 
+        // ICON
+
         Text(
-            text = title,
-            color = accent,
-            fontSize = 18.sp,
+            text = icon,
+            fontSize = 21.sp
+        )
+
+        Spacer(
+            modifier = Modifier.width(8.dp)
+        )
+
+
+        // LABEL
+
+        Text(
+            text = label,
+            color = labelColor,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
 
         Spacer(
-            modifier = Modifier.height(8.dp)
+            modifier = Modifier.weight(1f)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
 
-            // -------------------------------
-            // CURRENT
-            // -------------------------------
+        // VALUE
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+        Text(
+            text = value,
+            color = valueColor,
+            fontSize = 17.sp,
+            fontWeight =
+                if (
+                    label == "चालू आहे" ||
+                    label == "पुढील बदल"
+                ) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Normal
+                },
 
-                Text(
-                    text = "सध्या",
-                    color = Color.LightGray,
-                    fontSize = 12.sp
-                )
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = current,
-                    color = textColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
-
-                Text(
-                    text = "🕐 $startTime",
-                    color = Color.LightGray,
-                    fontSize = 12.sp
-                )
-            }
-
-
-            // -------------------------------
-            // NEXT
-            // -------------------------------
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = "पुढील",
-                    color = Color.LightGray,
-                    fontSize = 12.sp
-                )
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = next,
-                    color = textColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
-
-                Text(
-                    text = "🕐 $nextTime",
-                    color = Color.LightGray,
-                    fontSize = 12.sp
-                )
-            }
-        }
-
-        Spacer(
-            modifier = Modifier.height(10.dp)
-        )
-
-        HorizontalDivider(
-            color = Color.White.copy(alpha = 0.12f)
+            textAlign = TextAlign.End
         )
     }
 }
