@@ -337,43 +337,67 @@ object LivePanchangCalculator {
     // FIND NEXT CHANGE
     // ==========================================
 
-    private fun findNextChange(
-        currentIndex: Int,
-        getIndex: (Double) -> Int
-    ): Long {
+   private fun findNextChange(
+    currentIndex: Int,
+    getIndex: (Double) -> Int
+): Long {
 
-        val now =
-            System.currentTimeMillis()
+    val now =
+        System.currentTimeMillis()
 
-        var checkMillis =
-            now
+    var checkMillis =
+        now
 
-        repeat(10080) {
+    // आधी 10 मिनिटांच्या अंतराने शोध
+    repeat(1008) {
 
-            checkMillis +=
-                60_000L
+        checkMillis +=
+            10 * 60_000L
 
-            val jd =
-                2440587.5 +
-                        checkMillis /
-                        86400000.0
+        val checkJd =
+            2440587.5 +
+                    checkMillis /
+                    86400000.0
 
-            val newIndex =
-                getIndex(jd)
+        val newIndex =
+            getIndex(checkJd)
 
-            if (
-                newIndex !=
-                currentIndex
-            ) {
+        if (
+            newIndex != currentIndex
+        ) {
 
-                return checkMillis
+            // बदल सापडल्यावर minute-level search
+            var minuteMillis =
+                checkMillis -
+                        (10 * 60_000L)
+
+            repeat(10) {
+
+                minuteMillis +=
+                    60_000L
+
+                val minuteJd =
+                    2440587.5 +
+                            minuteMillis /
+                            86400000.0
+
+                val minuteIndex =
+                    getIndex(minuteJd)
+
+                if (
+                    minuteIndex != currentIndex
+                ) {
+
+                    return minuteMillis
+                }
             }
-        }
 
-        return now
+            return checkMillis
+        }
     }
 
-
+    return now + 24 * 60 * 60 * 1000L
+}
     // ==========================================
     // FORMAT TIME
     // ==========================================
