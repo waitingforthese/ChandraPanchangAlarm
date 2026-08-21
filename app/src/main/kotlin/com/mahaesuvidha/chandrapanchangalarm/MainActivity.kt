@@ -657,13 +657,17 @@ private fun PanchangCard(
                 )
 
                 PanchangRow(
-                    "तारीख",
-                    state.date
+                    label = "तारीख",
+                    value = state.date
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
                 )
 
                 PanchangRow(
-                    "वार",
-                    state.weekday
+                    label = "वार",
+                    value = state.weekday
                 )
             }
         }
@@ -761,7 +765,52 @@ private fun PanchangCard(
     }
 }
 
+
 // ==========================================================
+// PANCHANG ROW
+// आजचे पंचांग - तारीख / वार
+// ==========================================================
+
+@Composable
+private fun PanchangRow(
+    label: String,
+    value: String
+) {
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Text(
+            text = label,
+
+            modifier = Modifier.weight(1f),
+
+            color = Color(0xFF777777),
+
+            fontSize = 19.sp,
+
+            fontWeight = FontWeight.Medium
+        )
+
+
+        Text(
+            text = if (value.isBlank()) "—" else value,
+
+            color = Color(0xFF202020),
+
+            fontSize = 20.sp,
+
+            fontWeight = FontWeight.Bold,
+
+            textAlign = TextAlign.End
+        )
+    }
+}
+
+
 // ==========================================================
 // PANCHANG INFO CARD
 // ==========================================================
@@ -808,16 +857,24 @@ private fun PanchangInfoCard(
 
                 Text(
                     text = title,
+
                     color = Color(0xFF006B85),
+
                     fontSize = 23.sp,
+
                     fontWeight = FontWeight.Bold
                 )
 
+
                 Text(
-                    text = current,
+                    text = if (current.isBlank()) "—" else current,
+
                     color = Color.Black,
+
                     fontSize = 23.sp,
+
                     fontWeight = FontWeight.Bold,
+
                     textAlign = TextAlign.End
                 )
             }
@@ -863,7 +920,14 @@ private fun PanchangInfoCard(
             PanchangInfoRow(
                 icon = "🔔",
                 label = "पुढील बदल",
-                value = "$current → $next",
+                value = if (
+                    next.isBlank() ||
+                    next == "—"
+                ) {
+                    "—"
+                } else {
+                    "$current → $next"
+                },
                 labelColor = Color(0xFF006B85),
                 valueColor = Color.Black
             )
@@ -947,7 +1011,6 @@ private fun PanchangInfoRow(
         )
     }
 }
-       
 // ==========================================================
 // SMALL DATA ROW
 // ==========================================================
