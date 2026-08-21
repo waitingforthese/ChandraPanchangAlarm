@@ -136,6 +136,9 @@ private fun ChandraSuryaHome(
 
     val white =
         Color(0xFFF5F7FA)
+    var showSettings by remember {
+    mutableStateOf(false)
+}
 
     Column(
         modifier = Modifier
