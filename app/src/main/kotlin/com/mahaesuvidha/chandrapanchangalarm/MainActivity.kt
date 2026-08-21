@@ -1153,4 +1153,348 @@ private fun TestButton(
         )
     }
 }
+// ==========================================================
+// SETTINGS DIALOG
+// ==========================================================
+
+@Composable
+private fun SettingsDialog(
+    onDismiss: () -> Unit
+) {
+
+    val context =
+        LocalContext.current
+
+    val prefs =
+        remember {
+            AlarmPrefs(context)
+        }
+
+
+    // ==========================================================
+    // MOON / SUN
+    // ==========================================================
+
+    var moon by remember {
+        mutableStateOf(
+            prefs.moon
+        )
+    }
+
+    var sun by remember {
+        mutableStateOf(
+            prefs.sun
+        )
+    }
+
+
+    // ==========================================================
+    // PLANET CHANGES
+    // ==========================================================
+
+    var rashi by remember {
+        mutableStateOf(
+            prefs.rashi
+        )
+    }
+
+    var nak by remember {
+        mutableStateOf(
+            prefs.nak
+        )
+    }
+
+    var pada by remember {
+        mutableStateOf(
+            prefs.pada
+        )
+    }
+
+
+    // ==========================================================
+    // PANCHANG CHANGES
+    // ==========================================================
+
+    var tithi by remember {
+        mutableStateOf(
+            prefs.tithi
+        )
+    }
+
+    var yoga by remember {
+        mutableStateOf(
+            prefs.yoga
+        )
+    }
+
+    var karana by remember {
+        mutableStateOf(
+            prefs.karana
+        )
+    }
+
+    var paksha by remember {
+        mutableStateOf(
+            prefs.paksha
+        )
+    }
+
+    var masa by remember {
+        mutableStateOf(
+            prefs.masa
+        )
+    }
+
+    var prahar by remember {
+        mutableStateOf(
+            prefs.prahar
+        )
+    }
+
+    var lagna by remember {
+        mutableStateOf(
+            prefs.lagna
+        )
+    }
+
+
+    // ==========================================================
+    // SETTINGS DIALOG
+    // ==========================================================
+
+    AlertDialog(
+
+        onDismissRequest =
+            onDismiss,
+
+
+        title = {
+
+            Text(
+                text = "⚙️ अलार्म सेटिंग्स"
+            )
+        },
+
+
+        text = {
+
+            Column {
+
+
+                // ==================================================
+                // PLANET SELECT
+                // ==================================================
+
+                Text(
+                    "ग्रह निवडा"
+                )
+
+
+                SwitchRow(
+                    "🌙 चंद्र अलार्म",
+                    moon
+                ) {
+
+                    moon = it
+
+                    prefs.moon = it
+                }
+
+
+                SwitchRow(
+                    "☀️ सूर्य अलार्म",
+                    sun
+                ) {
+
+                    sun = it
+
+                    prefs.sun = it
+                }
+
+
+                Spacer(
+                    Modifier.height(12.dp)
+                )
+
+
+                // ==================================================
+                // PLANET CHANGE
+                // ==================================================
+
+                Text(
+                    "ग्रह बदल"
+                )
+
+
+                SwitchRow(
+                    "राशी बदल",
+                    rashi
+                ) {
+
+                    rashi = it
+
+                    prefs.rashi = it
+                }
+
+
+                SwitchRow(
+                    "नक्षत्र बदल",
+                    nak
+                ) {
+
+                    nak = it
+
+                    prefs.nak = it
+                }
+
+
+                SwitchRow(
+                    "चरण बदल",
+                    pada
+                ) {
+
+                    pada = it
+
+                    prefs.pada = it
+                }
+
+
+                Spacer(
+                    Modifier.height(12.dp)
+                )
+
+
+                // ==================================================
+                // PANCHANG CHANGE
+                // ==================================================
+
+                Text(
+                    "पंचांग बदल"
+                )
+
+
+                SwitchRow(
+                    "तिथी बदल",
+                    tithi
+                ) {
+
+                    tithi = it
+
+                    prefs.tithi = it
+                }
+
+
+                SwitchRow(
+                    "योग बदल",
+                    yoga
+                ) {
+
+                    yoga = it
+
+                    prefs.yoga = it
+                }
+
+
+                SwitchRow(
+                    "करण बदल",
+                    karana
+                ) {
+
+                    karana = it
+
+                    prefs.karana = it
+                }
+
+
+                SwitchRow(
+                    "पक्ष बदल",
+                    paksha
+                ) {
+
+                    paksha = it
+
+                    prefs.paksha = it
+                }
+
+
+                SwitchRow(
+                    "मास बदल",
+                    masa
+                ) {
+
+                    masa = it
+
+                    prefs.masa = it
+                }
+
+
+                SwitchRow(
+                    "प्रहर बदल",
+                    prahar
+                ) {
+
+                    prahar = it
+
+                    prefs.prahar = it
+                }
+
+
+                SwitchRow(
+                    "लग्न बदल",
+                    lagna
+                ) {
+
+                    lagna = it
+
+                    prefs.lagna = it
+                }
+            }
+        },
+
+
+        // ==========================================================
+        // SAVE BUTTON
+        // ==========================================================
+
+        confirmButton = {
+
+            Button(
+
+                onClick = {
+
+                    AlarmScheduler(context)
+                        .scheduleAll()
+
+                    onDismiss()
+                }
+
+            ) {
+
+                Text(
+                    "सेव्ह करा"
+                )
+            }
+        },
+
+
+        // ==========================================================
+        // CLOSE BUTTON
+        // ==========================================================
+
+        dismissButton = {
+
+            TextButton(
+
+                onClick =
+                    onDismiss
+
+            ) {
+
+                Text(
+                    "बंद करा"
+                )
+            }
+        }
+    )
+}
 }
