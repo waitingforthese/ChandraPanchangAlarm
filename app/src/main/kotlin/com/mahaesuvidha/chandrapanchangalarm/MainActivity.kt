@@ -621,6 +621,58 @@ private fun PanchangCard(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
 
+        // ==================================================
+        // TODAY PANCHANG HEADER
+        // ==================================================
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+
+            shape = RoundedCornerShape(28.dp),
+
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFF7F7F7)
+            )
+        ) {
+
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = 22.dp,
+                    vertical = 18.dp
+                )
+            ) {
+
+                Text(
+                    text = "📅 आजचे पंचांग",
+
+                    color = Color.Black,
+
+                    fontSize = 23.sp,
+
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
+
+                PanchangRow(
+                    "तारीख",
+                    state.date
+                )
+
+                PanchangRow(
+                    "वार",
+                    state.weekday
+                )
+            }
+        }
+
+
+        // ==================================================
+        // TITHI
+        // ==================================================
+
         PanchangInfoCard(
             title = "🌙 तिथी",
             current = state.tithi,
@@ -628,6 +680,11 @@ private fun PanchangCard(
             next = state.nextTithi,
             nextTime = state.nextTithiTime
         )
+
+
+        // ==================================================
+        // YOGA
+        // ==================================================
 
         PanchangInfoCard(
             title = "✨ योग",
@@ -637,13 +694,23 @@ private fun PanchangCard(
             nextTime = state.nextYogaTime
         )
 
+
+        // ==================================================
+        // KARANA
+        // ==================================================
+
         PanchangInfoCard(
-            title = "🔄 करण",
+            title = "🔔 करण",
             current = state.karana,
             startTime = state.karanaStartTime,
             next = state.nextKarana,
             nextTime = state.nextKaranaTime
         )
+
+
+        // ==================================================
+        // PAKSHA
+        // ==================================================
 
         PanchangInfoCard(
             title = "🌗 पक्ष",
@@ -653,6 +720,11 @@ private fun PanchangCard(
             nextTime = state.nextPakshaTime
         )
 
+
+        // ==================================================
+        // MAS
+        // ==================================================
+
         PanchangInfoCard(
             title = "📅 मास",
             current = state.masa,
@@ -661,6 +733,11 @@ private fun PanchangCard(
             nextTime = state.nextMasaTime
         )
 
+
+        // ==================================================
+        // PRAHAR
+        // ==================================================
+
         PanchangInfoCard(
             title = "⌛ प्रहर",
             current = state.prahar,
@@ -668,6 +745,11 @@ private fun PanchangCard(
             next = state.nextPrahar,
             nextTime = state.nextPraharTime
         )
+
+
+        // ==================================================
+        // LAGNA
+        // ==================================================
 
         PanchangInfoCard(
             title = "⭐ लग्न",
@@ -679,7 +761,7 @@ private fun PanchangCard(
     }
 }
 
-
+// ==========================================================
 // ==========================================================
 // PANCHANG INFO CARD
 // ==========================================================
@@ -706,7 +788,7 @@ private fun PanchangInfoCard(
         Column(
             modifier = Modifier.padding(
                 horizontal = 22.dp,
-                vertical = 18.dp
+                vertical = 16.dp
             )
         ) {
 
@@ -726,56 +808,28 @@ private fun PanchangInfoCard(
 
                 Text(
                     text = title,
-
                     color = Color(0xFF006B85),
-
                     fontSize = 23.sp,
-
                     fontWeight = FontWeight.Bold
                 )
 
-
                 Text(
                     text = current,
-
-                    color = Color(0xFF202124),
-
+                    color = Color.Black,
                     fontSize = 23.sp,
-
                     fontWeight = FontWeight.Bold,
-
                     textAlign = TextAlign.End
                 )
             }
 
 
             Spacer(
-                modifier = Modifier.height(10.dp)
+                modifier = Modifier.height(8.dp)
             )
 
 
             HorizontalDivider(
-                color = Color.LightGray.copy(
-                    alpha = 0.7f
-                )
-            )
-
-
-            Spacer(
-                modifier = Modifier.height(14.dp)
-            )
-
-
-            // ==================================================
-            // चालू आहे
-            // ==================================================
-
-            PanchangDetailRow(
-                icon = "🟢",
-                label = "चालू आहे",
-                value = current,
-                labelColor = Color(0xFF16803B),
-                valueColor = Color(0xFF16803B)
+                color = Color.LightGray
             )
 
 
@@ -788,7 +842,7 @@ private fun PanchangInfoCard(
             // प्रारंभ
             // ==================================================
 
-            PanchangDetailRow(
+            PanchangInfoRow(
                 icon = "🟢",
                 label = "प्रारंभ",
                 value = startTime,
@@ -798,7 +852,7 @@ private fun PanchangInfoCard(
 
 
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(10.dp)
             )
 
 
@@ -806,17 +860,17 @@ private fun PanchangInfoCard(
             // पुढील बदल
             // ==================================================
 
-            PanchangDetailRow(
+            PanchangInfoRow(
                 icon = "🔔",
                 label = "पुढील बदल",
-                value = next,
+                value = "$current → $next",
                 labelColor = Color(0xFF006B85),
-                valueColor = Color(0xFF202124)
+                valueColor = Color.Black
             )
 
 
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(10.dp)
             )
 
 
@@ -824,7 +878,7 @@ private fun PanchangInfoCard(
             // समाप्त
             // ==================================================
 
-            PanchangDetailRow(
+            PanchangInfoRow(
                 icon = "🔴",
                 label = "समाप्त",
                 value = nextTime,
@@ -837,11 +891,11 @@ private fun PanchangInfoCard(
 
 
 // ==========================================================
-// PANCHANG DETAIL ROW
+// PANCHANG INFO ROW
 // ==========================================================
 
 @Composable
-private fun PanchangDetailRow(
+private fun PanchangInfoRow(
     icon: String,
     label: String,
     value: String,
@@ -858,8 +912,7 @@ private fun PanchangDetailRow(
 
         Text(
             text = icon,
-
-            fontSize = 24.sp
+            fontSize = 23.sp
         )
 
 
@@ -873,7 +926,7 @@ private fun PanchangDetailRow(
 
             color = labelColor,
 
-            fontSize = 20.sp,
+            fontSize = 19.sp,
 
             fontWeight = FontWeight.Bold,
 
@@ -882,17 +935,11 @@ private fun PanchangDetailRow(
 
 
         Text(
-            text = if (
-                value.isBlank()
-            ) {
-                "—"
-            } else {
-                value
-            },
+            text = if (value.isBlank()) "—" else value,
 
             color = valueColor,
 
-            fontSize = 20.sp,
+            fontSize = 18.sp,
 
             fontWeight = FontWeight.Medium,
 
