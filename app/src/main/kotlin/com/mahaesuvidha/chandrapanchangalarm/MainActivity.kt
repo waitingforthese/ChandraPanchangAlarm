@@ -1265,7 +1265,11 @@ private fun SettingsDialog(
             prefs.lagna
         )
     }
-
+    var panchang by remember {
+    mutableStateOf(
+        prefs.panchang
+    )
+}
 
     // ==========================================================
     // SETTINGS DIALOG
@@ -1380,7 +1384,15 @@ private fun SettingsDialog(
                 Text(
                     "पंचांग बदल"
                 )
+                SwitchRow(
+                "📅 सर्व पंचांग अलार्म",
+                panchang
+                ) {
 
+    panchang = it
+
+    prefs.panchang = it
+}
 
                 SwitchRow(
                     "तिथी बदल",
