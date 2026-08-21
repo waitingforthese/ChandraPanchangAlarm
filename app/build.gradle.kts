@@ -44,5 +44,8 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.7.8")
 
     implementation("androidx.compose.material3:material3:1.3.1")
-   implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    implementation(files("libs/swissephSWI-2.00.00-01.jar"))
 }
