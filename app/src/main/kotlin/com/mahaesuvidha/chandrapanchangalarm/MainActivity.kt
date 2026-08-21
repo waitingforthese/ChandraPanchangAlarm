@@ -140,7 +140,14 @@ private fun ChandraSuryaHome(
     var showSettings by remember {
     mutableStateOf(false)
 }
+if (showSettings) {
 
+    SettingsDialog(
+        onDismiss = {
+            showSettings = false
+        }
+    )
+}
     Column(
         modifier = Modifier
             .fillMaxSize()
