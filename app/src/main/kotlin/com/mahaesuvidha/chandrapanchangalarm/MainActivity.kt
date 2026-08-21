@@ -833,65 +833,7 @@ private fun PanchangChangeSection(
         )
     }
 }
-        // ------------------------------------------------
-        // TEST BUTTONS
-        // ------------------------------------------------
-
-        Text(
-            text = "🔔 अलार्म टेस्ट",
-            color = white,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(
-                vertical = 6.dp
-            )
-        )
-
-        TestButton(
-            text = "🌙 राशी बदल Test",
-            onClick = onTestRashi
-        )
-
-        TestButton(
-            text = "⭐ नक्षत्र बदल Test",
-            onClick = onTestNakshatra
-        )
-
-        TestButton(
-            text = "🔔 चरण बदल Test",
-            onClick = onTestCharan
-        )
-
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-
-        // ------------------------------------------------
-        // FOOTER
-        // ------------------------------------------------
-
-        Text(
-            text =
-                "चंद्र सूर्य अलार्म\n" +
-                "LIVE Calculation • Auto Alarm",
-
-            color = Color.Gray,
-            fontSize = 11.sp,
-            textAlign = TextAlign.Center,
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    vertical = 10.dp
-                )
-        )
-    }
-}
-
-
-
+       
 // ==========================================================
 // SMALL DATA ROW
 // ==========================================================
