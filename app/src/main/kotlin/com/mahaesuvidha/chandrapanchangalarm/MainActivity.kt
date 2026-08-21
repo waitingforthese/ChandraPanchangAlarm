@@ -812,7 +812,7 @@ private fun PanchangRow(
 
 
 // ==========================================================
-// PANCHANG INFO CARD
+// COMPACT PANCHANG INFO CARD
 // ==========================================================
 
 @Composable
@@ -825,9 +825,10 @@ private fun PanchangInfoCard(
 ) {
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
 
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(26.dp),
 
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF7F7F7)
@@ -835,21 +836,20 @@ private fun PanchangInfoCard(
     ) {
 
         Column(
-            modifier = Modifier.padding(
-                horizontal = 22.dp,
-                vertical = 16.dp
-            )
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 18.dp,
+                    vertical = 12.dp
+                )
         ) {
 
             // ==================================================
-            // TITLE + CURRENT VALUE
+            // TITLE + CURRENT
             // ==================================================
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
 
                 verticalAlignment =
                     Alignment.CenterVertically
@@ -860,18 +860,23 @@ private fun PanchangInfoCard(
 
                     color = Color(0xFF006B85),
 
-                    fontSize = 23.sp,
+                    fontSize = 21.sp,
 
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+
+                    modifier = Modifier.weight(1f)
                 )
 
-
                 Text(
-                    text = if (current.isBlank()) "—" else current,
+                    text =
+                        if (current.isBlank())
+                            "—"
+                        else
+                            current,
 
                     color = Color.Black,
 
-                    fontSize = 23.sp,
+                    fontSize = 21.sp,
 
                     fontWeight = FontWeight.Bold,
 
@@ -881,7 +886,7 @@ private fun PanchangInfoCard(
 
 
             Spacer(
-                modifier = Modifier.height(8.dp)
+                modifier = Modifier.height(7.dp)
             )
 
 
@@ -891,7 +896,7 @@ private fun PanchangInfoCard(
 
 
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(7.dp)
             )
 
 
@@ -902,14 +907,15 @@ private fun PanchangInfoCard(
             PanchangInfoRow(
                 icon = "🟢",
                 label = "प्रारंभ",
-                value = startTime,
+                value =
+                    if (startTime.isBlank())
+                        "—"
+                    else
+                        startTime,
+
                 labelColor = Color(0xFF16803B),
+
                 valueColor = Color(0xFF555555)
-            )
-
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
             )
 
 
@@ -920,21 +926,19 @@ private fun PanchangInfoCard(
             PanchangInfoRow(
                 icon = "🔔",
                 label = "पुढील बदल",
-                value = if (
-                    next.isBlank() ||
-                    next == "—"
-                ) {
-                    "—"
-                } else {
-                    "$current → $next"
-                },
+                value =
+                    if (
+                        next.isBlank() ||
+                        next == "—"
+                    ) {
+                        "—"
+                    } else {
+                        "$current → $next"
+                    },
+
                 labelColor = Color(0xFF006B85),
+
                 valueColor = Color.Black
-            )
-
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
             )
 
 
@@ -945,8 +949,14 @@ private fun PanchangInfoCard(
             PanchangInfoRow(
                 icon = "🔴",
                 label = "समाप्त",
-                value = nextTime,
+                value =
+                    if (nextTime.isBlank())
+                        "—"
+                    else
+                        nextTime,
+
                 labelColor = Color(0xFFC62828),
+
                 valueColor = Color(0xFF555555)
             )
         }
@@ -955,7 +965,7 @@ private fun PanchangInfoCard(
 
 
 // ==========================================================
-// PANCHANG INFO ROW
+// COMPACT PANCHANG INFO ROW
 // ==========================================================
 
 @Composable
@@ -968,46 +978,66 @@ private fun PanchangInfoRow(
 ) {
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 5.dp
+            ),
 
         verticalAlignment =
             Alignment.CenterVertically
     ) {
 
+        // --------------------------------------------------
+        // ICON
+        // --------------------------------------------------
+
         Text(
             text = icon,
-            fontSize = 23.sp
+
+            fontSize = 22.sp,
+
+            modifier = Modifier.width(40.dp)
         )
 
 
-        Spacer(
-            modifier = Modifier.width(10.dp)
-        )
-
+        // --------------------------------------------------
+        // LABEL
+        // --------------------------------------------------
 
         Text(
             text = label,
 
             color = labelColor,
 
-            fontSize = 19.sp,
+            fontSize = 18.sp,
 
             fontWeight = FontWeight.Bold,
 
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.width(115.dp)
         )
 
 
+        // --------------------------------------------------
+        // VALUE
+        // --------------------------------------------------
+
         Text(
-            text = if (value.isBlank()) "—" else value,
+            text =
+                if (value.isBlank())
+                    "—"
+                else
+                    value,
 
             color = valueColor,
 
-            fontSize = 18.sp,
+            fontSize = 17.sp,
 
             fontWeight = FontWeight.Medium,
 
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
+
+            modifier = Modifier.weight(1f)
         )
     }
 }
