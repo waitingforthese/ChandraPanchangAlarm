@@ -29,7 +29,13 @@ import android.content.Context
 import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
+import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
 
 class MainActivity : ComponentActivity() {
 
@@ -1496,5 +1502,35 @@ private fun SettingsDialog(
             }
         }
     )
+}
+// ==========================================================
+// SWITCH ROW
+// ==========================================================
+
+@Composable
+private fun SwitchRow(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Text(
+            text = text,
+            modifier = Modifier.weight(1f)
+        )
+
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
 }
 }
