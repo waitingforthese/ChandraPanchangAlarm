@@ -1,108 +1,243 @@
 package com.mahaesuvidha.chandrapanchangalarm.model
 
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import kotlin.math.sin
+import swisseph.SweConst
+import swisseph.SweDate
+import swisseph.SwissEph
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 object LiveSunCalculator {
 
-    private val INDIA_ZONE =
-        ZoneOffset.ofHoursMinutes(5, 30)
+    // ==========================================
+    // RASHI NAMES
+    // ==========================================
 
-    private const val NAKSHATRA_SIZE =
-        360.0 / 27.0
+    private val rashiNames = arrayOf(
+        "मेष",
+        "वृषभ",
+        "मिथुन",
+        "कर्क",
+        "सिंह",
+        "कन्या",
+        "तुळ",
+        "वृश्चिक",
+        "धनु",
+        "मकर",
+        "कुंभ",
+        "मीन"
+    )
 
-    private const val PADA_SIZE =
-        NAKSHATRA_SIZE / 4.0
 
-    fun getCurrentSunState(): SunState {
+    // ==========================================
+    // NAKSHATRA NAMES
+    // ==========================================
 
-        val now = LocalDateTime.now()
+    private val nakshatraNames = arrayOf(
+        "अश्विनी",
+        "भरणी",
+        "कृत्तिका",
+        "रोहिणी",
+        "मृगशीर्ष",
+        "आर्द्रा",
+        "पुनर्वसू",
+        "पुष्य",
+        "आश्लेषा",
+        "मघा",
+        "पूर्वाफाल्गुनी",
+        "उत्तराफाल्गुनी",
+        "हस्त",
+        "चित्रा",
+        "स्वाती",
+        "विशाखा",
+        "अनुराधा",
+        "ज्येष्ठा",
+        "मूळ",
+        "पूर्वाषाढा",
+        "उत्तराषाढा",
+        "श्रवण",
+        "धनिष्ठा",
+        "शततारका",
+        "पूर्वाभाद्रपदा",
+        "उत्तराभाद्रपदा",
+        "रेवती"
+    )
 
-        val currentLongitude =
-            getSiderealSunLongitude(now)
 
-        val currentRashi =
-            getRashiIndex(currentLongitude)
+    // ==========================================
+    // CURRENT JULIAN DAY
+    // ==========================================
 
-        val currentNakshatra =
-            getNakshatraIndex(currentLongitude)
+    private fun getJulianDay(
+        millis: Long = System.currentTimeMillis()
+    ): Double {
 
-        val currentPada =
-            getPada(currentLongitude)
-
-        val nextRashi =
-            findNextRashiChange(
-                now,
-                currentRashi
+        val calendar =
+            Calendar.getInstance(
+                TimeZone.getTimeZone("UTC")
             )
 
-        val nextNakshatra =
-            findNextNakshatraChange(
-                now,
-                currentNakshatra
-            )
+        calendar.timeInMillis =
+            millis
 
-        val nextCharan =
-            findNextPadaChange(
-                now,
-                currentNakshatra,
-                currentPada
-            )
+        val year =
+            calendar.get(Calendar.YEAR)
 
-        return SunState(
+        val month =
+            calendar.get(Calendar.MONTH) + 1
 
-            rashi =
-                Rashi.entries[currentRashi],
+        val day =
+            calendar.get(Calendar.DAY_OF_MONTH)
 
-            nakshatra =
-                Nakshatra.entries[currentNakshatra],
+        val hour =
+            calendar.get(Calendar.HOUR_OF_DAY) +
+                    calendar.get(Calendar.MINUTE) / 60.0 +
+                    calendar.get(Calendar.SECOND) / 3600.0 +
+                    calendar.get(Calendar.MILLISECOND) / 3600000.0
 
-            pada =
-                currentPada,
-
-            nextRashi =
-                nextRashi.first,
-
-            nextRashiTime =
-                formatDateTime(nextRashi.second),
-
-            nextRashiMillis =
-                toMillis(nextRashi.second),
-
-            nextNakshatra =
-                nextNakshatra.first,
-
-            nextNakshatraTime =
-                formatDateTime(nextNakshatra.second),
-
-            nextNakshatraMillis =
-                toMillis(nextNakshatra.second),
-
-            nextCharan =
-                nextCharan.first,
-
-            nextCharanTime =
-                formatDateTime(nextCharan.second),
-
-            nextCharanMillis =
-                toMillis(nextCharan.second)
+        return SweDate.getJulDay(
+            year,
+            month,
+            day,
+            hour,
+            SweDate.SE_GREG_CAL
         )
     }
 
-    private fun findNextRashiChange(
-        now: LocalDateTime,
-        currentRashi: Int
-    ): Pair<String, LocalDateTime> {
 
-        var check = now
+    // ==========================================
+    // SUN LONGITUDE
+    // ==========================================
+
+    private fun getSunLongitude(
+        millis: Long = System.currentTimeMillis()
+    ): Double {
+
+        val swe =
+            SwissEph()
+
+        swe.swe_set_sid_mode(
+            SweConst.SE_SIDM_LAHIRI,
+            0.0,
+            0.0
+        )
+
+        val xx =
+            DoubleArray(6)
+
+        val serr =
+            StringBuffer()
+
+        swe.swe_calc_ut(
+            getJulianDay(millis),
+            SweConst.SE_SUN,
+            SweConst.SEFLG_SWIEPH or
+                    SweConst.SEFLG_SIDEREAL,
+            xx,
+            serr
+        )
+
+        return xx[0]
+    }
+
+
+    // ==========================================
+    // CURRENT RASHI INDEX
+    // ==========================================
+
+    private fun getRashiIndex(
+        longitude: Double
+    ): Int {
+
+        return (longitude / 30.0)
+            .toInt()
+            .coerceIn(0, 11)
+    }
+
+
+    // ==========================================
+    // CURRENT NAKSHATRA INDEX
+    // ==========================================
+
+    private fun getNakshatraIndex(
+        longitude: Double
+    ): Int {
+
+        val size =
+            360.0 / 27.0
+
+        return (longitude / size)
+            .toInt()
+            .coerceIn(0, 26)
+    }
+
+
+    // ==========================================
+    // CURRENT PADA
+    // ==========================================
+
+    private fun getPada(
+        longitude: Double
+    ): Int {
+
+        val nakshatraSize =
+            360.0 / 27.0
+
+        val padaSize =
+            nakshatraSize / 4.0
+
+        val position =
+            longitude % nakshatraSize
+
+        return (
+            position / padaSize
+        ).toInt()
+            .coerceIn(0, 3) + 1
+    }
+
+
+    // ==========================================
+    // FORMAT TIME
+    // ==========================================
+
+    private fun formatDateTime(
+        millis: Long
+    ): String {
+
+        val formatter =
+            SimpleDateFormat(
+                "dd-MM-yyyy HH:mm",
+                Locale.getDefault()
+            )
+
+        formatter.timeZone =
+            TimeZone.getDefault()
+
+        return formatter.format(
+            millis
+        )
+    }
+
+
+    // ==========================================
+    // FIND NEXT RASHI CHANGE
+    // ==========================================
+
+    private fun findNextRashiChange(
+        now: Long,
+        currentRashi: Int
+    ): Pair<String, Long> {
+
+        var check =
+            now
 
         repeat(60000) {
 
-            check = check.plusMinutes(1)
+            check += 60_000L
 
             val longitude =
-                getSiderealSunLongitude(check)
+                getSunLongitude(check)
 
             val rashi =
                 getRashiIndex(longitude)
@@ -110,8 +245,7 @@ object LiveSunCalculator {
             if (rashi != currentRashi) {
 
                 return Pair(
-                    "${Rashi.entries[currentRashi].marathi} → " +
-                            Rashi.entries[rashi].marathi,
+                    "${rashiNames[currentRashi]} → ${rashiNames[rashi]}",
                     check
                 )
             }
@@ -119,23 +253,29 @@ object LiveSunCalculator {
 
         return Pair(
             "पुढील राशी बदल शोधत आहे",
-            now.plusDays(35)
+            now + (35L * 24 * 60 * 60 * 1000)
         )
     }
 
-    private fun findNextNakshatraChange(
-        now: LocalDateTime,
-        currentNakshatra: Int
-    ): Pair<String, LocalDateTime> {
 
-        var check = now
+    // ==========================================
+    // FIND NEXT NAKSHATRA CHANGE
+    // ==========================================
+
+    private fun findNextNakshatraChange(
+        now: Long,
+        currentNakshatra: Int
+    ): Pair<String, Long> {
+
+        var check =
+            now
 
         repeat(30000) {
 
-            check = check.plusMinutes(1)
+            check += 60_000L
 
             val longitude =
-                getSiderealSunLongitude(check)
+                getSunLongitude(check)
 
             val nakshatra =
                 getNakshatraIndex(longitude)
@@ -143,8 +283,7 @@ object LiveSunCalculator {
             if (nakshatra != currentNakshatra) {
 
                 return Pair(
-                    "${Nakshatra.entries[currentNakshatra].marathi} → " +
-                            Nakshatra.entries[nakshatra].marathi,
+                    "${nakshatraNames[currentNakshatra]} → ${nakshatraNames[nakshatra]}",
                     check
                 )
             }
@@ -152,24 +291,30 @@ object LiveSunCalculator {
 
         return Pair(
             "पुढील नक्षत्र बदल शोधत आहे",
-            now.plusDays(20)
+            now + (20L * 24 * 60 * 60 * 1000)
         )
     }
 
+
+    // ==========================================
+    // FIND NEXT PADA CHANGE
+    // ==========================================
+
     private fun findNextPadaChange(
-        now: LocalDateTime,
+        now: Long,
         currentNakshatra: Int,
         currentPada: Int
-    ): Pair<String, LocalDateTime> {
+    ): Pair<String, Long> {
 
-        var check = now
+        var check =
+            now
 
         repeat(10000) {
 
-            check = check.plusMinutes(1)
+            check += 60_000L
 
             val longitude =
-                getSiderealSunLongitude(check)
+                getSunLongitude(check)
 
             val nakshatra =
                 getNakshatraIndex(longitude)
@@ -183,8 +328,13 @@ object LiveSunCalculator {
             ) {
 
                 val nextPada =
-                    if (nakshatra != currentNakshatra) 1
-                    else pada
+                    if (
+                        nakshatra != currentNakshatra
+                    ) {
+                        1
+                    } else {
+                        pada
+                    }
 
                 return Pair(
                     "चरण $currentPada → चरण $nextPada",
@@ -195,153 +345,117 @@ object LiveSunCalculator {
 
         return Pair(
             "पुढील चरण बदल शोधत आहे",
-            now.plusDays(5)
+            now + (5L * 24 * 60 * 60 * 1000)
         )
     }
 
-    private fun getRashiIndex(
-        longitude: Double
-    ): Int {
 
-        return (longitude / 30.0)
-            .toInt()
-            .coerceIn(0, 11)
-    }
+    // ==========================================
+    // MAIN FUNCTION
+    // ==========================================
 
-    private fun getNakshatraIndex(
-        longitude: Double
-    ): Int {
+    fun getCurrentSunState(): SunState {
 
-        return (longitude / NAKSHATRA_SIZE)
-            .toInt()
-            .coerceIn(0, 26)
-    }
+        val now =
+            System.currentTimeMillis()
 
-    private fun getPada(
-        longitude: Double
-    ): Int {
+        val longitude =
+            getSunLongitude(now)
 
-        val nakshatraPosition =
-            longitude % NAKSHATRA_SIZE
+        val currentRashiIndex =
+            getRashiIndex(longitude)
 
-        return (nakshatraPosition / PADA_SIZE)
-            .toInt()
-            .coerceIn(0, 3) + 1
-    }
+        val currentNakshatraIndex =
+            getNakshatraIndex(longitude)
 
-    private fun getSiderealSunLongitude(
-        dateTime: LocalDateTime
-    ): Double {
+        val currentPada =
+            getPada(longitude)
 
-        val jd =
-            getJulianDay(dateTime)
 
-        val d =
-            jd - 2451545.0
+        // NEXT RASHI
 
-        val meanLongitude =
-            normalize(
-                280.46646 +
-                        0.98564736 * d
+        val nextRashi =
+            findNextRashiChange(
+                now,
+                currentRashiIndex
             )
 
-        val meanAnomaly =
-            normalize(
-                357.52911 +
-                        0.98560028 * d
+
+        // NEXT NAKSHATRA
+
+        val nextNakshatra =
+            findNextNakshatraChange(
+                now,
+                currentNakshatraIndex
             )
 
-        val equationOfCenter =
-            1.914602 *
-                    sin(Math.toRadians(meanAnomaly)) +
-                    0.019993 *
-                    sin(Math.toRadians(2 * meanAnomaly)) +
-                    0.000289 *
-                    sin(Math.toRadians(3 * meanAnomaly))
 
-        val tropicalLongitude =
-            normalize(
-                meanLongitude +
-                        equationOfCenter
+        // NEXT PADA
+
+        val nextCharan =
+            findNextPadaChange(
+                now,
+                currentNakshatraIndex,
+                currentPada
             )
 
-        val ayanamsa =
-            23.85675 +
-                    (
-                            (jd - 2451545.0) /
-                                    36525.0
-                            ) *
-                    1.396971
 
-        return normalize(
-            tropicalLongitude - ayanamsa
+        return SunState(
+
+            rashi =
+                Rashi.entries[
+                    currentRashiIndex
+                ],
+
+            nakshatra =
+                Nakshatra.entries[
+                    currentNakshatraIndex
+                ],
+
+            pada =
+                currentPada,
+
+
+            // RASHI
+
+            nextRashi =
+                nextRashi.first,
+
+            nextRashiTime =
+                formatDateTime(
+                    nextRashi.second
+                ),
+
+            nextRashiMillis =
+                nextRashi.second,
+
+
+            // NAKSHATRA
+
+            nextNakshatra =
+                nextNakshatra.first,
+
+            nextNakshatraTime =
+                formatDateTime(
+                    nextNakshatra.second
+                ),
+
+            nextNakshatraMillis =
+                nextNakshatra.second,
+
+
+            // CHARAN
+
+            nextCharan =
+                nextCharan.first,
+
+            nextCharanTime =
+                formatDateTime(
+                    nextCharan.second
+                ),
+
+            nextCharanMillis =
+                nextCharan.second
         )
-    }
-
-    private fun getJulianDay(
-        dateTime: LocalDateTime
-    ): Double {
-
-        val instant =
-            dateTime.toInstant(
-                INDIA_ZONE
-            )
-
-        return (
-                instant.epochSecond /
-                        86400.0
-                ) +
-                2440587.5
-    }
-
-    private fun toMillis(
-        dateTime: LocalDateTime
-    ): Long {
-
-        return dateTime
-            .toInstant(
-                INDIA_ZONE
-            )
-            .toEpochMilli()
-    }
-
-    private fun formatDateTime(
-        dateTime: LocalDateTime
-    ): String {
-
-        val day =
-            dateTime.dayOfMonth
-                .toString()
-                .padStart(2, '0')
-
-        val month =
-            dateTime.monthValue
-                .toString()
-                .padStart(2, '0')
-
-        val hour =
-            dateTime.hour
-                .toString()
-                .padStart(2, '0')
-
-        val minute =
-            dateTime.minute
-                .toString()
-                .padStart(2, '0')
-
-        return "$day-$month-${dateTime.year} $hour:$minute"
-    }
-
-    private fun normalize(
-        value: Double
-    ): Double {
-
-        var result = value % 360.0
-
-        if (result < 0) {
-            result += 360.0
-        }
-
-        return result
     }
 }
