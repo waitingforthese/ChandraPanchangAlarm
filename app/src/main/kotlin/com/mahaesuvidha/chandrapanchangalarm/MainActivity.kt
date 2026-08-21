@@ -137,9 +137,9 @@ LaunchedEffect(Unit) {
             scheduler.scheduleTest("चरण बदल")
         }
     )
+        }
+    }
 }
-
-
 
 @Composable
 private fun ChandraSuryaHome(
