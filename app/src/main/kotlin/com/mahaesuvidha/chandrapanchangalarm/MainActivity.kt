@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-    }   // ही नवीन brace
+ 
 
 
 @Composable
@@ -1169,114 +1169,6 @@ private fun TestButton(
             fontWeight = FontWeight.Bold
         )
     }
-}
-// ==========================================================
-// SETTINGS DIALOG
-// ==========================================================
-
-@Composable
-private fun SettingsDialog(
-    onDismiss: () -> Unit
-) {
-
-    val context =
-        LocalContext.current
-
-    val prefs =
-        remember {
-            AlarmPrefs(context)
-        }
-
-
-    // ==========================================================
-    // MOON / SUN
-    // ==========================================================
-
-    var moon by remember {
-        mutableStateOf(
-            prefs.moon
-        )
-    }
-
-    var sun by remember {
-        mutableStateOf(
-            prefs.sun
-        )
-    }
-
-
-    // ==========================================================
-    // PLANET CHANGES
-    // ==========================================================
-
-    var rashi by remember {
-        mutableStateOf(
-            prefs.rashi
-        )
-    }
-
-    var nak by remember {
-        mutableStateOf(
-            prefs.nak
-        )
-    }
-
-    var pada by remember {
-        mutableStateOf(
-            prefs.pada
-        )
-    }
-
-
-    // ==========================================================
-    // PANCHANG CHANGES
-    // ==========================================================
-
-    var tithi by remember {
-        mutableStateOf(
-            prefs.tithi
-        )
-    }
-
-    var yoga by remember {
-        mutableStateOf(
-            prefs.yoga
-        )
-    }
-
-    var karana by remember {
-        mutableStateOf(
-            prefs.karana
-        )
-    }
-
-    var paksha by remember {
-        mutableStateOf(
-            prefs.paksha
-        )
-    }
-
-    var masa by remember {
-        mutableStateOf(
-            prefs.masa
-        )
-    }
-
-    var prahar by remember {
-        mutableStateOf(
-            prefs.prahar
-        )
-    }
-
-    var lagna by remember {
-        mutableStateOf(
-            prefs.lagna
-        )
-    }
-    var panchang by remember {
-    mutableStateOf(
-        prefs.panchang
-    )
 }
 
 // ==========================================================
