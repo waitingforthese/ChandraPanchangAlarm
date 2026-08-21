@@ -179,4 +179,58 @@ class AlarmPrefs(
                 )
                 .apply()
         }
+
+    // ==========================================
+    // MASA
+    // ==========================================
+
+    var masa: Boolean
+        get() = p.getBoolean(
+            "masa",
+            true
+        )
+        set(value) {
+            p.edit()
+                .putBoolean(
+                    "masa",
+                    value
+                )
+                .apply()
+        }
+
+    // ==========================================
+    // PRAHAR
+    // ==========================================
+
+    var prahar: Boolean
+        get() = p.getBoolean(
+            "prahar",
+            true
+        )
+        set(value) {
+            p.edit()
+                .putBoolean(
+                    "prahar",
+                    value
+                )
+                .apply()
+        }
+
+    // ==========================================
+    // LAGNA
+    // ==========================================
+
+    var lagna: Boolean
+        get() = p.getBoolean(
+            "lagna",
+            true
+        )
+        set(value) {
+            p.edit()
+                .putBoolean(
+                    "lagna",
+                    value
+                )
+                .apply()
+        }
 }
