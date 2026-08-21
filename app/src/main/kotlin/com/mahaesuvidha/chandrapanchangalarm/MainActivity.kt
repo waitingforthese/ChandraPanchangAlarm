@@ -1277,15 +1277,98 @@ private fun SettingsDialog(
     )
 }
 
+// ==========================================================
+// SETTINGS DIALOG
+// ==========================================================
+
+@Composable
+private fun SettingsDialog(
+    onDismiss: () -> Unit
+) {
+
+    val context = LocalContext.current
+
+    val prefs = remember {
+        AlarmPrefs(context)
+    }
+
     // ==========================================================
-    // SETTINGS DIALOG
+    // MOON / SUN
+    // ==========================================================
+
+    var moon by remember {
+        mutableStateOf(prefs.moon)
+    }
+
+    var sun by remember {
+        mutableStateOf(prefs.sun)
+    }
+
+    // ==========================================================
+    // PLANET CHANGES
+    // ==========================================================
+
+    var rashi by remember {
+        mutableStateOf(prefs.rashi)
+    }
+
+    var nak by remember {
+        mutableStateOf(prefs.nak)
+    }
+
+    var pada by remember {
+        mutableStateOf(prefs.pada)
+    }
+
+    // ==========================================================
+    // PANCHANG MASTER
+    // ==========================================================
+
+    var panchang by remember {
+        mutableStateOf(prefs.panchang)
+    }
+
+    // ==========================================================
+    // PANCHANG CHANGES
+    // ==========================================================
+
+    var tithi by remember {
+        mutableStateOf(prefs.tithi)
+    }
+
+    var yoga by remember {
+        mutableStateOf(prefs.yoga)
+    }
+
+    var karana by remember {
+        mutableStateOf(prefs.karana)
+    }
+
+    var paksha by remember {
+        mutableStateOf(prefs.paksha)
+    }
+
+    var masa by remember {
+        mutableStateOf(prefs.masa)
+    }
+
+    var prahar by remember {
+        mutableStateOf(prefs.prahar)
+    }
+
+    var lagna by remember {
+        mutableStateOf(prefs.lagna)
+    }
+
+    // ==========================================================
+    // ALERT DIALOG
     // ==========================================================
 
     AlertDialog(
 
-        onDismissRequest =
-            onDismiss,
-
+        onDismissRequest = {
+            onDismiss()
+        },
 
         title = {
 
@@ -1294,200 +1377,169 @@ private fun SettingsDialog(
             )
         },
 
-
         text = {
 
-            Column {
-                Column(
-    modifier = Modifier
-        .verticalScroll(
-            rememberScrollState()
-        )
-) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(
+                        rememberScrollState()
+                    )
+            ) {
 
-
-                // ==================================================
+                // ==============================================
                 // PLANET SELECT
-                // ==================================================
+                // ==============================================
 
                 Text(
-                    "ग्रह निवडा"
+                    text = "ग्रह निवडा"
                 )
 
-
                 SwitchRow(
-                    "🌙 चंद्र अलार्म",
-                    moon
+                    text = "🌙 चंद्र अलार्म",
+                    checked = moon
                 ) {
 
                     moon = it
-
                     prefs.moon = it
                 }
 
-
                 SwitchRow(
-                    "☀️ सूर्य अलार्म",
-                    sun
+                    text = "☀️ सूर्य अलार्म",
+                    checked = sun
                 ) {
 
                     sun = it
-
                     prefs.sun = it
                 }
 
-
                 Spacer(
-                    Modifier.height(12.dp)
+                    modifier = Modifier.height(12.dp)
                 )
 
-
-                // ==================================================
+                // ==============================================
                 // PLANET CHANGE
-                // ==================================================
+                // ==============================================
 
                 Text(
-                    "ग्रह बदल"
+                    text = "ग्रह बदल"
                 )
 
-
                 SwitchRow(
-                    "राशी बदल",
-                    rashi
+                    text = "राशी बदल",
+                    checked = rashi
                 ) {
 
                     rashi = it
-
                     prefs.rashi = it
                 }
 
-
                 SwitchRow(
-                    "नक्षत्र बदल",
-                    nak
+                    text = "नक्षत्र बदल",
+                    checked = nak
                 ) {
 
                     nak = it
-
                     prefs.nak = it
                 }
 
-
                 SwitchRow(
-                    "चरण बदल",
-                    pada
+                    text = "चरण बदल",
+                    checked = pada
                 ) {
 
                     pada = it
-
                     prefs.pada = it
                 }
 
-
                 Spacer(
-                    Modifier.height(12.dp)
+                    modifier = Modifier.height(12.dp)
                 )
 
-
-                // ==================================================
+                // ==============================================
                 // PANCHANG CHANGE
-                // ==================================================
+                // ==============================================
 
                 Text(
-                    "पंचांग बदल"
+                    text = "पंचांग बदल"
                 )
+
                 SwitchRow(
-                "📅 सर्व पंचांग अलार्म",
-                panchang
+                    text = "📅 सर्व पंचांग अलार्म",
+                    checked = panchang
                 ) {
 
-    panchang = it
-
-    prefs.panchang = it
-}
+                    panchang = it
+                    prefs.panchang = it
+                }
 
                 SwitchRow(
-                    "तिथी बदल",
-                    tithi
+                    text = "तिथी बदल",
+                    checked = tithi
                 ) {
 
                     tithi = it
-
                     prefs.tithi = it
                 }
 
-
                 SwitchRow(
-                    "योग बदल",
-                    yoga
+                    text = "योग बदल",
+                    checked = yoga
                 ) {
 
                     yoga = it
-
                     prefs.yoga = it
                 }
 
-
                 SwitchRow(
-                    "करण बदल",
-                    karana
+                    text = "करण बदल",
+                    checked = karana
                 ) {
 
                     karana = it
-
                     prefs.karana = it
                 }
 
-
                 SwitchRow(
-                    "पक्ष बदल",
-                    paksha
+                    text = "पक्ष बदल",
+                    checked = paksha
                 ) {
 
                     paksha = it
-
                     prefs.paksha = it
                 }
 
-
                 SwitchRow(
-                    "मास बदल",
-                    masa
+                    text = "मास बदल",
+                    checked = masa
                 ) {
 
                     masa = it
-
                     prefs.masa = it
                 }
 
-
                 SwitchRow(
-                    "प्रहर बदल",
-                    prahar
+                    text = "प्रहर बदल",
+                    checked = prahar
                 ) {
 
                     prahar = it
-
                     prefs.prahar = it
                 }
 
-
                 SwitchRow(
-                    "लग्न बदल",
-                    lagna
+                    text = "लग्न बदल",
+                    checked = lagna
                 ) {
 
                     lagna = it
-
                     prefs.lagna = it
                 }
             }
         },
 
-
-        // ==========================================================
+        // ======================================================
         // SAVE BUTTON
-        // ==========================================================
+        // ======================================================
 
         confirmButton = {
 
@@ -1500,36 +1552,37 @@ private fun SettingsDialog(
 
                     onDismiss()
                 }
-
             ) {
 
                 Text(
-                    "सेव्ह करा"
+                    text = "सेव्ह करा"
                 )
             }
         },
 
-
-        // ==========================================================
+        // ======================================================
         // CLOSE BUTTON
-        // ==========================================================
+        // ======================================================
 
         dismissButton = {
 
             TextButton(
 
-                onClick =
-                    onDismiss
+                onClick = {
+                    onDismiss()
+                }
 
             ) {
 
                 Text(
-                    "बंद करा"
+                    text = "बंद करा"
                 )
             }
         }
     )
 }
+
+
 // ==========================================================
 // SWITCH ROW
 // ==========================================================
@@ -1544,9 +1597,12 @@ private fun SwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(
+                vertical = 4.dp
+            ),
 
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
 
         Text(
