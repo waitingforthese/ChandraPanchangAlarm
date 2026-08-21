@@ -29,6 +29,8 @@ import android.content.Context
 import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 
+
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var scheduler: AlarmScheduler
@@ -57,6 +59,21 @@ class MainActivity : ComponentActivity() {
 
         val panchangState =
     LivePanchangCalculator.getCurrentPanchangState()
+
+    ChandraSuryaHome(
+    moonState = moonState,
+    sunState = sunState,
+    panchangState = panchangState,
+    onTestRashi = {
+        scheduler.scheduleRashiAlarm(10_000L)
+    },
+    onTestNakshatra = {
+        scheduler.scheduleNakshatraAlarm(10_000L)
+    },
+    onTestCharan = {
+        scheduler.scheduleCharanAlarm(10_000L)
+    }
+)
     
         // Existing automatic Moon alarm
       // scheduler.scheduleNextLiveAlarm()
