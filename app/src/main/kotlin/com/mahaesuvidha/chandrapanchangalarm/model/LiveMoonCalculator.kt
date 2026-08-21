@@ -154,4 +154,129 @@ object LiveMoonCalculator {
                     padaSize
             ).toInt() + 1
     }
+    fun getCurrentCharan(): Int {
+
+        val longitude =
+            getMoonLongitude()
+
+        val padaSize =
+            360.0 / 108.0
+
+        return (
+            (longitude % (360.0 / 27.0)) /
+                    padaSize
+            ).toInt() + 1
+    }
+
+
+    // ==========================================
+    // CURRENT MOON STATE
+    // ==========================================
+
+    fun getCurrentMoonState(): MoonState {
+
+        val rashi =
+            getCurrentRashi()
+
+        val nakshatra =
+            getCurrentNakshatra()
+
+        val charan =
+            getCurrentCharan()
+
+        val now =
+            System.currentTimeMillis()
+
+        return MoonState(
+
+            rashi = rashi,
+
+            nakshatra = nakshatra,
+
+            charan = charan,
+
+            nextRashi =
+                getNextRashi(),
+
+            nextNakshatra =
+                getNextNakshatra(),
+
+            nextCharan =
+                getNextCharan(),
+
+            nextRashiMillis =
+                now + (60 * 60 * 1000L),
+
+            nextNakshatraMillis =
+                now + (60 * 60 * 1000L),
+
+            nextCharanMillis =
+                now + (60 * 60 * 1000L)
+        )
+    }
+
+
+    // ==========================================
+    // NEXT RASHI
+    // ==========================================
+
+    private fun getNextRashi(): String {
+
+        val longitude =
+            getMoonLongitude()
+
+        val currentIndex =
+            (longitude / 30.0)
+                .toInt()
+                .coerceIn(0, 11)
+
+        val nextIndex =
+            (currentIndex + 1) % 12
+
+        return rashiNames[nextIndex]
+    }
+
+
+    // ==========================================
+    // NEXT NAKSHATRA
+    // ==========================================
+
+    private fun getNextNakshatra(): String {
+
+        val longitude =
+            getMoonLongitude()
+
+        val nakshatraSize =
+            360.0 / 27.0
+
+        val currentIndex =
+            (longitude / nakshatraSize)
+                .toInt()
+                .coerceIn(0, 26)
+
+        val nextIndex =
+            (currentIndex + 1) % 27
+
+        return nakshatraNames[nextIndex]
+    }
+
+
+    // ==========================================
+    // NEXT CHARAN
+    // ==========================================
+
+    private fun getNextCharan(): String {
+
+        val current =
+            getCurrentCharan()
+
+        return if (current >= 4) {
+
+            "चरण 1"
+
+        } else {
+
+            "चरण ${current + 1}"
+        }
+    }
 }
