@@ -28,7 +28,7 @@ import com.mahaesuvidha.chandrapanchangalarm.model.SunState
 import android.content.Context
 import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
-
+import androidx.compose.foundation.clickable
 
 
 class MainActivity : ComponentActivity() {
@@ -141,52 +141,55 @@ private fun ChandraSuryaHome(
             .padding(12.dp)
     ) {
 
-        // ------------------------------------------------
-        // HEADER
-        // ------------------------------------------------
+      // ------------------------------------------------
+// HEADER
+// ------------------------------------------------
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+Row(
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp),
 
-            verticalAlignment =
-                Alignment.CenterVertically
-        ) {
+    verticalAlignment = Alignment.CenterVertically
+) {
 
-            Text(
-                text = "🌙",
-                fontSize = 38.sp
-            )
+    Text(
+        text = "🌙",
+        fontSize = 38.sp
+    )
 
-            Spacer(
-                modifier = Modifier.width(8.dp)
-            )
+    Spacer(
+        modifier = Modifier.width(8.dp)
+    )
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+    Column(
+        modifier = Modifier.weight(1f)
+    ) {
 
-                Text(
-                    text = "चंद्र सूर्य अलार्म",
-                    color = white,
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.Bold
-                )
+        Text(
+            text = "चंद्र सूर्य अलार्म",
+            color = white,
+            fontSize = 23.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-                Text(
-                    text = "LIVE • AUTO • ACCURATE",
-                    color = Color.LightGray,
-                    fontSize = 11.sp
-                )
+        Text(
+            text = "LIVE • AUTO • ACCURATE",
+            color = Color.LightGray,
+            fontSize = 11.sp
+        )
+    }
+
+    Text(
+        text = "⚙️",
+        fontSize = 25.sp,
+        modifier = Modifier
+            .clickable {
+                // Settings click
             }
-
-            Text(
-                text = "⚙️",
-                fontSize = 25.sp
-            )
-        }
-
+            .padding(8.dp)
+    )
+}
         // ------------------------------------------------
         // LOCATION
         // ------------------------------------------------
