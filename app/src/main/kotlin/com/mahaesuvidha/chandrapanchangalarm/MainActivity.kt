@@ -299,15 +299,13 @@ private fun PanchangCard(
     state: PanchangState
 ) {
 
-    val cardColor = Color(0xFF10243A)
+    val cardColor = Color(0xFF172235)
     val accentColor = Color(0xFFFFC83D)
     val textColor = Color(0xFFF5F7FA)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-
         shape = RoundedCornerShape(18.dp),
-
         colors = CardDefaults.cardColors(
             containerColor = cardColor
         )
@@ -319,31 +317,42 @@ private fun PanchangCard(
 
             Text(
                 text = "📜 पंचांग",
-                color = accentColor,
+                color = textColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(
-                modifier = Modifier.height(10.dp)
+                modifier = Modifier.height(4.dp)
+            )
+
+            Text(
+                text = "${state.date} • ${state.weekday}",
+                color = Color.LightGray,
+                fontSize = 12.sp
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 10.dp),
+                color = Color.White.copy(alpha = 0.15f)
             )
 
             PanchangChangeSection(
                 title = "🌙 तिथी",
                 current = state.tithi,
-                startTime = state.tithiStartTime,
+                currentTime = state.tithiStartTime,
                 next = state.nextTithi,
-                endTime = state.nextTithiTime,
+                nextTime = state.nextTithiTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
 
             PanchangChangeSection(
-                title = "🧘 योग",
+                title = "🕉️ योग",
                 current = state.yoga,
-                startTime = state.yogaStartTime,
+                currentTime = state.yogaStartTime,
                 next = state.nextYoga,
-                endTime = state.nextYogaTime,
+                nextTime = state.nextYogaTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -351,9 +360,9 @@ private fun PanchangCard(
             PanchangChangeSection(
                 title = "🔱 करण",
                 current = state.karana,
-                startTime = state.karanaStartTime,
+                currentTime = state.karanaStartTime,
                 next = state.nextKarana,
-                endTime = state.nextKaranaTime,
+                nextTime = state.nextKaranaTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -361,9 +370,9 @@ private fun PanchangCard(
             PanchangChangeSection(
                 title = "🌗 पक्ष",
                 current = state.paksha,
-                startTime = state.pakshaStartTime,
+                currentTime = state.pakshaStartTime,
                 next = state.nextPaksha,
-                endTime = state.nextPakshaTime,
+                nextTime = state.nextPakshaTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -371,9 +380,9 @@ private fun PanchangCard(
             PanchangChangeSection(
                 title = "📅 मास",
                 current = state.masa,
-                startTime = state.masaStartTime,
+                currentTime = state.masaStartTime,
                 next = state.nextMasa,
-                endTime = state.nextMasaTime,
+                nextTime = state.nextMasaTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -381,9 +390,9 @@ private fun PanchangCard(
             PanchangChangeSection(
                 title = "⏳ प्रहर",
                 current = state.prahar,
-                startTime = state.praharStartTime,
+                currentTime = state.praharStartTime,
                 next = state.nextPrahar,
-                endTime = state.nextPraharTime,
+                nextTime = state.nextPraharTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -391,9 +400,9 @@ private fun PanchangCard(
             PanchangChangeSection(
                 title = "♈ लग्न",
                 current = state.lagna,
-                startTime = state.lagnaStartTime,
+                currentTime = state.lagnaStartTime,
                 next = state.nextLagna,
-                endTime = state.nextLagnaTime,
+                nextTime = state.nextLagnaTime,
                 accentColor = accentColor,
                 textColor = textColor
             )
@@ -410,61 +419,66 @@ private fun PanchangCard(
 private fun PanchangChangeSection(
     title: String,
     current: String,
-    startTime: String,
+    currentTime: String,
     next: String,
-    endTime: String,
+    nextTime: String,
     accentColor: Color,
     textColor: Color
 ) {
 
-    Spacer(
-        modifier = Modifier.height(8.dp)
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp)
+    ) {
 
-    HorizontalDivider(
-        color = Color.White.copy(alpha = 0.12f),
-        modifier = Modifier.padding(vertical = 6.dp)
-    )
+        Text(
+            text = title,
+            color = accentColor,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-    Text(
-        text = title,
-        color = accentColor,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold
-    )
+        Spacer(
+            modifier = Modifier.height(3.dp)
+        )
 
-    Spacer(
-        modifier = Modifier.height(4.dp)
-    )
+        Text(
+            text = "सध्या : $current",
+            color = textColor,
+            fontSize = 13.sp
+        )
 
-    Text(
-        text = "चालू: $current",
-        color = textColor,
-        fontSize = 14.sp
-    )
+        if (currentTime != "—") {
+            Text(
+                text = "सुरू : $currentTime",
+                color = Color.LightGray,
+                fontSize = 11.sp
+            )
+        }
 
-    Text(
-        text = "प्रारंभ: $startTime",
-        color = Color.LightGray,
-        fontSize = 12.sp
-    )
+        Spacer(
+            modifier = Modifier.height(2.dp)
+        )
 
-    Spacer(
-        modifier = Modifier.height(3.dp)
-    )
+        Text(
+            text = "➡️ पुढील : $next",
+            color = textColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium
+        )
 
-    Text(
-        text = "पुढील बदल: $next",
-        color = textColor,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.SemiBold
-    )
+        Text(
+            text = "🔔 $nextTime",
+            color = Color.LightGray,
+            fontSize = 11.sp
+        )
 
-    Text(
-        text = "समाप्त: $endTime",
-        color = Color.LightGray,
-        fontSize = 12.sp
-    )
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 8.dp),
+            color = Color.White.copy(alpha = 0.10f)
+        )
+    }
 }
         // ------------------------------------------------
         // TEST BUTTONS
