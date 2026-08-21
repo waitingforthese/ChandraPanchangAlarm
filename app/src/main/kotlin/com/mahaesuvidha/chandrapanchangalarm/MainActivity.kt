@@ -1298,6 +1298,12 @@ private fun SettingsDialog(
         text = {
 
             Column {
+                Column(
+    modifier = Modifier
+        .verticalScroll(
+            rememberScrollState()
+        )
+) {
 
 
                 // ==================================================
