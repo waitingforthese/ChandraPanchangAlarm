@@ -646,7 +646,7 @@ private fun PanchangCard(
             Text(
                 text = "${state.weekday} • ${state.date}",
                 color = Color.LightGray,
-                fontSize = 12.sp
+                fontSize = 13.sp
             )
 
             Spacer(
@@ -655,10 +655,6 @@ private fun PanchangCard(
 
             HorizontalDivider(
                 color = Color.White.copy(alpha = 0.15f)
-            )
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
             )
 
             PanchangChangeSection(
@@ -753,23 +749,27 @@ private fun PanchangChangeSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
+            .padding(vertical = 10.dp)
     ) {
 
         Text(
             text = title,
             color = accent,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
 
         Spacer(
-            modifier = Modifier.height(4.dp)
+            modifier = Modifier.height(8.dp)
         )
 
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
+
+            // -------------------------------
+            // CURRENT
+            // -------------------------------
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -778,26 +778,35 @@ private fun PanchangChangeSection(
                 Text(
                     text = "सध्या",
                     color = Color.LightGray,
-                    fontSize = 11.sp
+                    fontSize = 12.sp
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
                 )
 
                 Text(
                     text = current,
                     color = textColor,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(6.dp)
                 )
 
                 Text(
                     text = "🕐 $startTime",
                     color = Color.LightGray,
-                    fontSize = 10.sp
+                    fontSize = 12.sp
                 )
             }
 
-            Spacer(
-                modifier = Modifier.width(12.dp)
-            )
+
+            // -------------------------------
+            // NEXT
+            // -------------------------------
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -806,26 +815,34 @@ private fun PanchangChangeSection(
                 Text(
                     text = "पुढील",
                     color = Color.LightGray,
-                    fontSize = 11.sp
+                    fontSize = 12.sp
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
                 )
 
                 Text(
                     text = next,
                     color = textColor,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(6.dp)
                 )
 
                 Text(
                     text = "🕐 $nextTime",
                     color = Color.LightGray,
-                    fontSize = 10.sp
+                    fontSize = 12.sp
                 )
             }
         }
 
         Spacer(
-            modifier = Modifier.height(6.dp)
+            modifier = Modifier.height(10.dp)
         )
 
         HorizontalDivider(
