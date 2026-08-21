@@ -76,8 +76,9 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
 
                 ChandraSuryaHome(
-                    moonState = moonState,
-                    sunState = sunState,
+    moonState = moonState,
+    sunState = sunState,
+    panchangState = panchangState,
 
                     onTestRashi = {
                         scheduler.scheduleRashiAlarm(
@@ -106,9 +107,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun ChandraSuryaHome(
-
     moonState: MoonState,
     sunState: SunState,
+    panchangState: PanchangState,
     onTestRashi: () -> Unit,
     onTestNakshatra: () -> Unit,
     onTestCharan: () -> Unit
@@ -283,6 +284,17 @@ SunColumn(
         Spacer(
             modifier = Modifier.height(12.dp)
         )
+// ------------------------------------------------
+// PANCHANG CARD
+// ------------------------------------------------
+
+PanchangCard(
+    state = panchangState
+)
+
+Spacer(
+    modifier = Modifier.height(12.dp)
+)
 
 
         // ------------------------------------------------
