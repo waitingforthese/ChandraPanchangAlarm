@@ -774,8 +774,8 @@ private fun PanchangCard(
             next = state.nextLagna,
             nextTime = state.nextLagnaTime
         )
-        }
-        }
+          } // Column बंद
+} // PanchangCard बंद
 // ==========================================================
 // PANCHANG ROW
 // आजचे पंचांग - तारीख / वार
