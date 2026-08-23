@@ -521,17 +521,6 @@ private val masaNamesBySunSign = arrayOf(
     // MASA / AMANTA MONTH
     // ==========================================
 
-    private fun getSunSignAt(
-        millis: Long,
-        swe: SwissEph
-    ): Int {
-        val (sun, _) = getSunMoon(millis, swe)
-
-        return floor(
-            sun / 30.0
-        ).toInt().coerceIn(0, 11)
-    }
-
 
     /*
      * Find the exact New Moon (Amavasya -> Shukla Pratipada)
