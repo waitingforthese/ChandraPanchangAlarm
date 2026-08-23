@@ -168,6 +168,12 @@ object LivePanchangCalculator {
     }
 
 
+    /**
+     * Nitya Yoga = (Nirayana Sun longitude + Nirayana Moon longitude) / 13°20'.
+     *
+     * getSunMoon() returns Lahiri sidereal (Nirayana) longitudes,
+     * so Yoga is calculated directly from those values.
+     */
     private fun getYogaIndex(
         sun: Double,
         moon: Double
@@ -178,7 +184,7 @@ object LivePanchangCalculator {
 
         return floor(
             total / YOGA_SIZE
-        ).toInt()
+        ).toInt().coerceIn(0, 26)
     }
 
 
