@@ -63,8 +63,7 @@ object LivePanchangCalculator {
         jd: Double
     ): Double {
 
-        val swe =
-            SwissEph()
+        val swe = SwissEph()
 
         swe.swe_set_sid_mode(
             SweConst.SE_SIDM_LAHIRI,
@@ -72,11 +71,8 @@ object LivePanchangCalculator {
             0.0
         )
 
-        val xx =
-            DoubleArray(6)
-
-        val serr =
-            StringBuffer()
+        val xx = DoubleArray(6)
+        val serr = StringBuffer()
 
         swe.swe_calc_ut(
             jd,
@@ -91,41 +87,21 @@ object LivePanchangCalculator {
     }
 
 
-    // ==========================================
-    // SUN + MOON LONGITUDE
-    // ==========================================
+    private fun getSunLongitude(jd: Double): Double =
+        getLongitude(SweConst.SE_SUN, jd)
 
-    private fun getSunLongitude(
-        jd: Double
-    ): Double {
 
-        return getLongitude(
-            SweConst.SE_SUN,
-            jd
-        )
-    }
-
-    private fun getMoonLongitude(
-        jd: Double
-    ): Double {
-
-        return getLongitude(
-            SweConst.SE_MOON,
-            jd
-        )
-    }
+    private fun getMoonLongitude(jd: Double): Double =
+        getLongitude(SweConst.SE_MOON, jd)
 
 
     // ==========================================
     // NORMALIZE
     // ==========================================
 
-    private fun normalize(
-        value: Double
-    ): Double {
+    private fun normalize(value: Double): Double {
 
-        var result =
-            value % 360.0
+        var result = value % 360.0
 
         if (result < 0) {
             result += 360.0
@@ -136,7 +112,7 @@ object LivePanchangCalculator {
 
 
     // ==========================================
-    // TITHI
+    // INDEX CALCULATIONS
     // ==========================================
 
     private fun getTithiIndex(
@@ -145,9 +121,7 @@ object LivePanchangCalculator {
     ): Int {
 
         val difference =
-            normalize(
-                moon - sun
-            )
+            normalize(moon - sun)
 
         return floor(
             difference / TITHI_SIZE
@@ -155,12 +129,57 @@ object LivePanchangCalculator {
     }
 
 
-    private fun getTithiName(
-        index: Int
-    ): String {
+    private fun getPakshaIndex(
+        tithiIndex: Int
+    ): Int =
+        if (tithiIndex <= 15) 0 else 1
+
+
+    private fun getPaksha(
+        tithiIndex: Int
+    ): String =
+        if (tithiIndex <= 15) {
+            "शुक्ल पक्ष"
+        } else {
+            "कृष्ण पक्ष"
+        }
+
+
+    private fun getKaranaIndex(
+        sun: Double,
+        moon: Double
+    ): Int {
+
+        val difference =
+            normalize(moon - sun)
+
+        return floor(
+            difference / KARANA_SIZE
+        ).toInt()
+    }
+
+
+    private fun getYogaIndex(
+        sun: Double,
+        moon: Double
+    ): Int {
+
+        val total =
+            normalize(sun + moon)
+
+        return floor(
+            total / YOGA_SIZE
+        ).toInt()
+    }
+
+
+    // ==========================================
+    // NAMES
+    // ==========================================
+
+    private fun getTithiName(index: Int): String {
 
         val names = arrayOf(
-
             "प्रतिपदा",
             "द्वितीया",
             "तृतीया",
@@ -179,65 +198,16 @@ object LivePanchangCalculator {
         )
 
         return if (index == 30) {
-
             "अमावस्या"
-
         } else {
-
-            names[
-                (index - 1) % 15
-            ]
+            names[(index - 1).coerceIn(0, 14)]
         }
     }
 
 
-    // ==========================================
-    // PAKSHA
-    // ==========================================
-
-    private fun getPaksha(
-        tithiIndex: Int
-    ): String {
-
-        return if (
-            tithiIndex <= 15
-        ) {
-
-            "शुक्ल पक्ष"
-
-        } else {
-
-            "कृष्ण पक्ष"
-        }
-    }
-
-
-    // ==========================================
-    // KARANA
-    // ==========================================
-
-    private fun getKaranaIndex(
-        sun: Double,
-        moon: Double
-    ): Int {
-
-        val difference =
-            normalize(
-                moon - sun
-            )
-
-        return floor(
-            difference / KARANA_SIZE
-        ).toInt()
-    }
-
-
-    private fun getKaranaName(
-        index: Int
-    ): String {
+    private fun getKaranaName(index: Int): String {
 
         val repeating = arrayOf(
-
             "बव",
             "बालव",
             "कौलव",
@@ -248,53 +218,18 @@ object LivePanchangCalculator {
         )
 
         return when (index) {
-
-            0 ->
-                "किंस्तुघ्न"
-
-            57 ->
-                "शकुनि"
-
-            58 ->
-                "चतुष्पाद"
-
-            59 ->
-                "नाग"
-
-            else ->
-                repeating[
-                    (index - 1) % 7
-                ]
+            0 -> "किंस्तुघ्न"
+            57 -> "शकुनि"
+            58 -> "चतुष्पाद"
+            59 -> "नाग"
+            else -> repeating[(index - 1) % 7]
         }
     }
 
 
-    // ==========================================
-    // YOGA
-    // ==========================================
-
-    private fun getYogaIndex(
-        sun: Double,
-        moon: Double
-    ): Int {
-
-        val total =
-            normalize(
-                sun + moon
-            )
-
-        return floor(
-            total / YOGA_SIZE
-        ).toInt()
-    }
-
-
-    private fun getYogaName(
-        index: Int
-    ): String {
+    private fun getYogaName(index: Int): String {
 
         val names = arrayOf(
-
             "विष्कंभ",
             "प्रीति",
             "आयुष्मान",
@@ -324,80 +259,137 @@ object LivePanchangCalculator {
             "वैधृति"
         )
 
-        return names[
-            index.coerceIn(
-                0,
-                26
-            )
-        ]
+        return names[index.coerceIn(0, 26)]
     }
 
 
     // ==========================================
-    // FIND NEXT CHANGE
+    // INDEX AT A GIVEN MILLIS
     // ==========================================
 
-   private fun findNextChange(
-    currentIndex: Int,
-    getIndex: (Double) -> Int
-): Long {
+    private fun tithiAt(millis: Long): Int {
 
-    val now =
-        System.currentTimeMillis()
-
-    var checkMillis =
-        now
-
-    // आधी 10 मिनिटांच्या अंतराने शोध
-    repeat(1008) {
-
-        checkMillis +=
-            10 * 60_000L
-
-        val checkJd =
+        val jd =
             2440587.5 +
-                    checkMillis /
-                    86400000.0
+                    millis / 86400000.0
 
-        val newIndex =
-            getIndex(checkJd)
+        return getTithiIndex(
+            getSunLongitude(jd),
+            getMoonLongitude(jd)
+        )
+    }
 
-        if (
-            newIndex != currentIndex
-        ) {
 
-            // बदल सापडल्यावर minute-level search
-            var minuteMillis =
-                checkMillis -
-                        (10 * 60_000L)
+    private fun yogaAt(millis: Long): Int {
 
-            repeat(10) {
+        val jd =
+            2440587.5 +
+                    millis / 86400000.0
 
-                minuteMillis +=
-                    60_000L
+        return getYogaIndex(
+            getSunLongitude(jd),
+            getMoonLongitude(jd)
+        )
+    }
 
-                val minuteJd =
-                    2440587.5 +
-                            minuteMillis /
-                            86400000.0
 
-                val minuteIndex =
-                    getIndex(minuteJd)
+    private fun karanaAt(millis: Long): Int {
 
-                if (
-                    minuteIndex != currentIndex
-                ) {
+        val jd =
+            2440587.5 +
+                    millis / 86400000.0
 
-                    return minuteMillis
+        return getKaranaIndex(
+            getSunLongitude(jd),
+            getMoonLongitude(jd)
+        )
+    }
+
+
+    private fun pakshaAt(millis: Long): Int =
+        getPakshaIndex(tithiAt(millis))
+
+
+    // ==========================================
+    // PREVIOUS / NEXT BOUNDARY
+    //
+    // First find the boundary in 30-minute steps,
+    // then refine it to approximately 1 second.
+    // ==========================================
+
+    private fun findBoundary(
+        now: Long,
+        currentIndex: Int,
+        forward: Boolean,
+        maxMinutes: Int,
+        getIndex: (Long) -> Int
+    ): Long {
+
+        val step = 30L * 60_000L
+
+        var previous = now
+        var current = now
+
+        repeat(maxMinutes / 30 + 2) {
+
+            current =
+                if (forward) {
+                    current + step
+                } else {
+                    current - step
                 }
+
+            val index =
+                getIndex(current)
+
+            if (index != currentIndex) {
+
+                var low =
+                    if (forward) previous else current
+
+                var high =
+                    if (forward) current else previous
+
+                repeat(25) {
+
+                    val middle =
+                        low + (high - low) / 2
+
+                    val middleIndex =
+                        getIndex(middle)
+
+                    if (forward) {
+
+                        if (middleIndex == currentIndex) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+
+                    } else {
+
+                        if (middleIndex == currentIndex) {
+                            high = middle
+                        } else {
+                            low = middle
+                        }
+                    }
+                }
+
+                return if (forward) high else low
             }
 
-            return checkMillis
+            previous = current
+        }
+
+        return if (forward) {
+            now + 24 * 60 * 60 * 1000L
+        } else {
+            now - 24 * 60 * 60 * 1000L
         }
     }
 
-    return now + 24 * 60 * 60 * 1000L
-}
+
     // ==========================================
     // FORMAT TIME
     // ==========================================
@@ -412,12 +404,9 @@ object LivePanchangCalculator {
                 Locale.getDefault()
             )
 
-        formatter.timeZone =
-            indiaTimeZone
+        formatter.timeZone = indiaTimeZone
 
-        return formatter.format(
-            millis
-        )
+        return formatter.format(millis)
     }
 
 
@@ -427,8 +416,12 @@ object LivePanchangCalculator {
 
     fun getCurrentPanchangState(): PanchangState {
 
+        val now =
+            System.currentTimeMillis()
+
         val jd =
-            getJulianDay()
+            2440587.5 +
+                    now / 86400000.0
 
         val sun =
             getSunLongitude(jd)
@@ -437,91 +430,125 @@ object LivePanchangCalculator {
             getMoonLongitude(jd)
 
 
+        // ==========================================
         // TITHI
+        // ==========================================
 
         val tithiIndex =
-            getTithiIndex(
-                sun,
-                moon
+            getTithiIndex(sun, moon)
+
+        val previousTithiMillis =
+            findBoundary(
+                now = now,
+                currentIndex = tithiIndex,
+                forward = false,
+                maxMinutes = 2880,
+                getIndex = ::tithiAt
             )
 
         val nextTithiMillis =
-            findNextChange(
-                tithiIndex
-            ) { checkJd ->
-
-                val checkSun =
-                    getSunLongitude(
-                        checkJd
-                    )
-
-                val checkMoon =
-                    getMoonLongitude(
-                        checkJd
-                    )
-
-                getTithiIndex(
-                    checkSun,
-                    checkMoon
-                )
-            }
-
-        val nextTithiIndex =
-            getTithiIndex(
-                getSunLongitude(
-                    2440587.5 +
-                            nextTithiMillis /
-                            86400000.0
-                ),
-                getMoonLongitude(
-                    2440587.5 +
-                            nextTithiMillis /
-                            86400000.0
-                )
+            findBoundary(
+                now = now,
+                currentIndex = tithiIndex,
+                forward = true,
+                maxMinutes = 2880,
+                getIndex = ::tithiAt
             )
 
+        val nextTithiIndex =
+            tithiAt(nextTithiMillis)
 
+
+        // ==========================================
         // YOGA
+        // ==========================================
 
         val yogaIndex =
-            getYogaIndex(
-                sun,
-                moon
+            getYogaIndex(sun, moon)
+
+        val previousYogaMillis =
+            findBoundary(
+                now = now,
+                currentIndex = yogaIndex,
+                forward = false,
+                maxMinutes = 2880,
+                getIndex = ::yogaAt
             )
 
         val nextYogaMillis =
-            findNextChange(
-                yogaIndex
-            ) { checkJd ->
+            findBoundary(
+                now = now,
+                currentIndex = yogaIndex,
+                forward = true,
+                maxMinutes = 2880,
+                getIndex = ::yogaAt
+            )
 
-                getYogaIndex(
-                    getSunLongitude(checkJd),
-                    getMoonLongitude(checkJd)
-                )
-            }
+        val nextYogaIndex =
+            yogaAt(nextYogaMillis)
 
 
+        // ==========================================
         // KARANA
+        // ==========================================
 
         val karanaIndex =
-            getKaranaIndex(
-                sun,
-                moon
+            getKaranaIndex(sun, moon)
+
+        val previousKaranaMillis =
+            findBoundary(
+                now = now,
+                currentIndex = karanaIndex,
+                forward = false,
+                maxMinutes = 1440,
+                getIndex = ::karanaAt
             )
 
         val nextKaranaMillis =
-            findNextChange(
-                karanaIndex
-            ) { checkJd ->
+            findBoundary(
+                now = now,
+                currentIndex = karanaIndex,
+                forward = true,
+                maxMinutes = 1440,
+                getIndex = ::karanaAt
+            )
 
-                getKaranaIndex(
-                    getSunLongitude(checkJd),
-                    getMoonLongitude(checkJd)
-                )
-            }
+        val nextKaranaIndex =
+            karanaAt(nextKaranaMillis)
 
 
-        // CURRENT DATE
+        // ==========================================
+        // PAKSHA
+        // ==========================================
+
+        val pakshaIndex =
+            getPakshaIndex(tithiIndex)
+
+        val previousPakshaMillis =
+            findBoundary(
+                now = now,
+                currentIndex = pakshaIndex,
+                forward = false,
+                maxMinutes = 21600,
+                getIndex = ::pakshaAt
+            )
+
+        val nextPakshaMillis =
+            findBoundary(
+                now = now,
+                currentIndex = pakshaIndex,
+                forward = true,
+                maxMinutes = 21600,
+                getIndex = ::pakshaAt
+            )
+
+        val nextPakshaTithiIndex =
+            tithiAt(nextPakshaMillis)
+
+
+        // ==========================================
+        // DATE / WEEKDAY
+        // ==========================================
 
         val calendar =
             Calendar.getInstance(
@@ -540,17 +567,20 @@ object LivePanchangCalculator {
         val weekdayFormatter =
             SimpleDateFormat(
                 "EEEE",
-                Locale(
-                    "mr",
-                    "IN"
-                )
+                Locale("mr", "IN")
             )
 
         weekdayFormatter.timeZone =
             indiaTimeZone
 
 
+        // ==========================================
+        // RETURN
+        // ==========================================
+
         return PanchangState(
+
+            // BASIC
 
             date =
                 dateFormatter.format(
@@ -568,6 +598,11 @@ object LivePanchangCalculator {
             tithi =
                 getTithiName(
                     tithiIndex
+                ),
+
+            tithiStartTime =
+                formatTime(
+                    previousTithiMillis
                 ),
 
             nextTithi =
@@ -591,20 +626,14 @@ object LivePanchangCalculator {
                     yogaIndex
                 ),
 
+            yogaStartTime =
+                formatTime(
+                    previousYogaMillis
+                ),
+
             nextYoga =
                 getYogaName(
-                    getYogaIndex(
-                        getSunLongitude(
-                            2440587.5 +
-                                    nextYogaMillis /
-                                    86400000.0
-                        ),
-                        getMoonLongitude(
-                            2440587.5 +
-                                    nextYogaMillis /
-                                    86400000.0
-                        )
-                    )
+                    nextYogaIndex
                 ),
 
             nextYogaTime =
@@ -623,20 +652,14 @@ object LivePanchangCalculator {
                     karanaIndex
                 ),
 
+            karanaStartTime =
+                formatTime(
+                    previousKaranaMillis
+                ),
+
             nextKarana =
                 getKaranaName(
-                    getKaranaIndex(
-                        getSunLongitude(
-                            2440587.5 +
-                                    nextKaranaMillis /
-                                    86400000.0
-                        ),
-                        getMoonLongitude(
-                            2440587.5 +
-                                    nextKaranaMillis /
-                                    86400000.0
-                        )
-                    )
+                    nextKaranaIndex
                 ),
 
             nextKaranaTime =
@@ -655,18 +678,26 @@ object LivePanchangCalculator {
                     tithiIndex
                 ),
 
+            pakshaStartTime =
+                formatTime(
+                    previousPakshaMillis
+                ),
+
             nextPaksha =
                 getPaksha(
-                    nextTithiIndex
+                    nextPakshaTithiIndex
                 ),
 
             nextPakshaTime =
                 formatTime(
-                    nextTithiMillis
+                    nextPakshaMillis
                 ),
 
             nextPakshaMillis =
-                nextTithiMillis
+                nextPakshaMillis
+
+            // MASA / PRAHAR / LAGNA
+            // अजून calculator मध्ये implement केलेले नाहीत.
         )
     }
 }
