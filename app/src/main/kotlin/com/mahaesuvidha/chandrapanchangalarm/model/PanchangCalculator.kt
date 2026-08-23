@@ -1039,56 +1039,180 @@ private fun calculateSunTime(
     // LAGNA
     // =========================================================
 
-    private fun getLagnaData(
-        now: LocalDateTime
-    ): Triple<String, String, LocalDateTime> {
+   // =========================================================
+// LAGNA — SIDEREAL ASCENDANT
+// =========================================================
 
-        /*
-         * Lagna is location-dependent. This calculator currently does
-         * not receive latitude/longitude, so an exact astronomical
-         * ascendant cannot be calculated here.
-         *
-         * Until location-based sidereal-time calculation is added,
-         * use a stable two-hour approximation anchored at 06:00.
-         */
-        val sunLongitude = getSunLongitude(now)
+private fun getLagnaData(
+    now: LocalDateTime
+): Triple<String, String, LocalDateTime> {
 
-        val sunSign =
-            floor(sunLongitude / 30.0)
+    val latitude = 18.46
+    val longitude = 74.58
+
+    val currentLongitude =
+        getSiderealAscendant(
+            now,
+            latitude,
+            longitude
+        )
+
+    val currentIndex =
+        floor(
+            currentLongitude / 30.0
+        )
+            .toInt()
+            .coerceIn(0, 11)
+
+    val currentLagna =
+        lagnaNames[currentIndex]
+
+    // पुढील लग्न शोधणे
+    var check =
+        now.plusMinutes(1)
+
+    var nextLongitude =
+        getSiderealAscendant(
+            check,
+            latitude,
+            longitude
+        )
+
+    var nextIndex =
+        floor(
+            nextLongitude / 30.0
+        )
+            .toInt()
+            .coerceIn(0, 11)
+
+    var safety = 0
+
+    while (
+        nextIndex == currentIndex &&
+        safety < 240
+    ) {
+
+        check =
+            check.plusMinutes(1)
+
+        nextLongitude =
+            getSiderealAscendant(
+                check,
+                latitude,
+                longitude
+            )
+
+        nextIndex =
+            floor(
+                nextLongitude / 30.0
+            )
                 .toInt()
                 .coerceIn(0, 11)
 
-        val minutesFromSix =
-            ((now.hour * 60 + now.minute) - 360 + 1440) % 1440
-
-        val elapsedBlocks = minutesFromSix / 120
-
-        val currentIndex =
-            (sunSign + elapsedBlocks).mod(12)
-
-        val nextIndex =
-            (currentIndex + 1).mod(12)
-
-        val currentBlockStartMinutes =
-            (minutesFromSix / 120) * 120
-
-        val blockStart =
-            now
-                .toLocalDate()
-                .atStartOfDay()
-                .plusMinutes((360 + currentBlockStartMinutes).toLong())
-                .let {
-                    if (it.isAfter(now)) it.minusDays(1) else it
-                }
-
-        val nextTime = blockStart.plusHours(2)
-
-        return Triple(
-            lagnaNames[currentIndex],
-            lagnaNames[nextIndex],
-            nextTime
-        )
+        safety++
     }
+
+    return Triple(
+        currentLagna,
+        lagnaNames[nextIndex],
+        check
+    )
+}
+private fun getSiderealAscendant(
+    time: LocalDateTime,
+    latitude: Double,
+    longitude: Double
+): Double {
+
+    val jd =
+        getJulianDay(time)
+
+    val t =
+        (jd - 2451545.0) /
+                36525.0
+
+    // Greenwich Mean Sidereal Time
+    val gmst =
+        normalize(
+            280.46061837 +
+                    360.98564736629 *
+                    (jd - 2451545.0) +
+                    0.000387933 *
+                    t * t -
+                    t * t * t /
+                    38710000.0
+        )
+
+    // Local Sidereal Time
+    val lst =
+        normalize(
+            gmst + longitude
+        )
+
+    val theta =
+        Math.toRadians(lst)
+
+    val phi =
+        Math.toRadians(latitude)
+
+    // Mean obliquity of the ecliptic
+    val epsilon =
+        Math.toRadians(
+            23.439291
+        )
+
+    /*
+     * Tropical Ascendant
+     */
+    val tropicalAscendant =
+        Math.toDegrees(
+            atan2(
+                -cos(theta),
+                sin(theta) *
+                        cos(epsilon) +
+                        tan(phi) *
+                        sin(epsilon)
+            )
+        )
+
+    val tropical =
+        normalize(
+            tropicalAscendant
+        )
+
+    /*
+     * Lahiri Ayanamsa
+     */
+    val ayanamsa =
+        getLahiriAyanamsa(
+            time
+        )
+
+    /*
+     * Sidereal Ascendant
+     */
+    return normalize(
+        tropical -
+                ayanamsa
+    )
+}
+private fun getLahiriAyanamsa(
+    time: LocalDateTime
+): Double {
+
+    val years =
+        time.year - 2000.0
+
+    // Approximate Lahiri ayanamsa
+    // around J2000 epoch
+
+    return 23.85675 +
+            (
+                50.29 / 3600.0
+            ) *
+            years
+}
+
 
     // =========================================================
     // SUN LONGITUDE
