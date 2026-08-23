@@ -517,197 +517,305 @@ private val masaNamesBySunSign = arrayOf(
         return floor(sun / 30.0).toInt().coerceIn(0, 11)
     }
 
-    private fun findSunSignBoundary(
-        startMillis: Long,
-        endMillis: Long,
+    // ==========================================
+    // MASA / AMANTA MONTH
+    // ==========================================
+
+    private fun getSunSignAt(
+        millis: Long,
         swe: SwissEph
-    ): Pair<Int, Long>? {
+    ): Int {
+        val (sun, _) = getSunMoon(millis, swe)
 
-        // A lunar (Amanta) month is named from the solar Sankranti
-        // occurring inside that Amavasya -> Amavasya interval.
-        // We use the sidereal Lahiri Sun longitude already used by
-        // this calculator and locate the exact sign ingress.
-        val step = 60L * 60_000L
+        return floor(
+            sun / 30.0
+        ).toInt().coerceIn(0, 11)
+    }
 
-        var previous = startMillis
-        var previousSign = getSunSignAt(previous, swe)
 
-        while (previous < endMillis) {
-            val current = minOf(previous + step, endMillis)
-            val currentSign = getSunSignAt(current, swe)
+    /*
+     * Find the exact New Moon (Amavasya -> Shukla Pratipada)
+     * boundary.
+     *
+     * Lunar phase = Moon longitude - Sun longitude.
+     *
+     * New Moon is the 360° -> 0° crossing.
+     *
+     * This is deliberately NOT based on Gregorian month dates
+     * and NOT based on a 30-day fallback.
+     *
+     * It is also much faster than scanning 50 days at 1-hour
+     * resolution with thousands of unnecessary ephemeris calls.
+     */
+    private fun findNewMoonBoundary(
+        now: Long,
+        forward: Boolean,
+        swe: SwissEph
+    ): Long {
 
-            if (currentSign != previousSign) {
-                var low = previous
-                var high = current
+        fun phaseAt(millis: Long): Double {
+            val (sun, moon) =
+                getSunMoon(
+                    millis,
+                    swe
+                )
 
-                repeat(25) {
-                    val middle = low + (high - low) / 2
-                    val middleSign = getSunSignAt(middle, swe)
-
-                    if (middleSign == previousSign) {
-                        low = middle
-                    } else {
-                        high = middle
-                    }
-                }
-
-                return Pair(currentSign, high)
-            }
-
-            previous = current
-            previousSign = currentSign
+            return normalize(
+                moon - sun
+            )
         }
 
-        return null
+        val step = 60L * 60_000L
+
+        if (forward) {
+
+            var previous = now
+            var previousPhase = phaseAt(previous)
+
+            // Maximum 45 days. One lunar month is ~29.5 days.
+            repeat(45 * 24 + 4) {
+
+                val current =
+                    previous + step
+
+                val currentPhase =
+                    phaseAt(current)
+
+                // 360° -> 0° = New Moon
+                if (
+                    previousPhase > 300.0 &&
+                    currentPhase < 60.0
+                ) {
+
+                    var low = previous
+                    var high = current
+
+                    // Binary search to ~1 second.
+                    repeat(30) {
+
+                        val middle =
+                            low + (high - low) / 2
+
+                        val middlePhase =
+                            phaseAt(middle)
+
+                        if (
+                            middlePhase > 180.0
+                        ) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return high
+                }
+
+                previous = current
+                previousPhase = currentPhase
+            }
+
+        } else {
+
+            var later = now
+            var laterPhase = phaseAt(later)
+
+            repeat(45 * 24 + 4) {
+
+                val earlier =
+                    later - step
+
+                val earlierPhase =
+                    phaseAt(earlier)
+
+                // Going backward:
+                // 0° -> 360° = crossing of New Moon.
+                if (
+                    laterPhase < 60.0 &&
+                    earlierPhase > 300.0
+                ) {
+
+                    var low = earlier
+                    var high = later
+
+                    // Binary search to ~1 second.
+                    repeat(30) {
+
+                        val middle =
+                            low + (high - low) / 2
+
+                        val middlePhase =
+                            phaseAt(middle)
+
+                        if (
+                            middlePhase > 180.0
+                        ) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return high
+                }
+
+                later = earlier
+                laterPhase = earlierPhase
+            }
+        }
+
+        // This is only a defensive failure value.
+        // It must never be used during a normal Panchang calculation.
+        return if (forward) {
+            now + 30L * 24L * 60L * 60L * 1000L
+        } else {
+            now - 30L * 24L * 60L * 60L * 1000L
+        }
     }
 
-private fun getMasaNameForInterval(
-    startMillis: Long,
-    endMillis: Long,
-    nextIntervalStart: Long?,
-    nextIntervalEnd: Long?,
-    swe: SwissEph
-): String {
 
-    // Maharashtra uses the Amanta lunar-month system.
-    // The lunar month boundary is the Amavasya -> Shukla Pratipada boundary.
-    // The month name is determined from the sidereal Sun sign at that boundary.
-    //
-    // 12-08-2026 -> Sun in Karka -> Shravana
-    // 10-09-2026 -> Sun in Simha -> Bhadrapada
-    //
-    // If the Sun remains in the same sidereal sign at consecutive boundaries,
-    // no Sankranti occurred during that lunar month, so it is Adhik.
-    val startSign =
-        getSunSignAt(startMillis, swe)
+    /*
+     * Amanta month naming convention used by the Panchang:
+     *
+     * The lunar month beginning at a New Moon is named from
+     * the sidereal Sun sign at that New Moon.
+     *
+     * Mesha     -> Vaishakha
+     * Vrishabha -> Jyeshtha
+     * Mithuna   -> Ashadha
+     * Karka     -> Shravana
+     * Simha     -> Bhadrapada
+     * ...
+     *
+     * This is the critical correction. We must NOT use the Sun
+     * sign at Purnima; doing that changes Shravana into Bhadrapada
+     * for August 2026.
+     */
+    private fun getRegularMasaName(
+        newMoonMillis: Long,
+        swe: SwissEph
+    ): String {
 
-    val nextSign =
-        getSunSignAt(endMillis, swe)
+        val sunSign =
+            getSunSignAt(
+                newMoonMillis,
+                swe
+            )
 
-    val baseName =
-        masaNamesBySunSign[startSign.coerceIn(0, 11)]
-
-    return if (startSign == nextSign) {
-        "अधिक $baseName"
-    } else {
-        baseName
-    }
-}
-
-private fun getMasaInfo(
-    now: Long,
-    currentTithiIndex: Int,
-    swe: SwissEph
-): MasaInfo {
-
-    // ==========================================
-    // AMANTA MASA BOUNDARY
-    // ==========================================
-    // In Maharashtra (Amanta system), a lunar month starts
-    // immediately after Amavasya, i.e. at the 30 -> 1 Tithi
-    // transition.  Therefore we MUST NOT use every Pratipada
-    // as a month boundary, because every Shukla Paksha also
-    // starts with Pratipada.
-
-    fun previousAmantaMonthStart(fromMillis: Long): Long {
-
-        val current = indexAt(fromMillis, BoundaryType.TITHI, swe)
-
-        // Find the start of the current/previous Amavasya (Tithi 30).
-        val amavasyaStart = findTithiStartOf(
-            now = fromMillis,
-            currentIndex = current,
-            forward = false,
-            maxMinutes = 60 * 24 * 45,
-            targetIndex = 30,
-            swe = swe
-        )
-
-        // The Amanta month starts when Amavasya ends and
-        // Shukla Pratipada begins.
-        return findTithiStartOf(
-            now = amavasyaStart + 60_000L,
-            currentIndex = 30,
-            forward = true,
-            maxMinutes = 60 * 24 * 3,
-            targetIndex = 1,
-            swe = swe
-        )
+        return masaNamesBySunSign[
+            sunSign.coerceIn(0, 11)
+        ]
     }
 
-    fun nextAmantaMonthStart(fromMillis: Long): Long {
 
-        // First locate the NEXT Amavasya (Tithi 30).
-        val current = indexAt(fromMillis, BoundaryType.TITHI, swe)
+    private fun getMasaName(
+        newMoonMillis: Long,
+        nextNewMoonMillis: Long,
+        swe: SwissEph
+    ): String {
 
-        val amavasyaStart = findTithiStartOf(
-            now = fromMillis,
-            currentIndex = current,
-            forward = true,
-            maxMinutes = 60 * 24 * 45,
-            targetIndex = 30,
-            swe = swe
-        )
+        val currentSign =
+            getSunSignAt(
+                newMoonMillis,
+                swe
+            )
 
-        // Then locate the 30 -> 1 transition after that Amavasya.
-        return findTithiStartOf(
-            now = amavasyaStart + 60_000L,
-            currentIndex = 30,
-            forward = true,
-            maxMinutes = 60 * 24 * 3,
-            targetIndex = 1,
-            swe = swe
+        val nextSign =
+            getSunSignAt(
+                nextNewMoonMillis,
+                swe
+            )
+
+        val regularName =
+            masaNamesBySunSign[
+                currentSign.coerceIn(0, 11)
+            ]
+
+        /*
+         * If the Sun remains in the same sidereal sign from one
+         * New Moon to the next, no Sankranti occurred in the
+         * lunar month. Therefore it is Adhika Masa.
+         */
+        return if (currentSign == nextSign) {
+            "अधिक $regularName"
+        } else {
+            regularName
+        }
+    }
+
+
+    private fun getMasaInfo(
+        now: Long,
+        currentTithiIndex: Int,
+        swe: SwissEph
+    ): MasaInfo {
+
+        /*
+         * CURRENT MASA START
+         *
+         * Real astronomical New Moon boundary:
+         * Amavasya -> Shukla Pratipada.
+         */
+        val currentMasaStart =
+            findNewMoonBoundary(
+                now = now,
+                forward = false,
+                swe = swe
+            )
+
+        /*
+         * NEXT MASA START
+         */
+        val nextMasaStart =
+            findNewMoonBoundary(
+                now = now + 60_000L,
+                forward = true,
+                swe = swe
+            )
+
+        /*
+         * NEXT-NEXT MASA START
+         *
+         * Required so that Adhika Masa can be identified for
+         * the next lunar month as well.
+         */
+        val nextNextMasaStart =
+            findNewMoonBoundary(
+                now = nextMasaStart + 60_000L,
+                forward = true,
+                swe = swe
+            )
+
+        /*
+         * CURRENT MONTH NAME
+         */
+        val masa =
+            getMasaName(
+                newMoonMillis = currentMasaStart,
+                nextNewMoonMillis = nextMasaStart,
+                swe = swe
+            )
+
+        /*
+         * NEXT MONTH NAME
+         */
+        val nextMasa =
+            getMasaName(
+                newMoonMillis = nextMasaStart,
+                nextNewMoonMillis = nextNextMasaStart,
+                swe = swe
+            )
+
+        return MasaInfo(
+            masa = masa,
+            startMillis = currentMasaStart,
+            nextMasa = nextMasa,
+            nextStartMillis = nextMasaStart
         )
     }
 
-    val currentMasaStart =
-        previousAmantaMonthStart(now)
-
-    val nextMasaStart =
-        nextAmantaMonthStart(now)
-
-    val nextNextMasaStart =
-        nextAmantaMonthStart(
-            nextMasaStart + 60_000L
-        )
-
     // ==========================================
-    // MASA NAME
-    // ==========================================
-    // The Maharashtra Amanta month name is determined from
-    // the sidereal Sun sign at the START of the lunar month.
-    //
-    // 12-08-2026 -> Sun in Karka -> श्रावण
-    // 10-09-2026 -> Sun in Simha -> भाद्रपद
-    //
-    // If the Sun remains in the same sidereal sign at two
-    // consecutive Amanta month starts, that lunar month is Adhik.
-    val masa = getMasaNameForInterval(
-        startMillis = currentMasaStart,
-        endMillis = nextMasaStart,
-        nextIntervalStart = nextMasaStart,
-        nextIntervalEnd = nextNextMasaStart,
-        swe = swe
-    )
-
-    val nextMasa = getMasaNameForInterval(
-        startMillis = nextMasaStart,
-        endMillis = nextNextMasaStart,
-        nextIntervalStart = null,
-        nextIntervalEnd = null,
-        swe = swe
-    )
-
-    return MasaInfo(
-        masa = masa,
-        startMillis = currentMasaStart,
-        nextMasa = nextMasa,
-        nextStartMillis = nextMasaStart
-    )
-}
-
-
-// PRAHAR
+    // PRAHAR
     // ==========================================
 
     private fun solarRiseSet(
