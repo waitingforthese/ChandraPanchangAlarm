@@ -60,13 +60,7 @@ class MainActivity : ComponentActivity() {
 
     scheduler = AlarmScheduler(this)
 
-    // LIVE MOON
-    val moonState =
-        LiveMoonCalculator.getCurrentMoonState()
 
-    // LIVE SUN
-    val sunState =
-        LiveSunCalculator.getCurrentSunState()
 
     // Notification Permission
     if (android.os.Build.VERSION.SDK_INT >= 33) {
@@ -84,6 +78,13 @@ class MainActivity : ComponentActivity() {
     )
 
     setContent {
+        var moonState by remember {
+    mutableStateOf<MoonState?>(null)
+}
+
+var sunState by remember {
+    mutableStateOf<SunState?>(null)
+}
 var panchangState by remember {
     mutableStateOf(
         PanchangState(
@@ -111,12 +112,19 @@ var panchangState by remember {
 
 LaunchedEffect(Unit) {
 
-    panchangState =
+    val result =
         withContext(Dispatchers.Default) {
 
-            LivePanchangCalculator
-                .getCurrentPanchangState()
+            Triple(
+                LiveMoonCalculator.getCurrentMoonState(),
+                LiveSunCalculator.getCurrentSunState(),
+                LivePanchangCalculator.getCurrentPanchangState()
+            )
         }
+
+    moonState = result.first
+    sunState = result.second
+    panchangState = result.third
 }
         MaterialTheme {
 
@@ -143,9 +151,38 @@ LaunchedEffect(Unit) {
 
 @Composable
 private fun ChandraSuryaHome(
-    moonState: MoonState,
-    sunState: SunState,
-    panchangState: PanchangState,
+if (moonState == null || sunState == null) {
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "लोड होत आहे...",
+            fontSize = 22.sp
+        )
+    }
+
+} else {
+
+    ChandraSuryaHome(
+        moonState = moonState!!,
+        sunState = sunState!!,
+        panchangState = panchangState,
+
+        onTestRashi = {
+            scheduler.scheduleTest("राशी बदल")
+        },
+
+        onTestNakshatra = {
+            scheduler.scheduleTest("नक्षत्र बदल")
+        },
+
+        onTestCharan = {
+            scheduler.scheduleTest("चरण बदल")
+        }
+    )
+}
     onTestRashi: () -> Unit,
     onTestNakshatra: () -> Unit,
     onTestCharan: () -> Unit
