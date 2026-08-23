@@ -68,13 +68,6 @@ object LivePanchangCalculator {
         return swe
     }
 
-    // One calculator instance is used for the complete Panchang calculation.
-    // Creating a new SwissEph object for every boundary search was unnecessarily
-    // expensive and could keep the loading screen alive for a very long time.
-    private val sharedSwissEph: SwissEph by lazy {
-        createSwissEph()
-    }
-
     private fun getLongitude(
         planet: Int,
         jd: Double,
@@ -338,17 +331,9 @@ object LivePanchangCalculator {
          * coarse step, so this does not skip a normal Tithi/Yoga/Karana/
          * Paksha transition.
          */
-        val swe = sharedSwissEph
+        val swe = createSwissEph()
 
-        // Safe coarse intervals: all of these boundaries change much
-        // more slowly than the selected step. The final binary search
-        // restores second-level precision.
-        val step = when (type) {
-            BoundaryType.TITHI -> 30L * 60_000L
-            BoundaryType.YOGA -> 30L * 60_000L
-            BoundaryType.KARANA -> 30L * 60_000L
-            BoundaryType.PAKSHA -> 6L * 60 * 60_000L
-        }
+        val step = 60L * 60_000L
 
         var previous = now
         var current = now
@@ -493,9 +478,7 @@ private val masaNamesBySunSign = arrayOf(
         targetIndex: Int,
         swe: SwissEph
     ): Long {
-        // A Tithi is ~24 hours long, so a 3-hour coarse step cannot
-        // skip the target Tithi. Binary search then refines the boundary.
-        val step = 3L * 60 * 60_000L
+        val step = 60L * 60_000L
         var previous = now
         var current = now
 
@@ -534,253 +517,479 @@ private val masaNamesBySunSign = arrayOf(
         return floor(sun / 30.0).toInt().coerceIn(0, 11)
     }
 
-    private fun findSunSignBoundary(
-        startMillis: Long,
-        endMillis: Long,
+    // ==========================================
+    // MASA / AMANTA MONTH
+    // ==========================================
+
+
+    /*
+     * Find the exact New Moon (Amavasya -> Shukla Pratipada)
+     * boundary.
+     *
+     * Lunar phase = Moon longitude - Sun longitude.
+     *
+     * New Moon is the 360° -> 0° crossing.
+     *
+     * This is deliberately NOT based on Gregorian month dates
+     * and NOT based on a 30-day fallback.
+     *
+     * It is also much faster than scanning 50 days at 1-hour
+     * resolution with thousands of unnecessary ephemeris calls.
+     */
+    private fun findNewMoonBoundary(
+        now: Long,
+        forward: Boolean,
         swe: SwissEph
-    ): Pair<Int, Long>? {
+    ): Long {
 
-        // A lunar (Amanta) month is named from the solar Sankranti
-        // occurring inside that Amavasya -> Amavasya interval.
-        // We use the sidereal Lahiri Sun longitude already used by
-        // this calculator and locate the exact sign ingress.
-        // Sankranti occurs only once in a solar month; a 6-hour
-        // coarse scan is sufficient and dramatically reduces SwissEph calls.
-        val step = 6L * 60 * 60_000L
+        fun phaseAt(millis: Long): Double {
+            val (sun, moon) =
+                getSunMoon(
+                    millis,
+                    swe
+                )
 
-        var previous = startMillis
-        var previousSign = getSunSignAt(previous, swe)
-
-        while (previous < endMillis) {
-            val current = minOf(previous + step, endMillis)
-            val currentSign = getSunSignAt(current, swe)
-
-            if (currentSign != previousSign) {
-                var low = previous
-                var high = current
-
-                repeat(25) {
-                    val middle = low + (high - low) / 2
-                    val middleSign = getSunSignAt(middle, swe)
-
-                    if (middleSign == previousSign) {
-                        low = middle
-                    } else {
-                        high = middle
-                    }
-                }
-
-                return Pair(currentSign, high)
-            }
-
-            previous = current
-            previousSign = currentSign
+            return normalize(
+                moon - sun
+            )
         }
 
-        return null
+        val step = 60L * 60_000L
+
+        if (forward) {
+
+            var previous = now
+            var previousPhase = phaseAt(previous)
+
+            // Maximum 45 days. One lunar month is ~29.5 days.
+            repeat(45 * 24 + 4) {
+
+                val current =
+                    previous + step
+
+                val currentPhase =
+                    phaseAt(current)
+
+                // 360° -> 0° = New Moon
+                if (
+                    previousPhase > 300.0 &&
+                    currentPhase < 60.0
+                ) {
+
+                    var low = previous
+                    var high = current
+
+                    // Binary search to ~1 second.
+                    repeat(30) {
+
+                        val middle =
+                            low + (high - low) / 2
+
+                        val middlePhase =
+                            phaseAt(middle)
+
+                        if (
+                            middlePhase > 180.0
+                        ) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return high
+                }
+
+                previous = current
+                previousPhase = currentPhase
+            }
+
+        } else {
+
+            var later = now
+            var laterPhase = phaseAt(later)
+
+            repeat(45 * 24 + 4) {
+
+                val earlier =
+                    later - step
+
+                val earlierPhase =
+                    phaseAt(earlier)
+
+                // Going backward:
+                // 0° -> 360° = crossing of New Moon.
+                if (
+                    laterPhase < 60.0 &&
+                    earlierPhase > 300.0
+                ) {
+
+                    var low = earlier
+                    var high = later
+
+                    // Binary search to ~1 second.
+                    repeat(30) {
+
+                        val middle =
+                            low + (high - low) / 2
+
+                        val middlePhase =
+                            phaseAt(middle)
+
+                        if (
+                            middlePhase > 180.0
+                        ) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return high
+                }
+
+                later = earlier
+                laterPhase = earlierPhase
+            }
+        }
+
+        // This is only a defensive failure value.
+        // It must never be used during a normal Panchang calculation.
+        return if (forward) {
+            now + 30L * 24L * 60L * 60L * 1000L
+        } else {
+            now - 30L * 24L * 60L * 60L * 1000L
+        }
     }
 
-private fun getMasaNameForInterval(
-    startMillis: Long,
-    endMillis: Long,
-    nextIntervalStart: Long?,
-    nextIntervalEnd: Long?,
-    swe: SwissEph
-): String {
 
-    val sankranti =
-        findSunSignBoundary(
-            startMillis = startMillis,
-            endMillis = endMillis,
-            swe = swe
-        )
+    /*
+     * Amanta month naming convention used by the Panchang:
+     *
+     * The lunar month beginning at a New Moon is named from
+     * the sidereal Sun sign at that New Moon.
+     *
+     * Mesha     -> Vaishakha
+     * Vrishabha -> Jyeshtha
+     * Mithuna   -> Ashadha
+     * Karka     -> Shravana
+     * Simha     -> Bhadrapada
+     * ...
+     *
+     * This is the critical correction. We must NOT use the Sun
+     * sign at Purnima; doing that changes Shravana into Bhadrapada
+     * for August 2026.
+     */
+    private fun getRegularMasaName(
+        newMoonMillis: Long,
+        swe: SwissEph
+    ): String {
 
-    if (sankranti != null) {
+        val sunSign =
+            getSunSignAt(
+                newMoonMillis,
+                swe
+            )
 
         return masaNamesBySunSign[
-            sankranti.first.coerceIn(0, 11)
+            sunSign.coerceIn(0, 11)
         ]
     }
 
-    // ==========================================
-    // ADHIK MAS
-    // ==========================================
 
-    if (
-        nextIntervalStart != null &&
-        nextIntervalEnd != null
-    ) {
+    private fun getMasaName(
+        newMoonMillis: Long,
+        nextNewMoonMillis: Long,
+        swe: SwissEph
+    ): String {
 
-        val nextSankranti =
-            findSunSignBoundary(
-                startMillis = nextIntervalStart,
-                endMillis = nextIntervalEnd,
-                swe = swe
+        val currentSign =
+            getSunSignAt(
+                newMoonMillis,
+                swe
             )
 
-        if (nextSankranti != null) {
+        val nextSign =
+            getSunSignAt(
+                nextNewMoonMillis,
+                swe
+            )
 
-            return masaNamesBySunSign[
-                nextSankranti.first.coerceIn(0, 11)
+        val regularName =
+            masaNamesBySunSign[
+                currentSign.coerceIn(0, 11)
             ]
+
+        /*
+         * If the Sun remains in the same sidereal sign from one
+         * New Moon to the next, no Sankranti occurred in the
+         * lunar month. Therefore it is Adhika Masa.
+         */
+        return if (currentSign == nextSign) {
+            "अधिक $regularName"
+        } else {
+            regularName
         }
     }
 
-    // ==========================================
-    // SAFE FALLBACK
-    // ==========================================
 
-    return masaNamesBySunSign[
-        getSunSignAt(
-            startMillis,
-            swe
-        ).coerceIn(0, 11)
-    ]
-}
- private fun getMasaInfo(
-    now: Long,
-    currentTithiIndex: Int,
-    swe: SwissEph
-): MasaInfo {
-
-    // ==========================================
-    // AMAVASYA / MASA START
-    // ==========================================
-    //
-    // Amanta month starts exactly when TITHI changes
-    // from Amavasya (30) to Pratipada (1).
-    //
-    // The previous implementation searched for the
-    // phase 300° boundary, which is NOT Amavasya.
-    // That caused wrong masaStartTime values such as
-    // 01-08-2026 00:00.
-    //
-    // We now locate the actual Tithi-1 boundary.
-    // This gives the real Amavasya / Masa start time.
-
-    fun findMasaStart(
-        fromMillis: Long,
+          /*
+     * Exact start of an Amanta lunar month:
+     * transition Tithi 30 (Amavasya) -> Tithi 1 (Shukla Pratipada).
+     *
+     * This is intentionally different from findTithiStartOf(), because
+     * that helper locates the target Tithi interval itself and, in a
+     * backward search, its return point is the other edge of that
+     * interval.
+     */
+    /**
+     * Returns the exact start of a Shukla Pratipada (Tithi 1).
+     *
+     * IMPORTANT:
+     * Do not look specifically for a 30 -> 1 transition.  A lunar
+     * month boundary is the START of Tithi 1, and searching directly
+     * for the start of Tithi 1 is much more robust around exact
+     * astronomical boundaries and any skipped/repeated tithi.
+     */
+    private fun findShuklaPratipadaBoundary(
+        now: Long,
         forward: Boolean,
-        includeCurrent: Boolean
+        swe: SwissEph
     ): Long {
+        val step = 60L * 60_000L
+        val target = 1
 
-        // If we are currently inside Pratipada, the
-        // current Tithi boundary itself is the masa start.
-        if (currentTithiIndex == 1 && includeCurrent) {
-            return findBoundary(
-                now = fromMillis,
-                currentIndex = 1,
-                forward = false,
-                maxMinutes = 2880,
-                type = BoundaryType.TITHI
-            )
+        fun refineStart(before: Long, after: Long): Long {
+            var low = before
+            var high = after
+
+            repeat(32) {
+                val middle = low + (high - low) / 2
+                val middleIndex = indexAt(
+                    middle,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                // Before boundary = not Tithi 1.
+                // At/after boundary = Tithi 1.
+                if (middleIndex == target) {
+                    high = middle
+                } else {
+                    low = middle
+                }
+            }
+            return high
         }
 
-        return findTithiStartOf(
-            now = fromMillis,
-            currentIndex = currentTithiIndex,
-            forward = forward,
-            maxMinutes = 60 * 24 * 40,
-            targetIndex = 1,
-            swe = swe
+        if (forward) {
+            var previous = now
+            var previousIndex = indexAt(
+                previous,
+                BoundaryType.TITHI,
+                swe
+            )
+
+            // If we are already inside Tithi 1, first leave it.
+            if (previousIndex == target) {
+                repeat(48) {
+                    val current = previous + step
+                    val currentIndex = indexAt(
+                        current,
+                        BoundaryType.TITHI,
+                        swe
+                    )
+                    previous = current
+                    previousIndex = currentIndex
+                    if (currentIndex != target) return@repeat
+                }
+            }
+
+            repeat(45 * 24 + 8) {
+                val current = previous + step
+                val currentIndex = indexAt(
+                    current,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                // Forward entry into Tithi 1 = next Masa start.
+                if (previousIndex != target && currentIndex == target) {
+                    return refineStart(previous, current)
+                }
+
+                previous = current
+                previousIndex = currentIndex
+            }
+        } else {
+            var later = now
+            var laterIndex = indexAt(
+                later,
+                BoundaryType.TITHI,
+                swe
+            )
+
+            repeat(45 * 24 + 8) {
+                val earlier = later - step
+                val earlierIndex = indexAt(
+                    earlier,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                // Moving backward: Tithi 1 -> previous tithi.
+                // The desired boundary is between earlier (not 1)
+                // and later (1).
+                if (laterIndex == target && earlierIndex != target) {
+                    return refineStart(earlier, later)
+                }
+
+                // If we are outside Tithi 1, keep moving backward
+                // until we enter the most recent Tithi 1.
+                if (laterIndex != target && earlierIndex == target) {
+                    return refineStart(earlier, later)
+                }
+
+                later = earlier
+                laterIndex = earlierIndex
+            }
+        }
+
+        // Defensive fallback only. Normal lunar months are ~29.5 days.
+        return if (forward) {
+            now + 30L * 24L * 60L * 60L * 1000L
+        } else {
+            now - 30L * 24L * 60L * 60L * 1000L
+        }
+    }
+
+
+
+ private fun getMasaInfo(
+        now: Long,
+        currentTithiIndex: Int,
+        swe: SwissEph
+    ): MasaInfo {
+
+        /*
+         * IMPORTANT:
+         *
+         * For the Maharashtra / Amanta calendar, the lunar month
+         * starts at the beginning of Shukla Pratipada.
+         *
+         * Therefore we deliberately use the astronomical TITHI
+         * boundary for Shukla Pratipada instead of searching for
+         * a 360° -> 0° phase crossing.
+         *
+         * This avoids false Amavasya detections around midnight
+         * and makes the Masa start agree with the Tithi calculation
+         * already used by this calculator.
+         */
+
+        // ------------------------------------------
+        // CURRENT MASA START
+        // ------------------------------------------
+        val currentMasaStart =
+            findShuklaPratipadaBoundary(
+                now = now,
+                forward = false,
+                swe = swe
+            )
+
+        /*
+         * If today itself is Shukla Pratipada, the previous search
+         * above can stop at the current Pratipada boundary.
+         *
+         * Otherwise it finds the previous month's Pratipada.
+         */
+
+        // ------------------------------------------
+        // NEXT MASA START
+        // ------------------------------------------
+        val nextMasaStart =
+            findShuklaPratipadaBoundary(
+                now = now,
+                forward = true,
+                swe = swe
+            )
+
+        // ------------------------------------------
+        // NEXT-NEXT MASA START
+        // ------------------------------------------
+        val nextNextMasaStart =
+            findShuklaPratipadaBoundary(
+                now = nextMasaStart + 60_000L,
+                forward = true,
+                swe = swe
+            )
+
+        /*
+         * Month name is determined from the SIDEREAL SUN SIGN
+         * at the beginning of the lunar month.
+         *
+         * Existing mapping is intentional:
+         *
+         * Cancer  -> Shravana
+         * Leo     -> Bhadrapada
+         * Virgo   -> Ashwin
+         * Libra   -> Kartik
+         * etc.
+         */
+        fun monthName(
+            monthStart: Long,
+            followingMonthStart: Long
+        ): String {
+
+            val signAtStart =
+                getSunSignAt(
+                    monthStart,
+                    swe
+                )
+
+            val signAtNextStart =
+                getSunSignAt(
+                    followingMonthStart,
+                    swe
+                )
+
+            val regularName =
+                masaNamesBySunSign[
+                    signAtStart.coerceIn(0, 11)
+                ]
+
+            /*
+             * Same solar sign at two consecutive New Moons means
+             * there was no Sankranti in that lunar month.
+             * That month is Adhika Masa.
+             */
+            return if (signAtStart == signAtNextStart) {
+                "अधिक $regularName"
+            } else {
+                regularName
+            }
+        }
+
+        val masa =
+            monthName(
+                currentMasaStart,
+                nextMasaStart
+            )
+
+        val nextMasa =
+            monthName(
+                nextMasaStart,
+                nextNextMasaStart
+            )
+
+        return MasaInfo(
+            masa = masa,
+            startMillis = currentMasaStart,
+            nextMasa = nextMasa,
+            nextStartMillis = nextMasaStart
         )
     }
 
-    // Current Amavasya -> current Masa start.
-    val currentMasaStart =
-        if (currentTithiIndex == 1) {
-            findBoundary(
-                now = now,
-                currentIndex = 1,
-                forward = false,
-                maxMinutes = 2880,
-                type = BoundaryType.TITHI
-            )
-        } else {
-            findTithiStartOf(
-                now = now,
-                currentIndex = currentTithiIndex,
-                forward = false,
-                maxMinutes = 60 * 24 * 40,
-                targetIndex = 1,
-                swe = swe
-            )
-        }
-
-    // Next Amavasya -> next Masa start.
-    val nextMasaStart =
-        if (currentTithiIndex == 1) {
-            findBoundary(
-                now = now,
-                currentIndex = 1,
-                forward = true,
-                maxMinutes = 60 * 24 * 40,
-                type = BoundaryType.TITHI
-            )
-        } else {
-            findTithiStartOf(
-                now = now,
-                currentIndex = currentTithiIndex,
-                forward = true,
-                maxMinutes = 60 * 24 * 40,
-                targetIndex = 1,
-                swe = swe
-            )
-        }
-
-    // Following Amavasya -> following Masa start.
-    val nextNextMasaStart =
-        findTithiStartOf(
-            now = nextMasaStart + 60_000L,
-            currentIndex = 1,
-            forward = true,
-            maxMinutes = 60 * 24 * 40,
-            targetIndex = 1,
-            swe = swe
-        )
-
     // ==========================================
-    // MASA NAME
-    // ==========================================
-    //
-    // In the Amanta system the lunar month is named
-    // according to the sidereal solar Sankranti that
-    // occurs between two consecutive Amavasyas.
-    //
-    // If a Sankranti occurs, use the corresponding
-    // Marathi masa name.
-    // If no Sankranti occurs, the interval is Adhik.
-    //
-    // The existing Sankranti calculation is retained.
-
-    val masa =
-        getMasaNameForInterval(
-            startMillis = currentMasaStart,
-            endMillis = nextMasaStart,
-            nextIntervalStart = nextMasaStart,
-            nextIntervalEnd = nextNextMasaStart,
-            swe = swe
-        )
-
-    val nextMasa =
-        getMasaNameForInterval(
-            startMillis = nextMasaStart,
-            endMillis = nextNextMasaStart,
-            nextIntervalStart = null,
-            nextIntervalEnd = null,
-            swe = swe
-        )
-
-    return MasaInfo(
-        masa = masa,
-        startMillis = currentMasaStart,
-        nextMasa = nextMasa,
-        nextStartMillis = nextMasaStart
-    )
-}
-
-
-// ==========================================
     // PRAHAR
     // ==========================================
 
@@ -945,7 +1154,7 @@ private fun getMasaNameForInterval(
         forward: Boolean,
         swe: SwissEph
     ): Long {
-        val step = 10L * 60_000L
+        val step = 5L * 60_000L
         var previous = now
         var current = now
 
@@ -996,7 +1205,7 @@ private fun getMasaNameForInterval(
         val now =
             System.currentTimeMillis()
 
-        val swe = sharedSwissEph
+        val swe = createSwissEph()
 
         val (sun, moon) =
             getSunMoon(
