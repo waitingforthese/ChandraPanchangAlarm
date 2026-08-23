@@ -426,6 +426,385 @@ object LivePanchangCalculator {
 
 
     // ==========================================
+    // MASA
+    // ==========================================
+
+    private data class MasaInfo(
+        val masa: String,
+        val startMillis: Long,
+        val nextMasa: String,
+        val nextStartMillis: Long
+    )
+
+    private data class PraharInfo(
+        val currentName: String,
+        val startMillis: Long,
+        val nextName: String,
+        val nextMillis: Long
+    )
+
+    private data class LagnaInfo(
+        val currentName: String,
+        val startMillis: Long,
+        val nextName: String,
+        val nextMillis: Long
+    )
+
+    private val masaNames = arrayOf(
+        "चैत्र", "वैशाख", "ज्येष्ठ", "आषाढ", "श्रावण", "भाद्रपद",
+        "आश्विन", "कार्तिक", "मार्गशीर्ष", "पौष", "माघ", "फाल्गुन"
+    )
+
+    private val rashiNames = arrayOf(
+        "मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या",
+        "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"
+    )
+
+    private fun findTithiStartOf(
+        now: Long,
+        currentIndex: Int,
+        forward: Boolean,
+        maxMinutes: Int,
+        targetIndex: Int,
+        swe: SwissEph
+    ): Long {
+        val step = 60L * 60_000L
+        var previous = now
+        var current = now
+
+        repeat(maxMinutes / 60 + 2) {
+            current = if (forward) current + step else current - step
+            val index = indexAt(current, BoundaryType.TITHI, swe)
+
+            if (index == targetIndex) {
+                var low = if (forward) previous else current
+                var high = if (forward) current else previous
+
+                repeat(20) {
+                    val middle = low + (high - low) / 2
+                    val middleIndex = indexAt(middle, BoundaryType.TITHI, swe)
+
+                    if (forward) {
+                        if (middleIndex == targetIndex) high = middle else low = middle
+                    } else {
+                        if (middleIndex == targetIndex) low = middle else high = middle
+                    }
+                }
+
+                return if (forward) high else low
+            }
+            previous = current
+        }
+
+        return if (forward) now + 24 * 60 * 60 * 1000L else now - 24 * 60 * 60 * 1000L
+    }
+
+    private fun getSunSignAt(
+        millis: Long,
+        swe: SwissEph
+    ): Int {
+        val (sun, _) = getSunMoon(millis, swe)
+        return floor(sun / 30.0).toInt().coerceIn(0, 11)
+    }
+
+    private fun getMasaFromPurnima(
+        purnimaMillis: Long,
+        swe: SwissEph
+    ): String {
+        return masaNames[getSunSignAt(purnimaMillis, swe)]
+    }
+
+    private fun getMasaInfo(
+        now: Long,
+        currentTithiIndex: Int,
+        swe: SwissEph
+    ): MasaInfo {
+        // Amanta month: month starts immediately after Amavasya.
+        // We locate the latest 30 -> 1 transition and the following one.
+        // A direct robust search for the next Amavasya boundary.
+        fun findAmavasyaForward(start: Long): Long {
+            val step = 2L * 60 * 60_000L
+            var previous = start
+            var current = start
+            repeat(15 * 24 + 4) {
+                current += step
+                val beforeIndex = indexAt(previous, BoundaryType.TITHI, swe)
+                val afterIndex = indexAt(current, BoundaryType.TITHI, swe)
+                if (beforeIndex == 30 && afterIndex == 1) {
+                    var low = previous
+                    var high = current
+                    repeat(20) {
+                        val mid = low + (high - low) / 2
+                        val midIndex = indexAt(mid, BoundaryType.TITHI, swe)
+                        if (midIndex == 30) low = mid else high = mid
+                    }
+                    return high
+                }
+                previous = current
+            }
+            return start + 30L * 24 * 60 * 60 * 1000L
+        }
+
+        fun findAmavasyaBackward(start: Long): Long {
+            val step = 2L * 60 * 60_000L
+            var previous = start
+            var current = start
+            repeat(15 * 24 + 4) {
+                current -= step
+                val beforeIndex = indexAt(current, BoundaryType.TITHI, swe)
+                val afterIndex = indexAt(previous, BoundaryType.TITHI, swe)
+                if (beforeIndex == 30 && afterIndex == 1) {
+                    var low = current
+                    var high = previous
+                    repeat(20) {
+                        val mid = low + (high - low) / 2
+                        val midIndex = indexAt(mid, BoundaryType.TITHI, swe)
+                        if (midIndex == 30) low = mid else high = mid
+                    }
+                    return high
+                }
+                previous = current
+            }
+            return start - 30L * 24 * 60 * 60 * 1000L
+        }
+
+        val start = findAmavasyaBackward(now)
+        val nextStart = findAmavasyaForward(now + 60_000L)
+
+        val purnima = findTithiStartOf(
+            now = start + 60_000L,
+            currentIndex = 1,
+            forward = true,
+            maxMinutes = 21600,
+            targetIndex = 15,
+            swe = swe
+        )
+
+        val nextPurnima = findTithiStartOf(
+            now = nextStart + 60_000L,
+            currentIndex = 1,
+            forward = true,
+            maxMinutes = 21600,
+            targetIndex = 15,
+            swe = swe
+        )
+
+        return MasaInfo(
+            masa = getMasaFromPurnima(purnima, swe),
+            startMillis = start,
+            nextMasa = getMasaFromPurnima(nextPurnima, swe),
+            nextStartMillis = nextStart
+        )
+    }
+
+    // ==========================================
+    // PRAHAR
+    // ==========================================
+
+    private fun solarRiseSet(
+        dateMillis: Long,
+        latitude: Double,
+        longitude: Double
+    ): Pair<Long, Long> {
+        // NOAA-style solar calculation. Accuracy is sufficient for prahar
+        // boundaries and avoids expensive ephemeris searches.
+        val cal = Calendar.getInstance(indiaTimeZone)
+        cal.timeInMillis = dateMillis
+        cal.set(Calendar.HOUR_OF_DAY, 12)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+
+        val dayOfYear = cal.get(Calendar.DAY_OF_YEAR)
+        val year = cal.get(Calendar.YEAR)
+        val daysInYear = if (Calendar.getInstance().apply {
+                set(year, Calendar.DECEMBER, 31)
+            }.get(Calendar.DAY_OF_YEAR) == 366) 366 else 365
+
+        fun solarEvent(isSunrise: Boolean): Long {
+            val zenith = Math.toRadians(90.833)
+            val gamma = 2.0 * Math.PI / daysInYear * (dayOfYear - 1 + 0.5)
+            val eqTime = 229.18 * (
+                0.000075 +
+                    0.001868 * kotlin.math.cos(gamma) -
+                    0.032077 * kotlin.math.sin(gamma) -
+                    0.014615 * kotlin.math.cos(2 * gamma) -
+                    0.040849 * kotlin.math.sin(2 * gamma)
+                )
+            val decl =
+                0.006918 -
+                    0.399912 * kotlin.math.cos(gamma) +
+                    0.070257 * kotlin.math.sin(gamma) -
+                    0.006758 * kotlin.math.cos(2 * gamma) +
+                    0.000907 * kotlin.math.sin(2 * gamma) -
+                    0.002697 * kotlin.math.cos(3 * gamma) +
+                    0.00148 * kotlin.math.sin(3 * gamma)
+
+            val cosH = (
+                kotlin.math.cos(zenith) -
+                    kotlin.math.sin(Math.toRadians(latitude)) * kotlin.math.sin(decl)
+                ) / (
+                kotlin.math.cos(Math.toRadians(latitude)) * kotlin.math.cos(decl)
+                )
+
+            if (cosH !in -1.0..1.0) return cal.timeInMillis
+
+            val hourAngle = kotlin.math.acos(cosH) * 180.0 / Math.PI
+            val solarMinutes = if (isSunrise) {
+                720.0 - 4.0 * (longitude + hourAngle) - eqTime
+            } else {
+                720.0 - 4.0 * (longitude - hourAngle) - eqTime
+            }
+
+            val result = Calendar.getInstance(indiaTimeZone)
+            result.timeInMillis = cal.timeInMillis
+            result.set(Calendar.HOUR_OF_DAY, 0)
+            result.set(Calendar.MINUTE, 0)
+            result.set(Calendar.SECOND, 0)
+            result.set(Calendar.MILLISECOND, 0)
+            result.add(Calendar.MINUTE, solarMinutes.toInt())
+            result.add(Calendar.MILLISECOND, ((solarMinutes - solarMinutes.toInt()) * 60_000.0).toInt())
+            return result.timeInMillis
+        }
+
+        return Pair(solarEvent(true), solarEvent(false))
+    }
+
+    private fun getPraharInfo(now: Long): PraharInfo {
+        // Default location used by the current app build: Pune, Maharashtra.
+        // This can later be replaced by device GPS coordinates.
+        val latitude = 18.5204
+        val longitude = 73.8567
+
+        val day = Calendar.getInstance(indiaTimeZone).apply { timeInMillis = now }
+        val startOfDay = Calendar.getInstance(indiaTimeZone).apply {
+            timeInMillis = now
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val (sunrise, sunset) = solarRiseSet(startOfDay, latitude, longitude)
+        val nextDay = Calendar.getInstance(indiaTimeZone).apply {
+            timeInMillis = startOfDay
+            add(Calendar.DAY_OF_MONTH, 1)
+        }.timeInMillis
+        val (nextSunrise, _) = solarRiseSet(nextDay, latitude, longitude)
+
+        val boundaries = ArrayList<Long>(9)
+        boundaries.add(sunrise)
+        val dayPart = (sunset - sunrise) / 4L
+        for (i in 1..3) boundaries.add(sunrise + dayPart * i)
+        boundaries.add(sunset)
+        val nightPart = (nextSunrise - sunset) / 4L
+        for (i in 1..3) boundaries.add(sunset + nightPart * i)
+        boundaries.add(nextSunrise)
+
+        val names = arrayOf(
+            "दिवसाचा पहिला प्रहर", "दिवसाचा दुसरा प्रहर", "दिवसाचा तिसरा प्रहर", "दिवसाचा चौथा प्रहर",
+            "रात्रीचा पहिला प्रहर", "रात्रीचा दुसरा प्रहर", "रात्रीचा तिसरा प्रहर", "रात्रीचा चौथा प्रहर"
+        )
+
+        var index = 0
+        for (i in 0 until 8) {
+            if (now >= boundaries[i] && now < boundaries[i + 1]) {
+                index = i
+                break
+            }
+        }
+
+        return PraharInfo(
+            currentName = names[index],
+            startMillis = boundaries[index],
+            nextName = names[(index + 1) % 8],
+            nextMillis = boundaries[index + 1]
+        )
+    }
+
+    // ==========================================
+    // LAGNA
+    // ==========================================
+
+    private fun getLagnaAt(
+        millis: Long,
+        swe: SwissEph
+    ): Int {
+        // Default location: Pune, Maharashtra. Sidereal Lahiri ascendant.
+        val latitude = 18.5204
+        val longitude = 73.8567
+        val jd = 2440587.5 + millis / 86400000.0
+        val cusp = DoubleArray(13)
+        val ascmc = DoubleArray(10)
+
+        swe.swe_set_sid_mode(
+            SweConst.SE_SIDM_LAHIRI,
+            0.0,
+            0.0
+        )
+
+        swe.swe_houses(
+            jd,
+            SweConst.SEFLG_SIDEREAL,
+            latitude,
+            longitude,
+            'W'.code,
+            cusp,
+            ascmc
+        )
+
+        return floor(normalize(ascmc[0]) / 30.0).toInt().coerceIn(0, 11)
+    }
+
+    private fun findLagnaBoundary(
+        now: Long,
+        currentIndex: Int,
+        forward: Boolean,
+        swe: SwissEph
+    ): Long {
+        val step = 5L * 60_000L
+        var previous = now
+        var current = now
+
+        repeat(24 * 12 + 12) {
+            current = if (forward) current + step else current - step
+            val index = getLagnaAt(current, swe)
+            if (index != currentIndex) {
+                var low = if (forward) previous else current
+                var high = if (forward) current else previous
+
+                repeat(18) {
+                    val middle = low + (high - low) / 2
+                    val middleIndex = getLagnaAt(middle, swe)
+                    if (forward) {
+                        if (middleIndex == currentIndex) low = middle else high = middle
+                    } else {
+                        if (middleIndex == currentIndex) high = middle else low = middle
+                    }
+                }
+                return if (forward) high else low
+            }
+            previous = current
+        }
+
+        return if (forward) now + 2L * 60 * 60 * 1000L else now - 2L * 60 * 60 * 1000L
+    }
+
+    private fun getLagnaInfo(now: Long, swe: SwissEph): LagnaInfo {
+        val currentIndex = getLagnaAt(now, swe)
+        val previous = findLagnaBoundary(now, currentIndex, false, swe)
+        val next = findLagnaBoundary(now, currentIndex, true, swe)
+        val nextIndex = getLagnaAt(next + 60_000L, swe)
+
+        return LagnaInfo(
+            currentName = "${rashiNames[currentIndex]} लग्न",
+            startMillis = previous,
+            nextName = "${rashiNames[nextIndex]} लग्न",
+            nextMillis = next
+        )
+    }
+
+    // ==========================================
     // MAIN PANCHANG STATE
     // ==========================================
 
@@ -602,6 +981,23 @@ object LivePanchangCalculator {
         weekdayFormatter.timeZone =
             indiaTimeZone
 
+        // ==========================================
+        // MASA / PRAHAR / LAGNA CALCULATIONS
+        // ==========================================
+
+        val masaInfo =
+            getMasaInfo(
+                now = now,
+                currentTithiIndex = tithiIndex,
+                swe = swe
+            )
+
+        val praharInfo =
+            getPraharInfo(now)
+
+        val lagnaInfo =
+            getLagnaInfo(now, swe)
+
 
         // ==========================================
         // RETURN
@@ -723,10 +1119,61 @@ object LivePanchangCalculator {
                 ),
 
             nextPakshaMillis =
-                nextPakshaMillis
+                nextPakshaMillis,
 
-            // MASA / PRAHAR / LAGNA
-            // अजून calculator मध्ये implement केलेले नाहीत.
+
+            // MASA
+
+            masa =
+                masaInfo.masa,
+
+            masaStartTime =
+                formatTime(masaInfo.startMillis),
+
+            nextMasa =
+                masaInfo.nextMasa,
+
+            nextMasaTime =
+                formatTime(masaInfo.nextStartMillis),
+
+            nextMasaMillis =
+                masaInfo.nextStartMillis,
+
+
+            // PRAHAR
+
+            prahar =
+                praharInfo.currentName,
+
+            praharStartTime =
+                formatTime(praharInfo.startMillis),
+
+            nextPrahar =
+                praharInfo.nextName,
+
+            nextPraharTime =
+                formatTime(praharInfo.nextMillis),
+
+            nextPraharMillis =
+                praharInfo.nextMillis,
+
+
+            // LAGNA
+
+            lagna =
+                lagnaInfo.currentName,
+
+            lagnaStartTime =
+                formatTime(lagnaInfo.startMillis),
+
+            nextLagna =
+                lagnaInfo.nextName,
+
+            nextLagnaTime =
+                formatTime(lagnaInfo.nextMillis),
+
+            nextLagnaMillis =
+                lagnaInfo.nextMillis
         )
     }
 }
