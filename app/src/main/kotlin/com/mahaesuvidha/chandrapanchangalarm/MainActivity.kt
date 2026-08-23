@@ -55,12 +55,10 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.RequestMultiplePermissions()
         ) { }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
     scheduler = AlarmScheduler(this)
-
-
 
     // Notification Permission
     if (android.os.Build.VERSION.SDK_INT >= 33) {
@@ -78,77 +76,110 @@ class MainActivity : ComponentActivity() {
     )
 
     setContent {
+
         var moonState by remember {
-    mutableStateOf<MoonState?>(null)
-}
+            mutableStateOf<MoonState?>(null)
+        }
 
-var sunState by remember {
-    mutableStateOf<SunState?>(null)
-}
-var panchangState by remember {
-    mutableStateOf(
-        PanchangState(
-            date = "",
-            weekday = "",
-            tithi = "लोड होत आहे...",
-            nextTithi = "",
-            nextTithiTime = "",
-            nextTithiMillis = 0L,
-            yoga = "लोड होत आहे...",
-            nextYoga = "",
-            nextYogaTime = "",
-            nextYogaMillis = 0L,
-            karana = "लोड होत आहे...",
-            nextKarana = "",
-            nextKaranaTime = "",
-            nextKaranaMillis = 0L,
-            paksha = "लोड होत आहे...",
-            nextPaksha = "",
-            nextPakshaTime = "",
-            nextPakshaMillis = 0L
-        )
-    )
-}
+        var sunState by remember {
+            mutableStateOf<SunState?>(null)
+        }
 
-LaunchedEffect(Unit) {
+        var panchangState by remember {
+            mutableStateOf(
+                PanchangState(
+                    date = "",
+                    weekday = "",
 
-    val result =
-        withContext(Dispatchers.Default) {
+                    tithi = "लोड होत आहे...",
+                    nextTithi = "",
+                    nextTithiTime = "",
+                    nextTithiMillis = 0L,
 
-            Triple(
-                LiveMoonCalculator.getCurrentMoonState(),
-                LiveSunCalculator.getCurrentSunState(),
-                LivePanchangCalculator.getCurrentPanchangState()
+                    yoga = "लोड होत आहे...",
+                    nextYoga = "",
+                    nextYogaTime = "",
+                    nextYogaMillis = 0L,
+
+                    karana = "लोड होत आहे...",
+                    nextKarana = "",
+                    nextKaranaTime = "",
+                    nextKaranaMillis = 0L,
+
+                    paksha = "लोड होत आहे...",
+                    nextPaksha = "",
+                    nextPakshaTime = "",
+                    nextPakshaMillis = 0L
+                )
             )
         }
 
-    moonState = result.first
-    sunState = result.second
-    panchangState = result.third
-}
+        // ------------------------------------------
+        // BACKGROUND CALCULATION
+        // ------------------------------------------
+
+        LaunchedEffect(Unit) {
+
+            val result =
+                withContext(Dispatchers.Default) {
+
+                    Triple(
+                        LiveMoonCalculator.getCurrentMoonState(),
+                        LiveSunCalculator.getCurrentSunState(),
+                        LivePanchangCalculator
+                            .getCurrentPanchangState()
+                    )
+                }
+
+            moonState = result.first
+            sunState = result.second
+            panchangState = result.third
+        }
+
         MaterialTheme {
 
-    ChandraSuryaHome(
-        moonState = moonState,
-        sunState = sunState,
-        panchangState = panchangState,
+            if (
+                moonState == null ||
+                sunState == null
+            ) {
 
-        onTestRashi = {
-            scheduler.scheduleTest("राशी बदल")
-        },
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
 
-        onTestNakshatra = {
-            scheduler.scheduleTest("नक्षत्र बदल")
-        },
+                    Text(
+                        text = "लोड होत आहे...",
+                        fontSize = 22.sp
+                    )
+                }
 
-        onTestCharan = {
-            scheduler.scheduleTest("चरण बदल")
-        }
-    )
+            } else {
+
+                ChandraSuryaHome(
+
+                    moonState = moonState!!,
+
+                    sunState = sunState!!,
+
+                    panchangState = panchangState,
+
+                    onTestRashi = {
+                        scheduler.scheduleTest("राशी बदल")
+                    },
+
+                    onTestNakshatra = {
+                        scheduler.scheduleTest("नक्षत्र बदल")
+                    },
+
+                    onTestCharan = {
+                        scheduler.scheduleTest("चरण बदल")
+                    }
+                )
+            }
         }
     }
 }
-
 @Composable
 private fun ChandraSuryaHome(
 if (moonState == null || sunState == null) {
