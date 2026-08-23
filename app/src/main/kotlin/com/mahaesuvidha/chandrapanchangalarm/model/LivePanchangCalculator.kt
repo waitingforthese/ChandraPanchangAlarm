@@ -625,286 +625,143 @@ private fun getMasaNameForInterval(
 ): MasaInfo {
 
     // ==========================================
-    // AMAVASYA SEARCH
+    // AMAVASYA / MASA START
     // ==========================================
+    //
+    // Amanta month starts exactly when TITHI changes
+    // from Amavasya (30) to Pratipada (1).
+    //
+    // The previous implementation searched for the
+    // phase 300° boundary, which is NOT Amavasya.
+    // That caused wrong masaStartTime values such as
+    // 01-08-2026 00:00.
+    //
+    // We now locate the actual Tithi-1 boundary.
+    // This gives the real Amavasya / Masa start time.
 
-    fun getLunarPhase(
-        millis: Long
-    ): Double {
+    fun findMasaStart(
+        fromMillis: Long,
+        forward: Boolean,
+        includeCurrent: Boolean
+    ): Long {
 
-        val (sun, moon) =
-            getSunMoon(
-                millis,
-                swe
+        // If we are currently inside Pratipada, the
+        // current Tithi boundary itself is the masa start.
+        if (currentTithiIndex == 1 && includeCurrent) {
+            return findBoundary(
+                now = fromMillis,
+                currentIndex = 1,
+                forward = false,
+                maxMinutes = 2880,
+                type = BoundaryType.TITHI
             )
-
-        return normalize(
-            moon - sun
-        )
-    }
-
-
-    // ==========================================
-    // FIND NEXT AMAVASYA
-    // ==========================================
-
-    fun findAmavasyaForward(
-        start: Long
-    ): Long {
-
-        val step =
-            60L * 60_000L
-
-        var previous =
-            start
-
-        var previousPhase =
-            getLunarPhase(previous)
-
-        repeat(40 * 24) {
-
-            val current =
-                previous + step
-
-            val currentPhase =
-                getLunarPhase(current)
-
-            /*
-             * Amavasya:
-             *
-             * Phase:
-             * 359° → 0°
-             *
-             * त्यामुळे previous phase मोठा
-             * आणि current phase लहान झाला
-             */
-
-            if (
-                previousPhase > 300.0 &&
-                currentPhase < 60.0
-            ) {
-
-                var low =
-                    previous
-
-                var high =
-                    current
-
-                repeat(30) {
-
-                    val middle =
-                        low +
-                                (high - low) / 2
-
-                    val middlePhase =
-                        getLunarPhase(middle)
-
-                    if (
-                        middlePhase > 300.0
-                    ) {
-
-                        low =
-                            middle
-
-                    } else {
-
-                        high =
-                            middle
-                    }
-                }
-
-                return high
-            }
-
-            previous =
-                current
-
-            previousPhase =
-                currentPhase
         }
 
-        // Safety fallback
-        return start +
-                30L * 24L * 60L * 60L * 1000L
+        return findTithiStartOf(
+            now = fromMillis,
+            currentIndex = currentTithiIndex,
+            forward = forward,
+            maxMinutes = 60 * 24 * 40,
+            targetIndex = 1,
+            swe = swe
+        )
     }
 
-
-    // ==========================================
-    // FIND PREVIOUS AMAVASYA
-    // ==========================================
-
-    fun findAmavasyaBackward(
-        start: Long
-    ): Long {
-
-        val step =
-            60L * 60_000L
-
-        var previous =
-            start
-
-        var previousPhase =
-            getLunarPhase(previous)
-
-        repeat(40 * 24) {
-
-            val current =
-                previous - step
-
-            val currentPhase =
-                getLunarPhase(current)
-
-            /*
-             * Backward search:
-             *
-             * पुढून मागे जाताना
-             * 0° → 359°
-             */
-
-            if (
-                previousPhase < 60.0 &&
-                currentPhase > 300.0
-            ) {
-
-                var low =
-                    current
-
-                var high =
-                    previous
-
-                repeat(30) {
-
-                    val middle =
-                        low +
-                                (high - low) / 2
-
-                    val middlePhase =
-                        getLunarPhase(middle)
-
-                    if (
-                        middlePhase > 300.0
-                    ) {
-
-                        low =
-                            middle
-
-                    } else {
-
-                        high =
-                            middle
-                    }
-                }
-
-                return high
-            }
-
-            previous =
-                current
-
-            previousPhase =
-                currentPhase
+    // Current Amavasya -> current Masa start.
+    val currentMasaStart =
+        if (currentTithiIndex == 1) {
+            findBoundary(
+                now = now,
+                currentIndex = 1,
+                forward = false,
+                maxMinutes = 2880,
+                type = BoundaryType.TITHI
+            )
+        } else {
+            findTithiStartOf(
+                now = now,
+                currentIndex = currentTithiIndex,
+                forward = false,
+                maxMinutes = 60 * 24 * 40,
+                targetIndex = 1,
+                swe = swe
+            )
         }
 
-        // Safety fallback
-        return start -
-                30L * 24L * 60L * 60L * 1000L
-    }
+    // Next Amavasya -> next Masa start.
+    val nextMasaStart =
+        if (currentTithiIndex == 1) {
+            findBoundary(
+                now = now,
+                currentIndex = 1,
+                forward = true,
+                maxMinutes = 60 * 24 * 40,
+                type = BoundaryType.TITHI
+            )
+        } else {
+            findTithiStartOf(
+                now = now,
+                currentIndex = currentTithiIndex,
+                forward = true,
+                maxMinutes = 60 * 24 * 40,
+                targetIndex = 1,
+                swe = swe
+            )
+        }
 
-
-    // ==========================================
-    // CURRENT AMAVASYA
-    // ==========================================
-
-    val start =
-        findAmavasyaBackward(
-            now
+    // Following Amavasya -> following Masa start.
+    val nextNextMasaStart =
+        findTithiStartOf(
+            now = nextMasaStart + 60_000L,
+            currentIndex = 1,
+            forward = true,
+            maxMinutes = 60 * 24 * 40,
+            targetIndex = 1,
+            swe = swe
         )
 
-
     // ==========================================
-    // NEXT AMAVASYA
+    // MASA NAME
     // ==========================================
-
-    val nextStart =
-        findAmavasyaForward(
-            start + 60_000L
-        )
-
-
-    // ==========================================
-    // NEXT-NEXT AMAVASYA
-    // Needed for next MASA name
-    // ==========================================
-
-    val nextNextStart =
-        findAmavasyaForward(
-            nextStart + 60_000L
-        )
-
-
-    // ==========================================
-    // CURRENT MASA
-    // ==========================================
+    //
+    // In the Amanta system the lunar month is named
+    // according to the sidereal solar Sankranti that
+    // occurs between two consecutive Amavasyas.
+    //
+    // If a Sankranti occurs, use the corresponding
+    // Marathi masa name.
+    // If no Sankranti occurs, the interval is Adhik.
+    //
+    // The existing Sankranti calculation is retained.
 
     val masa =
         getMasaNameForInterval(
-            startMillis =
-                start,
-
-            endMillis =
-                nextStart,
-
-            nextIntervalStart =
-                nextStart,
-
-            nextIntervalEnd =
-                nextNextStart,
-
-            swe =
-                swe
+            startMillis = currentMasaStart,
+            endMillis = nextMasaStart,
+            nextIntervalStart = nextMasaStart,
+            nextIntervalEnd = nextNextMasaStart,
+            swe = swe
         )
-
-
-    // ==========================================
-    // NEXT MASA
-    // ==========================================
 
     val nextMasa =
         getMasaNameForInterval(
-            startMillis =
-                nextStart,
-
-            endMillis =
-                nextNextStart,
-
-            nextIntervalStart =
-                null,
-
-            nextIntervalEnd =
-                null,
-
-            swe =
-                swe
+            startMillis = nextMasaStart,
+            endMillis = nextNextMasaStart,
+            nextIntervalStart = null,
+            nextIntervalEnd = null,
+            swe = swe
         )
 
-
     return MasaInfo(
-
-        masa =
-            masa,
-
-        startMillis =
-            start,
-
-        nextMasa =
-            nextMasa,
-
-        nextStartMillis =
-            nextStart
+        masa = masa,
+        startMillis = currentMasaStart,
+        nextMasa = nextMasa,
+        nextStartMillis = nextMasaStart
     )
 }
 
-    // ==========================================
+
+// ==========================================
     // PRAHAR
     // ==========================================
 
