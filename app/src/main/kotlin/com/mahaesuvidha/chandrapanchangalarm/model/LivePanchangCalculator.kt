@@ -861,103 +861,46 @@ private val masaNamesBySunSign = arrayOf(
     }
 
 
- private fun getMasaInfo(
+    private fun getMasaInfo(
         now: Long,
         currentTithiIndex: Int,
         swe: SwissEph
     ): MasaInfo {
 
-        /*
-         * IMPORTANT:
-         *
-         * For the Maharashtra / Amanta calendar, the lunar month
-         * starts at the beginning of Shukla Pratipada.
-         *
-         * Therefore we deliberately use the astronomical TITHI
-         * boundary for Shukla Pratipada instead of searching for
-         * a 360° -> 0° phase crossing.
-         *
-         * This avoids false Amavasya detections around midnight
-         * and makes the Masa start agree with the Tithi calculation
-         * already used by this calculator.
+        /* FINAL MASA FIX: Amanta Masa is bounded by astronomical
+         * New Moon (Amavasya -> Shukla Pratipada). Do not derive the
+         * month boundary from the generic Tithi interval search.
          */
 
-        // ------------------------------------------
-        // CURRENT MASA START
-        // ------------------------------------------
         val currentMasaStart =
-            findShuklaPratipadaBoundary(
+            findNewMoonBoundary(
                 now = now,
                 forward = false,
                 swe = swe
             )
 
-        /*
-         * If today itself is Shukla Pratipada, the previous search
-         * above can stop at the current Pratipada boundary.
-         *
-         * Otherwise it finds the previous month's Pratipada.
-         */
-
-        // ------------------------------------------
-        // NEXT MASA START
-        // ------------------------------------------
         val nextMasaStart =
-            findShuklaPratipadaBoundary(
-                now = now,
+            findNewMoonBoundary(
+                now = now + 60_000L,
                 forward = true,
                 swe = swe
             )
 
-        // ------------------------------------------
-        // NEXT-NEXT MASA START
-        // ------------------------------------------
         val nextNextMasaStart =
-            findShuklaPratipadaBoundary(
+            findNewMoonBoundary(
                 now = nextMasaStart + 60_000L,
                 forward = true,
                 swe = swe
             )
 
-        /*
-         * Month name is determined from the SIDEREAL SUN SIGN
-         * at the beginning of the lunar month.
-         *
-         * Existing mapping is intentional:
-         *
-         * Cancer  -> Shravana
-         * Leo     -> Bhadrapada
-         * Virgo   -> Ashwin
-         * Libra   -> Kartik
-         * etc.
-         */
         fun monthName(
             monthStart: Long,
             followingMonthStart: Long
         ): String {
+            val signAtStart = getSunSignAt(monthStart, swe)
+            val signAtNextStart = getSunSignAt(followingMonthStart, swe)
+            val regularName = masaNamesBySunSign[signAtStart.coerceIn(0, 11)]
 
-            val signAtStart =
-                getSunSignAt(
-                    monthStart,
-                    swe
-                )
-
-            val signAtNextStart =
-                getSunSignAt(
-                    followingMonthStart,
-                    swe
-                )
-
-            val regularName =
-                masaNamesBySunSign[
-                    signAtStart.coerceIn(0, 11)
-                ]
-
-            /*
-             * Same solar sign at two consecutive New Moons means
-             * there was no Sankranti in that lunar month.
-             * That month is Adhika Masa.
-             */
             return if (signAtStart == signAtNextStart) {
                 "अधिक $regularName"
             } else {
@@ -965,17 +908,8 @@ private val masaNamesBySunSign = arrayOf(
             }
         }
 
-        val masa =
-            monthName(
-                currentMasaStart,
-                nextMasaStart
-            )
-
-        val nextMasa =
-            monthName(
-                nextMasaStart,
-                nextNextMasaStart
-            )
+        val masa = monthName(currentMasaStart, nextMasaStart)
+        val nextMasa = monthName(nextMasaStart, nextNextMasaStart)
 
         return MasaInfo(
             masa = masa,
