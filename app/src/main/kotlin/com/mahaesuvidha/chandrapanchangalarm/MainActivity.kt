@@ -234,6 +234,20 @@ LaunchedEffect(Unit) {
         return
     }
 
+    // IMPORTANT:
+    // Once LIVE calculations are completed, render the actual home screen.
+    // Without this call the app only shows the loading state and never
+    // enters the main Panchang UI.
+    ChandraSuryaHomeContent(
+        moonState = moonState!!,
+        sunState = sunState!!,
+        panchangState = panchangState!!,
+        onTestRashi = onTestRashi,
+        onTestNakshatra = onTestNakshatra,
+        onTestCharan = onTestCharan
+    )
+}
+
 @Composable
 private fun ChandraSuryaHomeContent(
 
