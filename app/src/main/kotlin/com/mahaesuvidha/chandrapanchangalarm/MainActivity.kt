@@ -152,55 +152,87 @@ private fun ChandraSuryaHome(
 
 LaunchedEffect(Unit) {
 
-    try {
+        val result =
+            withContext(Dispatchers.Default) {
 
-        // 1. Moon first
-        val moon = withContext(Dispatchers.Default) {
-            LiveMoonCalculator.getCurrentMoonState()
-        }
+                Triple(
+                    LiveMoonCalculator
+                        .getCurrentMoonState(),
 
-        moonState = moon
+                    LiveSunCalculator
+                        .getCurrentSunState(),
 
-        // 2. Sun second
-        val sun = withContext(Dispatchers.Default) {
-            LiveSunCalculator.getCurrentSunState()
-        }
+                    LivePanchangCalculator
+                        .getCurrentPanchangState()
+                )
+            }
 
-        sunState = sun
-
-        // 3. Panchang last
-        val panchang = withContext(Dispatchers.Default) {
-            LivePanchangCalculator.getCurrentPanchangState()
-        }
-
-        panchangState = panchang
-
-    } catch (e: Exception) {
-
-        e.printStackTrace()
-
-        // Prevent application crash
-        moonState = null
-        sunState = null
-        panchangState = null
+        moonState = result.first
+        sunState = result.second
+        panchangState = result.third
     }
-}
-    ChandraSuryaHomeContent(
 
-        moonState = moonState!!,
+    if (
+        moonState == null ||
+        sunState == null ||
+        panchangState == null
+    ) {
 
-        sunState = sunState!!,
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Color(0xFF07111F)
+                    ),
+            contentAlignment =
+                Alignment.Center
+        ) {
 
-        panchangState = panchangState!!,
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
 
-        onTestRashi = onTestRashi,
+                Text(
+                    text = "🌙",
+                    fontSize = 54.sp
+                )
 
-        onTestNakshatra = onTestNakshatra,
+                Spacer(
+                    modifier =
+                        Modifier.height(16.dp)
+                )
 
-        onTestCharan = onTestCharan
-    )
-}
+                CircularProgressIndicator()
 
+                Spacer(
+                    modifier =
+                        Modifier.height(16.dp)
+                )
+
+                Text(
+                    text = "पंचांग लोड होत आहे…",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(6.dp)
+                )
+
+                Text(
+                    text = "LIVE गणना सुरू आहे",
+                    color = Color.LightGray,
+                    fontSize = 13.sp
+                )
+            }
+        }
+
+        return
+    }
 
 @Composable
 private fun ChandraSuryaHomeContent(
