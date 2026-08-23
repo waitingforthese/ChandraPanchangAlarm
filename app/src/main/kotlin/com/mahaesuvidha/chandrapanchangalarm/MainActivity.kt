@@ -91,16 +91,29 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
 
                 ChandraSuryaHome(
+
+
                     onTestRashi = {
-                        scheduler.scheduleTest("राशी")
+
+                        scheduler.scheduleTest(
+                            "राशी"
+                        )
                     },
+
 
                     onTestNakshatra = {
-                        scheduler.scheduleTest("नक्षत्र")
+
+                        scheduler.scheduleTest(
+                            "नक्षत्र"
+                        )
                     },
 
+
                     onTestCharan = {
-                        scheduler.scheduleTest("चरण")
+
+                        scheduler.scheduleTest(
+                            "चरण"
+                        )
                     }
                 )
             }
@@ -143,9 +156,14 @@ private fun ChandraSuryaHome(
             withContext(Dispatchers.Default) {
 
                 Triple(
-                    LiveMoonCalculator.getCurrentMoonState(),
-                    LiveSunCalculator.getCurrentSunState(),
-                    PanchangCalculator.getCurrentPanchang()
+                    LiveMoonCalculator
+                        .getCurrentMoonState(),
+
+                    LiveSunCalculator
+                        .getCurrentSunState(),
+
+                    PanchangCalculator
+                        .getCurrentPanchang()
                 )
             }
 
@@ -160,70 +178,76 @@ private fun ChandraSuryaHome(
         panchangState == null
     ) {
 
-        LoadingScreen()
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Color(0xFF07111F)
+                    ),
+            contentAlignment =
+                Alignment.Center
+        ) {
+
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    text = "🌙",
+                    fontSize = 54.sp
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(16.dp)
+                )
+
+                CircularProgressIndicator()
+
+                Spacer(
+                    modifier =
+                        Modifier.height(16.dp)
+                )
+
+                Text(
+                    text = "पंचांग लोड होत आहे…",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(6.dp)
+                )
+
+                Text(
+                    text = "LIVE गणना सुरू आहे",
+                    color = Color.LightGray,
+                    fontSize = 13.sp
+                )
+            }
+        }
 
         return
     }
 
     ChandraSuryaHomeContent(
+
         moonState = moonState!!,
+
         sunState = sunState!!,
+
         panchangState = panchangState!!,
+
         onTestRashi = onTestRashi,
+
         onTestNakshatra = onTestNakshatra,
+
         onTestCharan = onTestCharan
     )
-}
-
-
-@Composable
-private fun LoadingScreen() {
-
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color(0xFF07111F)),
-        contentAlignment = Alignment.Center
-    ) {
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Text(
-                text = "🌙",
-                fontSize = 54.sp
-            )
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            CircularProgressIndicator()
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            Text(
-                text = "पंचांग लोड होत आहे…",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
-
-            Text(
-                text = "LIVE गणना सुरू आहे",
-                color = Color.LightGray,
-                fontSize = 13.sp
-            )
-        }
-    }
 }
 
 
@@ -1607,6 +1631,9 @@ PanchangInfoCard(
     nextTime =
         state.nextLagnaTime
 )
+
+}
+
 // ==========================================================
 // PANCHANG CHANGE SECTION
 // ==========================================================
