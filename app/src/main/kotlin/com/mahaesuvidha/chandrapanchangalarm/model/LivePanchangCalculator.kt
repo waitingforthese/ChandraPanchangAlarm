@@ -561,182 +561,262 @@ private val masaNamesBySunSign = arrayOf(
         return null
     }
 
-private fun getMasaNameForInterval(
-    startMillis: Long,
-    endMillis: Long,
-    nextIntervalStart: Long?,
-    nextIntervalEnd: Long?,
-    swe: SwissEph
-): String {
-
-    // Maharashtra uses the Amanta lunar-month system.
-    // The lunar month boundary is the Amavasya -> Shukla Pratipada boundary.
-    // The month name is determined from the sidereal Sun sign at that boundary.
-    //
-    // 12-08-2026 -> Sun in Karka -> Shravana
-    // 10-09-2026 -> Sun in Simha -> Bhadrapada
-    //
-    // If the Sun remains in the same sidereal sign at consecutive boundaries,
-    // no Sankranti occurred during that lunar month, so it is Adhik.
-    val startSign =
-        getSunSignAt(startMillis, swe)
-
-    val nextSign =
-        getSunSignAt(endMillis, swe)
-
-    val baseName =
-        masaNamesBySunSign[startSign.coerceIn(0, 11)]
-
-    return if (startSign == nextSign) {
-        "अधिक $baseName"
-    } else {
-        baseName
-    }
-}
-
-private fun getMasaInfo(
-    now: Long,
-    currentTithiIndex: Int,
-    swe: SwissEph
-): MasaInfo {
-
-    // ==========================================
-    // AMAVASYA / MASA START
-    // ==========================================
-    //
-    // Amanta month starts exactly when TITHI changes
-    // from Amavasya (30) to Pratipada (1).
-    //
-    // The previous implementation searched for the
-    // phase 300° boundary, which is NOT Amavasya.
-    // That caused wrong masaStartTime values such as
-    // 01-08-2026 00:00.
-    //
-    // We now locate the actual Tithi-1 boundary.
-    // This gives the real Amavasya / Masa start time.
-
-    fun findMasaStart(
-        fromMillis: Long,
+private fun findAmantaMasaBoundary(
+        now: Long,
         forward: Boolean,
-        includeCurrent: Boolean
+        swe: SwissEph
     ): Long {
 
-        // If we are currently inside Pratipada, the
-        // current Tithi boundary itself is the masa start.
-        if (currentTithiIndex == 1 && includeCurrent) {
-            return findBoundary(
-                now = fromMillis,
-                currentIndex = 1,
-                forward = false,
-                maxMinutes = 2880,
-                type = BoundaryType.TITHI
-            )
+        /*
+         * Amanta lunar month starts at the exact transition:
+         *
+         *     Amavasya (Tithi 30) -> Shukla Pratipada (Tithi 1)
+         *
+         * Do NOT search for a fixed phase such as 300°.
+         * The same boundary is also used by the Tithi calculation,
+         * so Masa start remains synchronized with the Panchang Tithi.
+         */
+
+        val step = 60L * 60_000L
+
+        var later = now
+        var earlier = now
+
+        repeat(60 * 24 * 50) {
+            if (forward) {
+                val before = later
+                val after = later + step
+
+                val beforeIndex = indexAt(
+                    before,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                val afterIndex = indexAt(
+                    after,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                if (beforeIndex == 30 && afterIndex == 1) {
+                    var low = before
+                    var high = after
+
+                    repeat(22) {
+                        val middle = low + (high - low) / 2
+                        val middleIndex = indexAt(
+                            middle,
+                            BoundaryType.TITHI,
+                            swe
+                        )
+
+                        if (middleIndex == 30) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return high
+                }
+
+                later = after
+
+            } else {
+                val after = earlier
+                val before = earlier - step
+
+                val afterIndex = indexAt(
+                    after,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                val beforeIndex = indexAt(
+                    before,
+                    BoundaryType.TITHI,
+                    swe
+                )
+
+                if (beforeIndex == 30 && afterIndex == 1) {
+                    var low = after
+                    var high = before
+
+                    repeat(22) {
+                        val middle = low + (high - low) / 2
+                        val middleIndex = indexAt(
+                            middle,
+                            BoundaryType.TITHI,
+                            swe
+                        )
+
+                        if (middleIndex == 1) {
+                            low = middle
+                        } else {
+                            high = middle
+                        }
+                    }
+
+                    return low
+                }
+
+                earlier = before
+            }
         }
 
-        return findTithiStartOf(
-            now = fromMillis,
-            currentIndex = currentTithiIndex,
-            forward = forward,
-            maxMinutes = 60 * 24 * 40,
-            targetIndex = 1,
-            swe = swe
-        )
+        // This should never be reached during normal operation.
+        // Keep a safe fallback rather than returning an unrelated date.
+        return if (forward) {
+            now + 35L * 24 * 60 * 60 * 1000
+        } else {
+            now - 35L * 24 * 60 * 60 * 1000
+        }
     }
 
-    // Current Amavasya -> current Masa start.
-    val currentMasaStart =
-        if (currentTithiIndex == 1) {
-            findBoundary(
-                now = now,
-                currentIndex = 1,
-                forward = false,
-                maxMinutes = 2880,
-                type = BoundaryType.TITHI
-            )
-        } else {
-            findTithiStartOf(
-                now = now,
-                currentIndex = currentTithiIndex,
-                forward = false,
-                maxMinutes = 60 * 24 * 40,
-                targetIndex = 1,
-                swe = swe
-            )
+    private fun findFullMoonInMasa(
+        startMillis: Long,
+        endMillis: Long,
+        swe: SwissEph
+    ): Long {
+
+        /*
+         * The Marathi/Amanta month name is associated with the
+         * solar sign at the month's Purnima (full moon).
+         *
+         * We locate the interval where Tithi 15 (Purnima) is active.
+         */
+
+        val step = 60L * 60_000L
+        var current = startMillis
+
+        while (current < endMillis) {
+            if (indexAt(current, BoundaryType.TITHI, swe) == 15) {
+                return current
+            }
+            current += step
         }
 
-    // Next Amavasya -> next Masa start.
-    val nextMasaStart =
-        if (currentTithiIndex == 1) {
-            findBoundary(
-                now = now,
-                currentIndex = 1,
-                forward = true,
-                maxMinutes = 60 * 24 * 40,
-                type = BoundaryType.TITHI
-            )
-        } else {
-            findTithiStartOf(
-                now = now,
-                currentIndex = currentTithiIndex,
-                forward = true,
-                maxMinutes = 60 * 24 * 40,
-                targetIndex = 1,
+        // Defensive fallback. A normal lunar month always contains Purnima.
+        return startMillis + (endMillis - startMillis) / 2
+    }
+
+    private fun getMasaNameForInterval(
+        startMillis: Long,
+        endMillis: Long,
+        swe: SwissEph
+    ): String {
+
+        /*
+         * Maharashtra follows the Amanta lunar-month system.
+         *
+         * Example for 2026:
+         *   12-08-2026 23:xx -> Bhadrapada starts
+         *   Purnima around 28-08-2026 -> Sun is in Simha
+         *   therefore the month is Bhadrapada.
+         *
+         * The previous implementation named the month from the Sun
+         * sign at the Amavasya boundary. That can produce the wrong
+         * Marathi month name because the month is named from Purnima.
+         */
+
+        val fullMoonMillis =
+            findFullMoonInMasa(
+                startMillis = startMillis,
+                endMillis = endMillis,
                 swe = swe
             )
+
+        val fullMoonSunSign =
+            getSunSignAt(
+                fullMoonMillis,
+                swe
+            )
+
+        val masaName =
+            masaNamesBySunSign[
+                fullMoonSunSign.coerceIn(0, 11)
+            ]
+
+        /*
+         * Adhik Masa:
+         * if the Sun does not change sidereal sign during the
+         * entire lunar month, there is no Sankranti in that
+         * Amavasya -> Amavasya interval.
+         */
+        val startSign =
+            getSunSignAt(startMillis, swe)
+
+        val endSign =
+            getSunSignAt(
+                endMillis - 1_000L,
+                swe
+            )
+
+        return if (startSign == endSign) {
+            "अधिक $masaName"
+        } else {
+            masaName
         }
+    }
 
-    // Following Amavasya -> following Masa start.
-    // nextMasaStart is already inside Tithi 1, so findTithiStartOf()
-    // with targetIndex = currentIndex could match the same Tithi again.
-    // Explicitly search for the NEXT Tithi-1 boundary instead.
-    val nextNextMasaStart =
-        findBoundary(
-            now = nextMasaStart + 60_000L,
-            currentIndex = 1,
-            forward = true,
-            maxMinutes = 60 * 24 * 40,
-            type = BoundaryType.TITHI
-        )
+    private fun getMasaInfo(
+        now: Long,
+        currentTithiIndex: Int,
+        swe: SwissEph
+    ): MasaInfo {
 
-    // ==========================================
-    // MASA NAME
-    // ==========================================
-    //
-    // In the Amanta system the lunar month is named
-    // according to the sidereal solar Sankranti that
-    // occurs between two consecutive Amavasyas.
-    //
-    // If a Sankranti occurs, use the corresponding
-    // Marathi masa name.
-    // If no Sankranti occurs, the interval is Adhik.
-    //
-    // The existing Sankranti calculation is retained.
+        /*
+         * Find the real Amavasya -> Pratipada boundaries.
+         *
+         * IMPORTANT:
+         * We intentionally do not use calendar dates such as
+         * 01-08-2026 00:00. Masa start is an astronomical event,
+         * not the first day of a Gregorian month.
+         */
 
-    val masa =
-        getMasaNameForInterval(
+        val currentMasaStart =
+            findAmantaMasaBoundary(
+                now = now,
+                forward = false,
+                swe = swe
+            )
+
+        val nextMasaStart =
+            findAmantaMasaBoundary(
+                now = now,
+                forward = true,
+                swe = swe
+            )
+
+        val nextNextMasaStart =
+            findAmantaMasaBoundary(
+                now = nextMasaStart + 60_000L,
+                forward = true,
+                swe = swe
+            )
+
+        val masa =
+            getMasaNameForInterval(
+                startMillis = currentMasaStart,
+                endMillis = nextMasaStart,
+                swe = swe
+            )
+
+        val nextMasa =
+            getMasaNameForInterval(
+                startMillis = nextMasaStart,
+                endMillis = nextNextMasaStart,
+                swe = swe
+            )
+
+        return MasaInfo(
+            masa = masa,
             startMillis = currentMasaStart,
-            endMillis = nextMasaStart,
-            nextIntervalStart = nextMasaStart,
-            nextIntervalEnd = nextNextMasaStart,
-            swe = swe
+            nextMasa = nextMasa,
+            nextStartMillis = nextMasaStart
         )
-
-    val nextMasa =
-        getMasaNameForInterval(
-            startMillis = nextMasaStart,
-            endMillis = nextNextMasaStart,
-            nextIntervalStart = null,
-            nextIntervalEnd = null,
-            swe = swe
-        )
-
-    return MasaInfo(
-        masa = masa,
-        startMillis = currentMasaStart,
-        nextMasa = nextMasa,
-        nextStartMillis = nextMasaStart
-    )
-}
+    }
 
 
 // ==========================================
