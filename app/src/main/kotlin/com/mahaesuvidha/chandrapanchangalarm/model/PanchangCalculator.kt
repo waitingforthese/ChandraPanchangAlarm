@@ -728,26 +728,27 @@ object PanchangCalculator {
         now: LocalDateTime
     ): MasaData {
 
-        val currentIndex =
-            getMasaIndex(now)
+        /*
+         * Keep the project's existing 12-month mapping, but make sure
+         * the current and next month fields are always populated.
+         *
+         * NOTE: This remains the project's simplified month model.
+         * Exact Amanta/Purnimanta month calculation requires complete
+         * Amavasya/Purnima + Sankranti logic.
+         */
+        val currentIndex = getMasaIndex(now)
+        val currentName = masaNames[currentIndex]
 
-        val currentName =
-            masaNames[currentIndex]
+        val start = LocalDateTime.of(
+            now.year,
+            now.month,
+            1,
+            0,
+            0
+        )
 
-        val start =
-            LocalDateTime.of(
-                now.year,
-                now.month,
-                1,
-                0,
-                0
-            )
-
-        val nextStart =
-            start.plusMonths(1)
-
-        val nextIndex =
-            (currentIndex + 1) % 12
+        val nextStart = start.plusMonths(1)
+        val nextIndex = (currentIndex + 1) % 12
 
         return MasaData(
             currentName,
@@ -757,13 +758,13 @@ object PanchangCalculator {
         )
     }
 
+
     private fun getMasaIndex(
         time: LocalDateTime
     ): Int {
 
         return (time.monthValue + 9) % 12
     }
-
 
     // =========================================================
     // PRAHAR
@@ -773,12 +774,14 @@ object PanchangCalculator {
         now: LocalDateTime
     ): Triple<String, String, LocalDateTime> {
 
-        val hour =
-            now.hour
-
-        val currentIndex =
-            hour / 3
-
+        /*
+         * Project approximation:
+         * 06:00-18:00 = 4 daytime prahar
+         * 18:00-06:00 = 4 nighttime prahar
+         *
+         * Exact traditional prahar timing should use local
+         * sunrise/sunset and seasonal day/night duration.
+         */
         val praharNames = listOf(
             "पहिला प्रहर",
             "दुसरा प्रहर",
@@ -790,11 +793,33 @@ object PanchangCalculator {
             "आठवा प्रहर"
         )
 
-        val nextIndex =
-            (currentIndex + 1) % 8
+        val totalMinutes = now.hour * 60 + now.minute
+
+        val currentIndex =
+            when {
+                totalMinutes < 180 -> 6       // 00:00-03:00
+                totalMinutes < 360 -> 7       // 03:00-06:00
+                totalMinutes < 540 -> 0       // 06:00-09:00
+                totalMinutes < 720 -> 1       // 09:00-12:00
+                totalMinutes < 900 -> 2       // 12:00-15:00
+                totalMinutes < 1080 -> 3      // 15:00-18:00
+                totalMinutes < 1260 -> 4      // 18:00-21:00
+                else -> 5                     // 21:00-24:00
+            }
 
         val startHour =
-            currentIndex * 3
+            when (currentIndex) {
+                0 -> 6
+                1 -> 9
+                2 -> 12
+                3 -> 15
+                4 -> 18
+                5 -> 21
+                6 -> 0
+                else -> 3
+            }
+
+        val nextIndex = (currentIndex + 1) % 8
 
         val nextTime =
             now
@@ -811,7 +836,6 @@ object PanchangCalculator {
         )
     }
 
-
     // =========================================================
     // LAGNA
     // =========================================================
@@ -820,35 +844,45 @@ object PanchangCalculator {
         now: LocalDateTime
     ): Triple<String, String, LocalDateTime> {
 
-        val sun =
-            getSunLongitude(now)
+        /*
+         * Lagna is location-dependent. This calculator currently does
+         * not receive latitude/longitude, so an exact astronomical
+         * ascendant cannot be calculated here.
+         *
+         * Until location-based sidereal-time calculation is added,
+         * use a stable two-hour approximation anchored at 06:00.
+         */
+        val sunLongitude = getSunLongitude(now)
 
-        val moon =
-            getMoonLongitude(now)
-
-        val approximateLongitude =
-            normalize(
-                moon +
-                        sun / 12.0 +
-                        now.hour * 15.0
-            )
-
-        val currentIndex =
-            floor(
-                approximateLongitude / 30.0
-            )
+        val sunSign =
+            floor(sunLongitude / 30.0)
                 .toInt()
                 .coerceIn(0, 11)
 
-        val nextIndex =
-            (currentIndex + 1) % 12
+        val minutesFromSix =
+            ((now.hour * 60 + now.minute) - 360 + 1440) % 1440
 
-        val nextTime =
+        val elapsedBlocks = minutesFromSix / 120
+
+        val currentIndex =
+            (sunSign + elapsedBlocks).mod(12)
+
+        val nextIndex =
+            (currentIndex + 1).mod(12)
+
+        val currentBlockStartMinutes =
+            (minutesFromSix / 120) * 120
+
+        val blockStart =
             now
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0)
-                .plusHours(2)
+                .toLocalDate()
+                .atStartOfDay()
+                .plusMinutes((360 + currentBlockStartMinutes).toLong())
+                .let {
+                    if (it.isAfter(now)) it.minusDays(1) else it
+                }
+
+        val nextTime = blockStart.plusHours(2)
 
         return Triple(
             lagnaNames[currentIndex],
@@ -856,7 +890,6 @@ object PanchangCalculator {
             nextTime
         )
     }
-
 
     // =========================================================
     // SUN LONGITUDE
