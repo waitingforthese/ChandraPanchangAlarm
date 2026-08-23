@@ -376,6 +376,183 @@ object PanchangCalculator {
     }
 
 
+
+    // =========================================================
+    // FAST TRANSITION SEARCH
+    // =========================================================
+
+    private fun findPreviousBoundary(
+        now: LocalDateTime,
+        stepMinutes: Long,
+        maxSteps: Int,
+        current: Int,
+        classifier: (LocalDateTime) -> Int
+    ): LocalDateTime {
+
+        var right = now
+        var left = now
+
+        repeat(maxSteps) {
+            left = left.minusMinutes(stepMinutes)
+
+            if (classifier(left) != current) {
+                var low = left
+                var high = right
+
+                repeat(16) {
+                    if (java.time.Duration.between(low, high).toMinutes() <= 1) {
+                        return high
+                    }
+
+                    val middle = low.plusMinutes(
+                        java.time.Duration.between(low, high).toMinutes() / 2
+                    )
+
+                    if (classifier(middle) == current) {
+                        high = middle
+                    } else {
+                        low = middle
+                    }
+                }
+
+                return high
+            }
+
+            right = left
+        }
+
+        return now
+    }
+
+    private fun findNextBoundary(
+        now: LocalDateTime,
+        stepMinutes: Long,
+        maxSteps: Int,
+        current: Int,
+        classifier: (LocalDateTime) -> Int
+    ): LocalDateTime {
+
+        var left = now
+        var right = now
+
+        repeat(maxSteps) {
+            right = right.plusMinutes(stepMinutes)
+
+            if (classifier(right) != current) {
+                var low = left
+                var high = right
+
+                repeat(16) {
+                    if (java.time.Duration.between(low, high).toMinutes() <= 1) {
+                        return high
+                    }
+
+                    val middle = low.plusMinutes(
+                        java.time.Duration.between(low, high).toMinutes() / 2
+                    )
+
+                    if (classifier(middle) == current) {
+                        low = middle
+                    } else {
+                        high = middle
+                    }
+                }
+
+                return high
+            }
+
+            left = right
+        }
+
+        return now
+    }
+
+    private fun findPreviousBoundaryString(
+        now: LocalDateTime,
+        stepMinutes: Long,
+        maxSteps: Int,
+        current: String,
+        classifier: (LocalDateTime) -> String
+    ): LocalDateTime {
+
+        var right = now
+        var left = now
+
+        repeat(maxSteps) {
+            left = left.minusMinutes(stepMinutes)
+
+            if (classifier(left) != current) {
+                var low = left
+                var high = right
+
+                repeat(16) {
+                    if (java.time.Duration.between(low, high).toMinutes() <= 1) {
+                        return high
+                    }
+
+                    val middle = low.plusMinutes(
+                        java.time.Duration.between(low, high).toMinutes() / 2
+                    )
+
+                    if (classifier(middle) == current) {
+                        high = middle
+                    } else {
+                        low = middle
+                    }
+                }
+
+                return high
+            }
+
+            right = left
+        }
+
+        return now
+    }
+
+    private fun findNextBoundaryString(
+        now: LocalDateTime,
+        stepMinutes: Long,
+        maxSteps: Int,
+        current: String,
+        classifier: (LocalDateTime) -> String
+    ): LocalDateTime {
+
+        var left = now
+        var right = now
+
+        repeat(maxSteps) {
+            right = right.plusMinutes(stepMinutes)
+
+            if (classifier(right) != current) {
+                var low = left
+                var high = right
+
+                repeat(16) {
+                    if (java.time.Duration.between(low, high).toMinutes() <= 1) {
+                        return high
+                    }
+
+                    val middle = low.plusMinutes(
+                        java.time.Duration.between(low, high).toMinutes() / 2
+                    )
+
+                    if (classifier(middle) == current) {
+                        low = middle
+                    } else {
+                        high = middle
+                    }
+                }
+
+                return high
+            }
+
+            left = right
+        }
+
+        return now
+    }
+
     // =========================================================
     // TITHI
     // =========================================================
@@ -418,53 +595,16 @@ object PanchangCalculator {
     private fun findPreviousTithiChange(
         now: LocalDateTime,
         current: Int
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.minusMinutes(1)
-
-            if (
-                getTithiIndex(check) != current
-            ) {
-                return check.plusMinutes(1)
-            }
-        }
-
-        return now
-    }
+    ): LocalDateTime =
+        findPreviousBoundary(now, 60L, 24 * 4, current, ::getTithiIndex)
 
     private fun findNextTithiChange(
         now: LocalDateTime,
         current: Int
     ): Pair<String, LocalDateTime> {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.plusMinutes(1)
-
-            val next =
-                getTithiIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    "${getTithiName(current)} → ${getTithiName(next)}",
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            "पुढील तिथी शोधत आहे",
-            now.plusDays(3)
-        )
+        val time = findNextBoundary(now, 60L, 24 * 4, current, ::getTithiIndex)
+        val next = getTithiIndex(time)
+        return Pair("${getTithiName(current)} → ${getTithiName(next)}", time)
     }
 
 
@@ -493,53 +633,16 @@ object PanchangCalculator {
     private fun findPreviousYogaChange(
         now: LocalDateTime,
         current: Int
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.minusMinutes(1)
-
-            if (
-                getYogaIndex(check) != current
-            ) {
-                return check.plusMinutes(1)
-            }
-        }
-
-        return now
-    }
+    ): LocalDateTime =
+        findPreviousBoundary(now, 60L, 24 * 4, current, ::getYogaIndex)
 
     private fun findNextYogaChange(
         now: LocalDateTime,
         current: Int
     ): Pair<String, LocalDateTime> {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.plusMinutes(1)
-
-            val next =
-                getYogaIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    "${yogaNames[current]} → ${yogaNames[next]}",
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            "पुढील योग शोधत आहे",
-            now.plusDays(3)
-        )
+        val time = findNextBoundary(now, 60L, 24 * 4, current, ::getYogaIndex)
+        val next = getYogaIndex(time)
+        return Pair("${yogaNames[current]} → ${yogaNames[next]}", time)
     }
 
 
@@ -600,53 +703,16 @@ object PanchangCalculator {
     private fun findPreviousKaranaChange(
         now: LocalDateTime,
         current: Int
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.minusMinutes(1)
-
-            if (
-                getKaranaIndex(check) != current
-            ) {
-                return check.plusMinutes(1)
-            }
-        }
-
-        return now
-    }
+    ): LocalDateTime =
+        findPreviousBoundary(now, 60L, 24 * 3, current, ::getKaranaIndex)
 
     private fun findNextKaranaChange(
         now: LocalDateTime,
         current: Int
     ): Pair<String, LocalDateTime> {
-
-        var check = now
-
-        repeat(4320) {
-
-            check =
-                check.plusMinutes(1)
-
-            val next =
-                getKaranaIndex(check)
-
-            if (next != current) {
-
-                return Pair(
-                    "${getKaranaName(current)} → ${getKaranaName(next)}",
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            "पुढील करण शोधत आहे",
-            now.plusDays(2)
-        )
+        val time = findNextBoundary(now, 60L, 24 * 3, current, ::getKaranaIndex)
+        val next = getKaranaIndex(time)
+        return Pair("${getKaranaName(current)} → ${getKaranaName(next)}", time)
     }
 
 
@@ -670,53 +736,16 @@ object PanchangCalculator {
     private fun findPreviousPakshaChange(
         now: LocalDateTime,
         current: String
-    ): LocalDateTime {
-
-        var check = now
-
-        repeat(50000) {
-
-            check =
-                check.minusMinutes(5)
-
-            if (
-                getPaksha(check) != current
-            ) {
-                return check.plusMinutes(5)
-            }
-        }
-
-        return now
-    }
+    ): LocalDateTime =
+        findPreviousBoundaryString(now, 360L, 16 * 4, current, ::getPaksha)
 
     private fun findNextPakshaChange(
         now: LocalDateTime,
         current: String
     ): Pair<String, LocalDateTime> {
-
-        var check = now
-
-        repeat(50000) {
-
-            check =
-                check.plusMinutes(5)
-
-            val next =
-                getPaksha(check)
-
-            if (next != current) {
-
-                return Pair(
-                    "$current → $next",
-                    check
-                )
-            }
-        }
-
-        return Pair(
-            "पुढील पक्ष शोधत आहे",
-            now.plusDays(16)
-        )
+        val time = findNextBoundaryString(now, 360L, 16 * 4, current, ::getPaksha)
+        val next = getPaksha(time)
+        return Pair("$current → $next", time)
     }
 
 
