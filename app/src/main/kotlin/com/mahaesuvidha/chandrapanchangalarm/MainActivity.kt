@@ -125,7 +125,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Text(
-                       text = "राहुल जगताप पाटील यांचे लाईफ अलार्म - लोड होत आहे..."
+                       text = "राहुल जगताप पाटील यांचे लाईफ अलार्म - लोड होत आहे...",
                         fontSize = 22.sp
                     )
                 }
@@ -1556,5 +1556,4 @@ private fun SwitchRow(
             onCheckedChange = onCheckedChange
         )
     }
-}
 }
