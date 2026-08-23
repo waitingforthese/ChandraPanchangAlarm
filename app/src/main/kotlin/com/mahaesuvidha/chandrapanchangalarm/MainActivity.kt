@@ -1633,6 +1633,7 @@ PanchangInfoCard(
 )
 
 }
+}
 
 // ==========================================================
 // PANCHANG CHANGE SECTION
