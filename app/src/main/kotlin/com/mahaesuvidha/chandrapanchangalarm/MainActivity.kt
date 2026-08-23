@@ -125,8 +125,8 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Text(
-                       text = "रा जगताप पाटील यांचे लाईफ अलार्म - लोड होत आहे...",
-                        fontSize = 22.sp
+                       text = "श्री राहुल जगताप पाटील यांचे लाईफ अलार्म - लोड होत आहे...",
+                        fontSize = 15.sp
                     )
                 }
 
