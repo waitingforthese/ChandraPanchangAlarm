@@ -512,12 +512,6 @@ private fun MoonColumn(
             // NEXT CHANGES
             // ----------------------------------------------
 
-            Text(
-                text = "🔔 पुढील बदल",
-                color = accentColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
 
            Text(
     text = "🌙 पुढील राशी बदल",
