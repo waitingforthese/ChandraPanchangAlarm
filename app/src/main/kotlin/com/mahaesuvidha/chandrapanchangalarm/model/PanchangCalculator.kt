@@ -7,6 +7,9 @@ import kotlin.math.floor
 import kotlin.math.sin
 import kotlin.math.acos
 import kotlin.math.cos
+import kotlin.math.acos
+import kotlin.math.atan2
+import kotlin.math.tan
 
 
 object PanchangCalculator {
