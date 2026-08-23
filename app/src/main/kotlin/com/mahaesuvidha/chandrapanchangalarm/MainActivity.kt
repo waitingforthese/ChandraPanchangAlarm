@@ -33,7 +33,7 @@ import com.mahaesuvidha.chandrapanchangalarm.model.JyotishMaster
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveMoonCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.LiveSunCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.MoonState
-import com.mahaesuvidha.chandrapanchangalarm.model.PanchangCalculator
+import com.mahaesuvidha.chandrapanchangalarm.model.LivePanchangCalculator
 import com.mahaesuvidha.chandrapanchangalarm.model.PanchangState
 import com.mahaesuvidha.chandrapanchangalarm.model.SunState
 import com.mahaesuvidha.chandrapanchangalarm.settings.AlarmPrefs
@@ -162,8 +162,8 @@ private fun ChandraSuryaHome(
                     LiveSunCalculator
                         .getCurrentSunState(),
 
-                    PanchangCalculator
-                        .getCurrentPanchang()
+                    LivePanchangCalculator
+                        .getCurrentPanchangState()
                 )
             }
 
