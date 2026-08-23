@@ -5,6 +5,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.floor
 import kotlin.math.sin
+import kotlin.math.acos
+import kotlin.math.cos
+
 
 object PanchangCalculator {
 
@@ -799,72 +802,239 @@ object PanchangCalculator {
     // PRAHAR
     // =========================================================
 
-    private fun getPraharData(
-        now: LocalDateTime
-    ): Triple<String, String, LocalDateTime> {
+   private fun getPraharData(
+    now: LocalDateTime
+): Triple<String, String, LocalDateTime> {
 
-        /*
-         * Project approximation:
-         * 06:00-18:00 = 4 daytime prahar
-         * 18:00-06:00 = 4 nighttime prahar
-         *
-         * Exact traditional prahar timing should use local
-         * sunrise/sunset and seasonal day/night duration.
-         */
-        val praharNames = listOf(
-            "पहिला प्रहर",
-            "दुसरा प्रहर",
-            "तिसरा प्रहर",
-            "चौथा प्रहर",
-            "पाचवा प्रहर",
-            "सहावा प्रहर",
-            "सातवा प्रहर",
-            "आठवा प्रहर"
-        )
+    // दिवसाचे 4 प्रहर:
+    // सूर्योदय → सूर्यास्त
+    // रात्रीचे 4 प्रहर:
+    // सूर्यास्त → पुढील सूर्योदय
 
-        val totalMinutes = now.hour * 60 + now.minute
+    val sunrise = getSunrise(now)
+    val sunset = getSunset(now)
+
+    val nextSunrise =
+        getSunrise(now.plusDays(1))
+
+    val isDay =
+        !now.isBefore(sunrise) &&
+        now.isBefore(sunset)
+
+    val praharNames = listOf(
+        "पहिला प्रहर",
+        "दुसरा प्रहर",
+        "तिसरा प्रहर",
+        "चौथा प्रहर",
+        "पाचवा प्रहर",
+        "सहावा प्रहर",
+        "सातवा प्रहर",
+        "आठवा प्रहर"
+    )
+
+    if (isDay) {
+
+        val totalMinutes =
+            java.time.Duration
+                .between(
+                    sunrise,
+                    sunset
+                )
+                .toMinutes()
+
+        val praharMinutes =
+            totalMinutes / 4.0
+
+        val elapsed =
+            java.time.Duration
+                .between(
+                    sunrise,
+                    now
+                )
+                .toMinutes()
 
         val currentIndex =
-            when {
-                totalMinutes < 180 -> 6       // 00:00-03:00
-                totalMinutes < 360 -> 7       // 03:00-06:00
-                totalMinutes < 540 -> 0       // 06:00-09:00
-                totalMinutes < 720 -> 1       // 09:00-12:00
-                totalMinutes < 900 -> 2       // 12:00-15:00
-                totalMinutes < 1080 -> 3      // 15:00-18:00
-                totalMinutes < 1260 -> 4      // 18:00-21:00
-                else -> 5                     // 21:00-24:00
-            }
-
-        val startHour =
-            when (currentIndex) {
-                0 -> 6
-                1 -> 9
-                2 -> 12
-                3 -> 15
-                4 -> 18
-                5 -> 21
-                6 -> 0
-                else -> 3
-            }
-
-        val nextIndex = (currentIndex + 1) % 8
+            (elapsed / praharMinutes)
+                .toInt()
+                .coerceIn(0, 3)
 
         val nextTime =
-            now
-                .withHour(startHour)
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0)
-                .plusHours(3)
+            sunrise.plusMinutes(
+                (
+                    (currentIndex + 1) *
+                            praharMinutes
+                ).toLong()
+            )
 
         return Triple(
             praharNames[currentIndex],
-            praharNames[nextIndex],
+            praharNames[currentIndex + 1],
+            nextTime
+        )
+
+    } else {
+
+        val nightStart =
+            sunset
+
+        val nightEnd =
+            nextSunrise
+
+        val totalMinutes =
+            java.time.Duration
+                .between(
+                    nightStart,
+                    nightEnd
+                )
+                .toMinutes()
+
+        val praharMinutes =
+            totalMinutes / 4.0
+
+        val elapsed =
+            java.time.Duration
+                .between(
+                    nightStart,
+                    now
+                )
+                .toMinutes()
+
+        val currentIndex =
+            (elapsed / praharMinutes)
+                .toInt()
+                .coerceIn(0, 3)
+
+        val actualIndex =
+            currentIndex + 4
+
+        val nextTime =
+            nightStart.plusMinutes(
+                (
+                    (currentIndex + 1) *
+                            praharMinutes
+                ).toLong()
+            )
+
+        return Triple(
+            praharNames[actualIndex],
+            praharNames[
+                (actualIndex + 1)
+                    .coerceAtMost(7)
+            ],
             nextTime
         )
     }
+}
+private fun getSunrise(
+    date: LocalDateTime
+): LocalDateTime {
 
+    // Daund, Maharashtra
+    val latitude = 18.46
+    val longitude = 74.58
+
+    return calculateSunTime(
+        date,
+        latitude,
+        longitude,
+        true
+    )
+}
+
+
+private fun getSunset(
+    date: LocalDateTime
+): LocalDateTime {
+
+    // Daund, Maharashtra
+    val latitude = 18.46
+    val longitude = 74.58
+
+    return calculateSunTime(
+        date,
+        latitude,
+        longitude,
+        false
+    )
+}
+private fun calculateSunTime(
+    date: LocalDateTime,
+    latitude: Double,
+    longitude: Double,
+    sunrise: Boolean
+): LocalDateTime {
+
+    val dayOfYear =
+        date.dayOfYear
+
+    val declination =
+        Math.toRadians(
+            23.44 *
+                    sin(
+                        Math.toRadians(
+                            (360.0 / 365.0) *
+                                    (dayOfYear - 81)
+                        )
+                    )
+        )
+
+    val latitudeRad =
+        Math.toRadians(latitude)
+
+    val zenith =
+        Math.toRadians(90.833)
+
+    val cosHourAngle =
+        (
+            cos(zenith) -
+                    sin(latitudeRad) *
+                    sin(declination)
+            ) /
+            (
+                cos(latitudeRad) *
+                        cos(declination)
+            )
+
+    val hourAngle =
+        Math.toDegrees(
+            acos(
+                cosHourAngle
+                    .coerceIn(-1.0, 1.0)
+            )
+        )
+
+    val solarNoon =
+        12.0 -
+                longitude / 15.0
+
+    val solarTime =
+        if (sunrise) {
+            solarNoon -
+                    hourAngle / 15.0
+        } else {
+            solarNoon +
+                    hourAngle / 15.0
+        }
+
+    val hour =
+        solarTime
+            .toInt()
+            .coerceIn(0, 23)
+
+    val minute =
+        (
+            (solarTime - hour) *
+                    60.0
+        )
+            .toInt()
+            .coerceIn(0, 59)
+
+    return date
+        .withHour(hour)
+        .withMinute(minute)
+        .withSecond(0)
+        .withNano(0)
+}
     // =========================================================
     // LAGNA
     // =========================================================
