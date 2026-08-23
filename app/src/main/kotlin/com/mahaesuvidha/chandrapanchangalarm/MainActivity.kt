@@ -1556,4 +1556,5 @@ private fun SwitchRow(
             onCheckedChange = onCheckedChange
         )
     }
-
+ }
+ }
