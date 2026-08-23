@@ -569,56 +569,32 @@ private fun getMasaNameForInterval(
     swe: SwissEph
 ): String {
 
-    val sankranti =
-        findSunSignBoundary(
-            startMillis = startMillis,
-            endMillis = endMillis,
-            swe = swe
-        )
+    // Maharashtra uses the Amanta lunar-month system.
+    // The lunar month boundary is the Amavasya -> Shukla Pratipada boundary.
+    // The month name is determined from the sidereal Sun sign at that boundary.
+    //
+    // 12-08-2026 -> Sun in Karka -> Shravana
+    // 10-09-2026 -> Sun in Simha -> Bhadrapada
+    //
+    // If the Sun remains in the same sidereal sign at consecutive boundaries,
+    // no Sankranti occurred during that lunar month, so it is Adhik.
+    val startSign =
+        getSunSignAt(startMillis, swe)
 
-    if (sankranti != null) {
+    val nextSign =
+        getSunSignAt(endMillis, swe)
 
-        return masaNamesBySunSign[
-            sankranti.first.coerceIn(0, 11)
-        ]
+    val baseName =
+        masaNamesBySunSign[startSign.coerceIn(0, 11)]
+
+    return if (startSign == nextSign) {
+        "अधिक $baseName"
+    } else {
+        baseName
     }
-
-    // ==========================================
-    // ADHIK MAS
-    // ==========================================
-
-    if (
-        nextIntervalStart != null &&
-        nextIntervalEnd != null
-    ) {
-
-        val nextSankranti =
-            findSunSignBoundary(
-                startMillis = nextIntervalStart,
-                endMillis = nextIntervalEnd,
-                swe = swe
-            )
-
-        if (nextSankranti != null) {
-
-            return masaNamesBySunSign[
-                nextSankranti.first.coerceIn(0, 11)
-            ]
-        }
-    }
-
-    // ==========================================
-    // SAFE FALLBACK
-    // ==========================================
-
-    return masaNamesBySunSign[
-        getSunSignAt(
-            startMillis,
-            swe
-        ).coerceIn(0, 11)
-    ]
 }
- private fun getMasaInfo(
+
+private fun getMasaInfo(
     now: Long,
     currentTithiIndex: Int,
     swe: SwissEph
@@ -710,14 +686,16 @@ private fun getMasaNameForInterval(
         }
 
     // Following Amavasya -> following Masa start.
+    // nextMasaStart is already inside Tithi 1, so findTithiStartOf()
+    // with targetIndex = currentIndex could match the same Tithi again.
+    // Explicitly search for the NEXT Tithi-1 boundary instead.
     val nextNextMasaStart =
-        findTithiStartOf(
+        findBoundary(
             now = nextMasaStart + 60_000L,
             currentIndex = 1,
             forward = true,
             maxMinutes = 60 * 24 * 40,
-            targetIndex = 1,
-            swe = swe
+            type = BoundaryType.TITHI
         )
 
     // ==========================================
