@@ -450,10 +450,20 @@ object LivePanchangCalculator {
         val nextMillis: Long
     )
 
-    private val masaNames = arrayOf(
-        "चैत्र", "वैशाख", "ज्येष्ठ", "आषाढ", "श्रावण", "भाद्रपद",
-        "आश्विन", "कार्तिक", "मार्गशीर्ष", "पौष", "माघ", "फाल्गुन"
-    )
+private val masaNamesBySunSign = arrayOf(
+    "वैशाख",      // मेष
+    "ज्येष्ठ",    // वृषभ
+    "आषाढ",       // मिथुन
+    "श्रावण",     // कर्क
+    "भाद्रपद",    // सिंह
+    "आश्विन",     // कन्या
+    "कार्तिक",    // तुला
+    "मार्गशीर्ष", // वृश्चिक
+    "पौष",        // धनु
+    "माघ",        // मकर
+    "फाल्गुन",    // कुंभ
+    "चैत्र"       // मीन
+)
 
     private val rashiNames = arrayOf(
         "मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या",
@@ -551,208 +561,348 @@ object LivePanchangCalculator {
         return null
     }
 
-    private fun getMasaNameForInterval(
-        startMillis: Long,
-        endMillis: Long,
-        nextIntervalStart: Long?,
-        nextIntervalEnd: Long?,
-        swe: SwissEph
-    ): String {
+private fun getMasaNameForInterval(
+    startMillis: Long,
+    endMillis: Long,
+    nextIntervalStart: Long?,
+    nextIntervalEnd: Long?,
+    swe: SwissEph
+): String {
 
-        val sankranti =
-            findSunSignBoundary(
-                startMillis = startMillis,
-                endMillis = endMillis,
-                swe = swe
-            )
+    val sankranti =
+        findSunSignBoundary(
+            startMillis = startMillis,
+            endMillis = endMillis,
+            swe = swe
+        )
 
-        if (sankranti != null) {
-            return masaNames[sankranti.first]
-        }
+    if (sankranti != null) {
 
-        // No Sankranti in this lunar month means Adhik Maas.
-        // By the convention used here, Adhik Maas takes the
-        // name of the following lunar month.
-        if (nextIntervalStart != null && nextIntervalEnd != null) {
-            val nextSankranti =
-                findSunSignBoundary(
-                    startMillis = nextIntervalStart,
-                    endMillis = nextIntervalEnd,
-                    swe = swe
-                )
-
-            if (nextSankranti != null) {
-                return masaNames[nextSankranti.first]
-            }
-        }
-
-        // Safe fallback. This is only reached if the ephemeris
-        // search cannot find a Sankranti in the supplied intervals.
-        return masaNames[
-            getSunSignAt(
-                startMillis,
-                swe
-            )
+        return masaNamesBySunSign[
+            sankranti.first.coerceIn(0, 11)
         ]
     }
 
-    private fun getMasaInfo(
-        now: Long,
-        currentTithiIndex: Int,
-        swe: SwissEph
-    ): MasaInfo {
-        // Amanta month:
-        //   start = Amavasya (30 -> 1 transition)
-        //   end   = next Amavasya
-        //
-        // IMPORTANT:
-        // Do NOT name the month from the Sun sign at Purnima.
-        // The correct Amanta month name is determined by the
-        // Sankranti (sidereal solar sign ingress) contained
-        // between the two Amavasyas.
+    // ==========================================
+    // ADHIK MAS
+    // ==========================================
 
-        fun findAmavasyaForward(start: Long): Long {
-            val step = 2L * 60 * 60_000L
-            var previous = start
-            var current = start
+    if (
+        nextIntervalStart != null &&
+        nextIntervalEnd != null
+    ) {
 
-            repeat(15 * 24 + 4) {
-                current += step
-
-                val beforeIndex =
-                    indexAt(
-                        previous,
-                        BoundaryType.TITHI,
-                        swe
-                    )
-
-                val afterIndex =
-                    indexAt(
-                        current,
-                        BoundaryType.TITHI,
-                        swe
-                    )
-
-                if (beforeIndex == 30 && afterIndex == 1) {
-                    var low = previous
-                    var high = current
-
-                    repeat(20) {
-                        val mid = low + (high - low) / 2
-                        val midIndex =
-                            indexAt(
-                                mid,
-                                BoundaryType.TITHI,
-                                swe
-                            )
-
-                        if (midIndex == 30) {
-                            low = mid
-                        } else {
-                            high = mid
-                        }
-                    }
-
-                    return high
-                }
-
-                previous = current
-            }
-
-            return start + 30L * 24 * 60 * 60 * 1000L
-        }
-
-        fun findAmavasyaBackward(start: Long): Long {
-            val step = 2L * 60 * 60_000L
-            var previous = start
-            var current = start
-
-            repeat(15 * 24 + 4) {
-                current -= step
-
-                val beforeIndex =
-                    indexAt(
-                        current,
-                        BoundaryType.TITHI,
-                        swe
-                    )
-
-                val afterIndex =
-                    indexAt(
-                        previous,
-                        BoundaryType.TITHI,
-                        swe
-                    )
-
-                if (beforeIndex == 30 && afterIndex == 1) {
-                    var low = current
-                    var high = previous
-
-                    repeat(20) {
-                        val mid = low + (high - low) / 2
-                        val midIndex =
-                            indexAt(
-                                mid,
-                                BoundaryType.TITHI,
-                                swe
-                            )
-
-                        if (midIndex == 30) {
-                            low = mid
-                        } else {
-                            high = mid
-                        }
-                    }
-
-                    return high
-                }
-
-                previous = current
-            }
-
-            return start - 30L * 24 * 60 * 60 * 1000L
-        }
-
-        val start =
-            findAmavasyaBackward(now)
-
-        val nextStart =
-            findAmavasyaForward(
-                now + 60_000L
-            )
-
-        // We need one additional Amavasya only to determine
-        // the name of the next lunar month.
-        val nextNextStart =
-            findAmavasyaForward(
-                nextStart + 60_000L
-            )
-
-        val masa =
-            getMasaNameForInterval(
-                startMillis = start,
-                endMillis = nextStart,
-                nextIntervalStart = nextStart,
-                nextIntervalEnd = nextNextStart,
+        val nextSankranti =
+            findSunSignBoundary(
+                startMillis = nextIntervalStart,
+                endMillis = nextIntervalEnd,
                 swe = swe
             )
 
-        val nextMasa =
-            getMasaNameForInterval(
-                startMillis = nextStart,
-                endMillis = nextNextStart,
-                nextIntervalStart = null,
-                nextIntervalEnd = null,
-                swe = swe
+        if (nextSankranti != null) {
+
+            return masaNamesBySunSign[
+                nextSankranti.first.coerceIn(0, 11)
+            ]
+        }
+    }
+
+    // ==========================================
+    // SAFE FALLBACK
+    // ==========================================
+
+    return masaNamesBySunSign[
+        getSunSignAt(
+            startMillis,
+            swe
+        ).coerceIn(0, 11)
+    ]
+}
+ private fun getMasaInfo(
+    now: Long,
+    currentTithiIndex: Int,
+    swe: SwissEph
+): MasaInfo {
+
+    // ==========================================
+    // AMAVASYA SEARCH
+    // ==========================================
+
+    fun getLunarPhase(
+        millis: Long
+    ): Double {
+
+        val (sun, moon) =
+            getSunMoon(
+                millis,
+                swe
             )
 
-        return MasaInfo(
-            masa = masa,
-            startMillis = start,
-            nextMasa = nextMasa,
-            nextStartMillis = nextStart
+        return normalize(
+            moon - sun
         )
     }
+
+
+    // ==========================================
+    // FIND NEXT AMAVASYA
+    // ==========================================
+
+    fun findAmavasyaForward(
+        start: Long
+    ): Long {
+
+        val step =
+            60L * 60_000L
+
+        var previous =
+            start
+
+        var previousPhase =
+            getLunarPhase(previous)
+
+        repeat(40 * 24) {
+
+            val current =
+                previous + step
+
+            val currentPhase =
+                getLunarPhase(current)
+
+            /*
+             * Amavasya:
+             *
+             * Phase:
+             * 359° → 0°
+             *
+             * त्यामुळे previous phase मोठा
+             * आणि current phase लहान झाला
+             */
+
+            if (
+                previousPhase > 300.0 &&
+                currentPhase < 60.0
+            ) {
+
+                var low =
+                    previous
+
+                var high =
+                    current
+
+                repeat(30) {
+
+                    val middle =
+                        low +
+                                (high - low) / 2
+
+                    val middlePhase =
+                        getLunarPhase(middle)
+
+                    if (
+                        middlePhase > 300.0
+                    ) {
+
+                        low =
+                            middle
+
+                    } else {
+
+                        high =
+                            middle
+                    }
+                }
+
+                return high
+            }
+
+            previous =
+                current
+
+            previousPhase =
+                currentPhase
+        }
+
+        // Safety fallback
+        return start +
+                30L * 24L * 60L * 60L * 1000L
+    }
+
+
+    // ==========================================
+    // FIND PREVIOUS AMAVASYA
+    // ==========================================
+
+    fun findAmavasyaBackward(
+        start: Long
+    ): Long {
+
+        val step =
+            60L * 60_000L
+
+        var previous =
+            start
+
+        var previousPhase =
+            getLunarPhase(previous)
+
+        repeat(40 * 24) {
+
+            val current =
+                previous - step
+
+            val currentPhase =
+                getLunarPhase(current)
+
+            /*
+             * Backward search:
+             *
+             * पुढून मागे जाताना
+             * 0° → 359°
+             */
+
+            if (
+                previousPhase < 60.0 &&
+                currentPhase > 300.0
+            ) {
+
+                var low =
+                    current
+
+                var high =
+                    previous
+
+                repeat(30) {
+
+                    val middle =
+                        low +
+                                (high - low) / 2
+
+                    val middlePhase =
+                        getLunarPhase(middle)
+
+                    if (
+                        middlePhase > 300.0
+                    ) {
+
+                        low =
+                            middle
+
+                    } else {
+
+                        high =
+                            middle
+                    }
+                }
+
+                return high
+            }
+
+            previous =
+                current
+
+            previousPhase =
+                currentPhase
+        }
+
+        // Safety fallback
+        return start -
+                30L * 24L * 60L * 60L * 1000L
+    }
+
+
+    // ==========================================
+    // CURRENT AMAVASYA
+    // ==========================================
+
+    val start =
+        findAmavasyaBackward(
+            now
+        )
+
+
+    // ==========================================
+    // NEXT AMAVASYA
+    // ==========================================
+
+    val nextStart =
+        findAmavasyaForward(
+            start + 60_000L
+        )
+
+
+    // ==========================================
+    // NEXT-NEXT AMAVASYA
+    // Needed for next MASA name
+    // ==========================================
+
+    val nextNextStart =
+        findAmavasyaForward(
+            nextStart + 60_000L
+        )
+
+
+    // ==========================================
+    // CURRENT MASA
+    // ==========================================
+
+    val masa =
+        getMasaNameForInterval(
+            startMillis =
+                start,
+
+            endMillis =
+                nextStart,
+
+            nextIntervalStart =
+                nextStart,
+
+            nextIntervalEnd =
+                nextNextStart,
+
+            swe =
+                swe
+        )
+
+
+    // ==========================================
+    // NEXT MASA
+    // ==========================================
+
+    val nextMasa =
+        getMasaNameForInterval(
+            startMillis =
+                nextStart,
+
+            endMillis =
+                nextNextStart,
+
+            nextIntervalStart =
+                null,
+
+            nextIntervalEnd =
+                null,
+
+            swe =
+                swe
+        )
+
+
+    return MasaInfo(
+
+        masa =
+            masa,
+
+        startMillis =
+            start,
+
+        nextMasa =
+            nextMasa,
+
+        nextStartMillis =
+            nextStart
+    )
+}
 
     // ==========================================
     // PRAHAR
