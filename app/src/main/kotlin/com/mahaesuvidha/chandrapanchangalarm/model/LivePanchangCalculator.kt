@@ -507,11 +507,93 @@ object LivePanchangCalculator {
         return floor(sun / 30.0).toInt().coerceIn(0, 11)
     }
 
-    private fun getMasaFromPurnima(
-        purnimaMillis: Long,
+    private fun findSunSignBoundary(
+        startMillis: Long,
+        endMillis: Long,
+        swe: SwissEph
+    ): Pair<Int, Long>? {
+
+        // A lunar (Amanta) month is named from the solar Sankranti
+        // occurring inside that Amavasya -> Amavasya interval.
+        // We use the sidereal Lahiri Sun longitude already used by
+        // this calculator and locate the exact sign ingress.
+        val step = 60L * 60_000L
+
+        var previous = startMillis
+        var previousSign = getSunSignAt(previous, swe)
+
+        while (previous < endMillis) {
+            val current = minOf(previous + step, endMillis)
+            val currentSign = getSunSignAt(current, swe)
+
+            if (currentSign != previousSign) {
+                var low = previous
+                var high = current
+
+                repeat(25) {
+                    val middle = low + (high - low) / 2
+                    val middleSign = getSunSignAt(middle, swe)
+
+                    if (middleSign == previousSign) {
+                        low = middle
+                    } else {
+                        high = middle
+                    }
+                }
+
+                return Pair(currentSign, high)
+            }
+
+            previous = current
+            previousSign = currentSign
+        }
+
+        return null
+    }
+
+    private fun getMasaNameForInterval(
+        startMillis: Long,
+        endMillis: Long,
+        nextIntervalStart: Long?,
+        nextIntervalEnd: Long?,
         swe: SwissEph
     ): String {
-        return masaNames[getSunSignAt(purnimaMillis, swe)]
+
+        val sankranti =
+            findSunSignBoundary(
+                startMillis = startMillis,
+                endMillis = endMillis,
+                swe = swe
+            )
+
+        if (sankranti != null) {
+            return masaNames[sankranti.first]
+        }
+
+        // No Sankranti in this lunar month means Adhik Maas.
+        // By the convention used here, Adhik Maas takes the
+        // name of the following lunar month.
+        if (nextIntervalStart != null && nextIntervalEnd != null) {
+            val nextSankranti =
+                findSunSignBoundary(
+                    startMillis = nextIntervalStart,
+                    endMillis = nextIntervalEnd,
+                    swe = swe
+                )
+
+            if (nextSankranti != null) {
+                return masaNames[nextSankranti.first]
+            }
+        }
+
+        // Safe fallback. This is only reached if the ephemeris
+        // search cannot find a Sankranti in the supplied intervals.
+        return masaNames[
+            getSunSignAt(
+                startMillis,
+                swe
+            )
+        ]
     }
 
     private fun getMasaInfo(
@@ -519,29 +601,64 @@ object LivePanchangCalculator {
         currentTithiIndex: Int,
         swe: SwissEph
     ): MasaInfo {
-        // Amanta month: month starts immediately after Amavasya.
-        // We locate the latest 30 -> 1 transition and the following one.
-        // A direct robust search for the next Amavasya boundary.
+        // Amanta month:
+        //   start = Amavasya (30 -> 1 transition)
+        //   end   = next Amavasya
+        //
+        // IMPORTANT:
+        // Do NOT name the month from the Sun sign at Purnima.
+        // The correct Amanta month name is determined by the
+        // Sankranti (sidereal solar sign ingress) contained
+        // between the two Amavasyas.
+
         fun findAmavasyaForward(start: Long): Long {
             val step = 2L * 60 * 60_000L
             var previous = start
             var current = start
+
             repeat(15 * 24 + 4) {
                 current += step
-                val beforeIndex = indexAt(previous, BoundaryType.TITHI, swe)
-                val afterIndex = indexAt(current, BoundaryType.TITHI, swe)
+
+                val beforeIndex =
+                    indexAt(
+                        previous,
+                        BoundaryType.TITHI,
+                        swe
+                    )
+
+                val afterIndex =
+                    indexAt(
+                        current,
+                        BoundaryType.TITHI,
+                        swe
+                    )
+
                 if (beforeIndex == 30 && afterIndex == 1) {
                     var low = previous
                     var high = current
+
                     repeat(20) {
                         val mid = low + (high - low) / 2
-                        val midIndex = indexAt(mid, BoundaryType.TITHI, swe)
-                        if (midIndex == 30) low = mid else high = mid
+                        val midIndex =
+                            indexAt(
+                                mid,
+                                BoundaryType.TITHI,
+                                swe
+                            )
+
+                        if (midIndex == 30) {
+                            low = mid
+                        } else {
+                            high = mid
+                        }
                     }
+
                     return high
                 }
+
                 previous = current
             }
+
             return start + 30L * 24 * 60 * 60 * 1000L
         }
 
@@ -549,50 +666,90 @@ object LivePanchangCalculator {
             val step = 2L * 60 * 60_000L
             var previous = start
             var current = start
+
             repeat(15 * 24 + 4) {
                 current -= step
-                val beforeIndex = indexAt(current, BoundaryType.TITHI, swe)
-                val afterIndex = indexAt(previous, BoundaryType.TITHI, swe)
+
+                val beforeIndex =
+                    indexAt(
+                        current,
+                        BoundaryType.TITHI,
+                        swe
+                    )
+
+                val afterIndex =
+                    indexAt(
+                        previous,
+                        BoundaryType.TITHI,
+                        swe
+                    )
+
                 if (beforeIndex == 30 && afterIndex == 1) {
                     var low = current
                     var high = previous
+
                     repeat(20) {
                         val mid = low + (high - low) / 2
-                        val midIndex = indexAt(mid, BoundaryType.TITHI, swe)
-                        if (midIndex == 30) low = mid else high = mid
+                        val midIndex =
+                            indexAt(
+                                mid,
+                                BoundaryType.TITHI,
+                                swe
+                            )
+
+                        if (midIndex == 30) {
+                            low = mid
+                        } else {
+                            high = mid
+                        }
                     }
+
                     return high
                 }
+
                 previous = current
             }
+
             return start - 30L * 24 * 60 * 60 * 1000L
         }
 
-        val start = findAmavasyaBackward(now)
-        val nextStart = findAmavasyaForward(now + 60_000L)
+        val start =
+            findAmavasyaBackward(now)
 
-        val purnima = findTithiStartOf(
-            now = start + 60_000L,
-            currentIndex = 1,
-            forward = true,
-            maxMinutes = 21600,
-            targetIndex = 15,
-            swe = swe
-        )
+        val nextStart =
+            findAmavasyaForward(
+                now + 60_000L
+            )
 
-        val nextPurnima = findTithiStartOf(
-            now = nextStart + 60_000L,
-            currentIndex = 1,
-            forward = true,
-            maxMinutes = 21600,
-            targetIndex = 15,
-            swe = swe
-        )
+        // We need one additional Amavasya only to determine
+        // the name of the next lunar month.
+        val nextNextStart =
+            findAmavasyaForward(
+                nextStart + 60_000L
+            )
+
+        val masa =
+            getMasaNameForInterval(
+                startMillis = start,
+                endMillis = nextStart,
+                nextIntervalStart = nextStart,
+                nextIntervalEnd = nextNextStart,
+                swe = swe
+            )
+
+        val nextMasa =
+            getMasaNameForInterval(
+                startMillis = nextStart,
+                endMillis = nextNextStart,
+                nextIntervalStart = null,
+                nextIntervalEnd = null,
+                swe = swe
+            )
 
         return MasaInfo(
-            masa = getMasaFromPurnima(purnima, swe),
+            masa = masa,
             startMillis = start,
-            nextMasa = getMasaFromPurnima(nextPurnima, swe),
+            nextMasa = nextMasa,
             nextStartMillis = nextStart
         )
     }
