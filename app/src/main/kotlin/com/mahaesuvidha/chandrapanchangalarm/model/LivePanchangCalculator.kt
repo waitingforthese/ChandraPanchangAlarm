@@ -601,50 +601,87 @@ private fun getMasaInfo(
 ): MasaInfo {
 
     // ==========================================
-    // AMANTA MASA START = AMAVASYA -> PRATIPADA
+    // AMANTA MASA BOUNDARY
     // ==========================================
-    // A lunar month in the Maharashtra Amanta system starts
-    // at the exact astronomical boundary where Tithi changes
-    // from 30 (Amavasya) to 1 (Shukla Pratipada).
+    // In Maharashtra (Amanta system), a lunar month starts
+    // immediately after Amavasya, i.e. at the 30 -> 1 Tithi
+    // transition.  Therefore we MUST NOT use every Pratipada
+    // as a month boundary, because every Shukla Paksha also
+    // starts with Pratipada.
 
-    fun previousPratipadaStart(fromMillis: Long): Long {
-        val index = indexAt(fromMillis, BoundaryType.TITHI, swe)
-        return findTithiStartOf(
+    fun previousAmantaMonthStart(fromMillis: Long): Long {
+
+        val current = indexAt(fromMillis, BoundaryType.TITHI, swe)
+
+        // Find the start of the current/previous Amavasya (Tithi 30).
+        val amavasyaStart = findTithiStartOf(
             now = fromMillis,
-            currentIndex = index,
+            currentIndex = current,
             forward = false,
             maxMinutes = 60 * 24 * 45,
+            targetIndex = 30,
+            swe = swe
+        )
+
+        // The Amanta month starts when Amavasya ends and
+        // Shukla Pratipada begins.
+        return findTithiStartOf(
+            now = amavasyaStart + 60_000L,
+            currentIndex = 30,
+            forward = true,
+            maxMinutes = 60 * 24 * 3,
             targetIndex = 1,
             swe = swe
         )
     }
 
-    fun nextPratipadaStart(fromMillis: Long): Long {
-        // If already inside Pratipada, move outside it first so
-        // the search cannot return the same boundary.
-        val start = if (indexAt(fromMillis, BoundaryType.TITHI, swe) == 1) {
-            fromMillis + 60_000L
-        } else {
-            fromMillis
-        }
-        val index = indexAt(start, BoundaryType.TITHI, swe)
-        return findTithiStartOf(
-            now = start,
-            currentIndex = index,
+    fun nextAmantaMonthStart(fromMillis: Long): Long {
+
+        // First locate the NEXT Amavasya (Tithi 30).
+        val current = indexAt(fromMillis, BoundaryType.TITHI, swe)
+
+        val amavasyaStart = findTithiStartOf(
+            now = fromMillis,
+            currentIndex = current,
             forward = true,
             maxMinutes = 60 * 24 * 45,
+            targetIndex = 30,
+            swe = swe
+        )
+
+        // Then locate the 30 -> 1 transition after that Amavasya.
+        return findTithiStartOf(
+            now = amavasyaStart + 60_000L,
+            currentIndex = 30,
+            forward = true,
+            maxMinutes = 60 * 24 * 3,
             targetIndex = 1,
             swe = swe
         )
     }
 
-    val currentMasaStart = previousPratipadaStart(now)
-    val nextMasaStart = nextPratipadaStart(now)
-    val nextNextMasaStart = nextPratipadaStart(nextMasaStart + 60_000L)
+    val currentMasaStart =
+        previousAmantaMonthStart(now)
+
+    val nextMasaStart =
+        nextAmantaMonthStart(now)
+
+    val nextNextMasaStart =
+        nextAmantaMonthStart(
+            nextMasaStart + 60_000L
+        )
 
     // ==========================================
     // MASA NAME
     // ==========================================
+    // The Maharashtra Amanta month name is determined from
+    // the sidereal Sun sign at the START of the lunar month.
+    //
+    // 12-08-2026 -> Sun in Karka -> श्रावण
+    // 10-09-2026 -> Sun in Simha -> भाद्रपद
+    //
+    // If the Sun remains in the same sidereal sign at two
+    // consecutive Amanta month starts, that lunar month is Adhik.
     val masa = getMasaNameForInterval(
         startMillis = currentMasaStart,
         endMillis = nextMasaStart,
