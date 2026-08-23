@@ -150,90 +150,41 @@ private fun ChandraSuryaHome(
         mutableStateOf<PanchangState?>(null)
     }
 
-    LaunchedEffect(Unit) {
+LaunchedEffect(Unit) {
 
-        val result =
-            withContext(Dispatchers.Default) {
+    try {
 
-                Triple(
-                    LiveMoonCalculator
-                        .getCurrentMoonState(),
-
-                    LiveSunCalculator
-                        .getCurrentSunState(),
-
-                    LivePanchangCalculator
-                        .getCurrentPanchangState()
-                )
-            }
-
-        moonState = result.first
-        sunState = result.second
-        panchangState = result.third
-    }
-
-    if (
-        moonState == null ||
-        sunState == null ||
-        panchangState == null
-    ) {
-
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Color(0xFF07111F)
-                    ),
-            contentAlignment =
-                Alignment.Center
-        ) {
-
-            Column(
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-
-                Text(
-                    text = "🌙",
-                    fontSize = 54.sp
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
-
-                CircularProgressIndicator()
-
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
-
-                Text(
-                    text = "पंचांग लोड होत आहे…",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(6.dp)
-                )
-
-                Text(
-                    text = "LIVE गणना सुरू आहे",
-                    color = Color.LightGray,
-                    fontSize = 13.sp
-                )
-            }
+        // 1. Moon first
+        val moon = withContext(Dispatchers.Default) {
+            LiveMoonCalculator.getCurrentMoonState()
         }
 
-        return
-    }
+        moonState = moon
 
+        // 2. Sun second
+        val sun = withContext(Dispatchers.Default) {
+            LiveSunCalculator.getCurrentSunState()
+        }
+
+        sunState = sun
+
+        // 3. Panchang last
+        val panchang = withContext(Dispatchers.Default) {
+            LivePanchangCalculator.getCurrentPanchangState()
+        }
+
+        panchangState = panchang
+
+    } catch (e: Exception) {
+
+        e.printStackTrace()
+
+        // Prevent application crash
+        moonState = null
+        sunState = null
+        panchangState = null
+    }
+}
     ChandraSuryaHomeContent(
 
         moonState = moonState!!,
