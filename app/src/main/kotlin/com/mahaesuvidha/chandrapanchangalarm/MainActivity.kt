@@ -1470,7 +1470,6 @@ private fun PanchangCard(
                 )
             }
         }
-        }
 
 
         // ==================================================
@@ -1987,6 +1986,116 @@ private fun PanchangChangeSection(
     }
 }
 // ==========================================================
+// PANCHANG INFO CARD
+// ==========================================================
+
+@Composable
+private fun PanchangInfoCard(
+    title: String,
+    current: String,
+    startTime: String,
+    next: String,
+    nextTime: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF7F7F7)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp)
+        ) {
+            Text(
+                text = title,
+                color = Color(0xFF006CA8),
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(7.dp))
+            HorizontalDivider(color = Color.LightGray)
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "🟢 चालू आहे",
+                    color = Color(0xFF2E9E44),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = current,
+                    color = Color.Black,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(7.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "🟢 प्रारंभ",
+                    color = Color(0xFF388E3C),
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = startTime,
+                    color = Color.DarkGray,
+                    fontSize = 16.sp
+                )
+            }
+
+            Spacer(Modifier.height(7.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "🔔 पुढील बदल",
+                    color = Color(0xFF006CA8),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = next,
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+            }
+
+            Spacer(Modifier.height(7.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "🔴 बदलाची वेळ",
+                    color = Color(0xFFC62828),
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = nextTime,
+                    color = Color.DarkGray,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+
+// ==========================================================
 // PANCHANG ROW
 // ==========================================================
 
@@ -2369,5 +2478,4 @@ private fun SwitchRow(
                 onCheckedChange
         )
     }
-}
 }
