@@ -58,18 +58,21 @@ object LivePanchangCalculator {
     // PLANET LONGITUDE
     // ==========================================
 
-    private fun getLongitude(
-        planet: Int,
-        jd: Double
-    ): Double {
-
+    private fun createSwissEph(): SwissEph {
         val swe = SwissEph()
-
         swe.swe_set_sid_mode(
             SweConst.SE_SIDM_LAHIRI,
             0.0,
             0.0
         )
+        return swe
+    }
+
+    private fun getLongitude(
+        planet: Int,
+        jd: Double,
+        swe: SwissEph
+    ): Double {
 
         val xx = DoubleArray(6)
         val serr = StringBuffer()
@@ -86,14 +89,20 @@ object LivePanchangCalculator {
         return normalize(xx[0])
     }
 
+    private fun getSunMoon(
+        millis: Long,
+        swe: SwissEph
+    ): Pair<Double, Double> {
 
-    private fun getSunLongitude(jd: Double): Double =
-        getLongitude(SweConst.SE_SUN, jd)
+        val jd =
+            2440587.5 +
+                    millis / 86400000.0
 
-
-    private fun getMoonLongitude(jd: Double): Double =
-        getLongitude(SweConst.SE_MOON, jd)
-
+        return Pair(
+            getLongitude(SweConst.SE_SUN, jd, swe),
+            getLongitude(SweConst.SE_MOON, jd, swe)
+        )
+    }
 
     // ==========================================
     // NORMALIZE
@@ -263,52 +272,38 @@ object LivePanchangCalculator {
     }
 
 
-    // ==========================================
-    // INDEX AT A GIVEN MILLIS
-    // ==========================================
-
-    private fun tithiAt(millis: Long): Int {
-
-        val jd =
-            2440587.5 +
-                    millis / 86400000.0
-
-        return getTithiIndex(
-            getSunLongitude(jd),
-            getMoonLongitude(jd)
-        )
+    private enum class BoundaryType {
+        TITHI,
+        YOGA,
+        KARANA,
+        PAKSHA
     }
 
+    private fun indexAt(
+        millis: Long,
+        type: BoundaryType,
+        swe: SwissEph
+    ): Int {
 
-    private fun yogaAt(millis: Long): Int {
+        val (sun, moon) =
+            getSunMoon(millis, swe)
 
-        val jd =
-            2440587.5 +
-                    millis / 86400000.0
+        return when (type) {
+            BoundaryType.TITHI ->
+                getTithiIndex(sun, moon)
 
-        return getYogaIndex(
-            getSunLongitude(jd),
-            getMoonLongitude(jd)
-        )
+            BoundaryType.YOGA ->
+                getYogaIndex(sun, moon)
+
+            BoundaryType.KARANA ->
+                getKaranaIndex(sun, moon)
+
+            BoundaryType.PAKSHA ->
+                getPakshaIndex(
+                    getTithiIndex(sun, moon)
+                )
+        }
     }
-
-
-    private fun karanaAt(millis: Long): Int {
-
-        val jd =
-            2440587.5 +
-                    millis / 86400000.0
-
-        return getKaranaIndex(
-            getSunLongitude(jd),
-            getMoonLongitude(jd)
-        )
-    }
-
-
-    private fun pakshaAt(millis: Long): Int =
-        getPakshaIndex(tithiAt(millis))
-
 
     // ==========================================
     // PREVIOUS / NEXT BOUNDARY
@@ -322,15 +317,28 @@ object LivePanchangCalculator {
         currentIndex: Int,
         forward: Boolean,
         maxMinutes: Int,
-        getIndex: (Long) -> Int
+        type: BoundaryType
     ): Long {
 
-        val step = 30L * 60_000L
+        /*
+         * Performance optimization:
+         * - One SwissEph instance is reused for the whole search.
+         * - Sun and Moon are calculated together.
+         * - Coarse search uses 60 minutes instead of 30.
+         * - Final binary search keeps approximately 1-second accuracy.
+         *
+         * Panchang boundaries are much slower than the 60-minute
+         * coarse step, so this does not skip a normal Tithi/Yoga/Karana/
+         * Paksha transition.
+         */
+        val swe = createSwissEph()
+
+        val step = 60L * 60_000L
 
         var previous = now
         var current = now
 
-        repeat(maxMinutes / 30 + 2) {
+        repeat(maxMinutes / 60 + 2) {
 
             current =
                 if (forward) {
@@ -340,7 +348,11 @@ object LivePanchangCalculator {
                 }
 
             val index =
-                getIndex(current)
+                indexAt(
+                    current,
+                    type,
+                    swe
+                )
 
             if (index != currentIndex) {
 
@@ -350,13 +362,17 @@ object LivePanchangCalculator {
                 var high =
                     if (forward) current else previous
 
-                repeat(25) {
+                repeat(18) {
 
                     val middle =
                         low + (high - low) / 2
 
                     val middleIndex =
-                        getIndex(middle)
+                        indexAt(
+                            middle,
+                            type,
+                            swe
+                        )
 
                     if (forward) {
 
@@ -389,7 +405,6 @@ object LivePanchangCalculator {
         }
     }
 
-
     // ==========================================
     // FORMAT TIME
     // ==========================================
@@ -419,15 +434,13 @@ object LivePanchangCalculator {
         val now =
             System.currentTimeMillis()
 
-        val jd =
-            2440587.5 +
-                    now / 86400000.0
+        val swe = createSwissEph()
 
-        val sun =
-            getSunLongitude(jd)
-
-        val moon =
-            getMoonLongitude(jd)
+        val (sun, moon) =
+            getSunMoon(
+                now,
+                swe
+            )
 
 
         // ==========================================
@@ -443,7 +456,7 @@ object LivePanchangCalculator {
                 currentIndex = tithiIndex,
                 forward = false,
                 maxMinutes = 2880,
-                getIndex = ::tithiAt
+                type = BoundaryType.TITHI
             )
 
         val nextTithiMillis =
@@ -452,11 +465,15 @@ object LivePanchangCalculator {
                 currentIndex = tithiIndex,
                 forward = true,
                 maxMinutes = 2880,
-                getIndex = ::tithiAt
+                type = BoundaryType.TITHI
             )
 
         val nextTithiIndex =
-            tithiAt(nextTithiMillis)
+            indexAt(
+                nextTithiMillis,
+                BoundaryType.TITHI,
+                swe
+            )
 
 
         // ==========================================
@@ -472,7 +489,7 @@ object LivePanchangCalculator {
                 currentIndex = yogaIndex,
                 forward = false,
                 maxMinutes = 2880,
-                getIndex = ::yogaAt
+                type = BoundaryType.YOGA
             )
 
         val nextYogaMillis =
@@ -481,11 +498,15 @@ object LivePanchangCalculator {
                 currentIndex = yogaIndex,
                 forward = true,
                 maxMinutes = 2880,
-                getIndex = ::yogaAt
+                type = BoundaryType.YOGA
             )
 
         val nextYogaIndex =
-            yogaAt(nextYogaMillis)
+            indexAt(
+                nextYogaMillis,
+                BoundaryType.YOGA,
+                swe
+            )
 
 
         // ==========================================
@@ -501,7 +522,7 @@ object LivePanchangCalculator {
                 currentIndex = karanaIndex,
                 forward = false,
                 maxMinutes = 1440,
-                getIndex = ::karanaAt
+                type = BoundaryType.KARANA
             )
 
         val nextKaranaMillis =
@@ -510,11 +531,15 @@ object LivePanchangCalculator {
                 currentIndex = karanaIndex,
                 forward = true,
                 maxMinutes = 1440,
-                getIndex = ::karanaAt
+                type = BoundaryType.KARANA
             )
 
         val nextKaranaIndex =
-            karanaAt(nextKaranaMillis)
+            indexAt(
+                nextKaranaMillis,
+                BoundaryType.KARANA,
+                swe
+            )
 
 
         // ==========================================
@@ -530,7 +555,7 @@ object LivePanchangCalculator {
                 currentIndex = pakshaIndex,
                 forward = false,
                 maxMinutes = 21600,
-                getIndex = ::pakshaAt
+                type = BoundaryType.PAKSHA
             )
 
         val nextPakshaMillis =
@@ -539,11 +564,15 @@ object LivePanchangCalculator {
                 currentIndex = pakshaIndex,
                 forward = true,
                 maxMinutes = 21600,
-                getIndex = ::pakshaAt
+                type = BoundaryType.PAKSHA
             )
 
         val nextPakshaTithiIndex =
-            tithiAt(nextPakshaMillis)
+            indexAt(
+                nextPakshaMillis,
+                BoundaryType.TITHI,
+                swe
+            )
 
 
         // ==========================================
