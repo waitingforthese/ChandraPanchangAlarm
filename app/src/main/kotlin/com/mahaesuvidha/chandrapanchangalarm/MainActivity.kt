@@ -86,32 +86,7 @@ class MainActivity : ComponentActivity() {
         }
 
         var panchangState by remember {
-            mutableStateOf(
-                PanchangState(
-                    date = "",
-                    weekday = "",
-
-                    tithi = "लोड होत आहे...",
-                    nextTithi = "",
-                    nextTithiTime = "",
-                    nextTithiMillis = 0L,
-
-                    yoga = "लोड होत आहे...",
-                    nextYoga = "",
-                    nextYogaTime = "",
-                    nextYogaMillis = 0L,
-
-                    karana = "लोड होत आहे...",
-                    nextKarana = "",
-                    nextKaranaTime = "",
-                    nextKaranaMillis = 0L,
-
-                    paksha = "लोड होत आहे...",
-                    nextPaksha = "",
-                    nextPakshaTime = "",
-                    nextPakshaMillis = 0L
-                )
-            )
+            mutableStateOf<PanchangState?>(null)
         }
 
         // ------------------------------------------
@@ -140,7 +115,8 @@ class MainActivity : ComponentActivity() {
 
             if (
                 moonState == null ||
-                sunState == null
+                sunState == null ||
+                panchangState == null
             ) {
 
                 Box(
@@ -162,7 +138,7 @@ class MainActivity : ComponentActivity() {
 
                     sunState = sunState!!,
 
-                    panchangState = panchangState,
+                    panchangState = panchangState!!,
 
                     onTestRashi = {
                         scheduler.scheduleTest("राशी बदल")
@@ -182,38 +158,10 @@ class MainActivity : ComponentActivity() {
 }
 @Composable
 private fun ChandraSuryaHome(
-if (moonState == null || sunState == null) {
+    moonState: MoonState,
+    sunState: SunState,
+    panchangState: PanchangState,
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "लोड होत आहे...",
-            fontSize = 22.sp
-        )
-    }
-
-} else {
-
-    ChandraSuryaHome(
-        moonState = moonState!!,
-        sunState = sunState!!,
-        panchangState = panchangState,
-
-        onTestRashi = {
-            scheduler.scheduleTest("राशी बदल")
-        },
-
-        onTestNakshatra = {
-            scheduler.scheduleTest("नक्षत्र बदल")
-        },
-
-        onTestCharan = {
-            scheduler.scheduleTest("चरण बदल")
-        }
-    )
-}
     onTestRashi: () -> Unit,
     onTestNakshatra: () -> Unit,
     onTestCharan: () -> Unit
