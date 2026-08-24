@@ -233,6 +233,7 @@ LaunchedEffect(Unit) {
 
         return
     }
+}
 
 @Composable
 private fun ChandraSuryaHomeContent(
