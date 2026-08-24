@@ -898,7 +898,7 @@ private fun getMasaNameForInterval(
         val latitude = 18.5204
         val longitude = 73.8567
         val jd = 2440587.5 + millis / 86400000.0
-        val cusp = DoubleArray(13)
+        val cusp = DoubleArray(14)
         val ascmc = DoubleArray(10)
 
         swe.swe_set_sid_mode(
