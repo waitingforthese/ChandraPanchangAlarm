@@ -234,20 +234,6 @@ LaunchedEffect(Unit) {
         return
     }
 
-    // IMPORTANT:
-    // Once LIVE calculations are completed, render the actual home screen.
-    // Without this call the app only shows the loading state and never
-    // enters the main Panchang UI.
-    ChandraSuryaHomeContent(
-        moonState = moonState!!,
-        sunState = sunState!!,
-        panchangState = panchangState!!,
-        onTestRashi = onTestRashi,
-        onTestNakshatra = onTestNakshatra,
-        onTestCharan = onTestCharan
-    )
-}
-
 @Composable
 private fun ChandraSuryaHomeContent(
 
@@ -1561,29 +1547,6 @@ private fun PanchangCard(
         )
 
 
-        // ==================================================
-        // MAS
-        // ==================================================
-
-        PanchangChangeSection(
-
-            label =
-                "मास",
-
-            value =
-                state.masa,
-
-            startTime =
-                state.masaStartTime,
-
-            next =
-                state.nextMasa,
-
-            endTime =
-                state.nextMasaTime
-        )
-
-
        // ==================================================
 // PRAHAR
 // ==================================================
@@ -1665,9 +1628,6 @@ private fun PanchangChangeSection(
 
             "पक्ष" ->
                 "🌗"
-
-            "मास" ->
-                "📅"
 
             "प्रहर" ->
                 "⌛"
