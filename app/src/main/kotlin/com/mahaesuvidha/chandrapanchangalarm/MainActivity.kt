@@ -150,26 +150,34 @@ private fun ChandraSuryaHome(
         mutableStateOf<PanchangState?>(null)
     }
 
+    var loadError by remember {
+        mutableStateOf<String?>(null)
+    }
+
 LaunchedEffect(Unit) {
 
-        val result =
-            withContext(Dispatchers.Default) {
+        try {
+            val result =
+                withContext(Dispatchers.Default) {
+                    Triple(
+                        LiveMoonCalculator
+                            .getCurrentMoonState(),
 
-                Triple(
-                    LiveMoonCalculator
-                        .getCurrentMoonState(),
+                        LiveSunCalculator
+                            .getCurrentSunState(),
 
-                    LiveSunCalculator
-                        .getCurrentSunState(),
+                        LivePanchangCalculator
+                            .getCurrentPanchangState()
+                    )
+                }
 
-                    LivePanchangCalculator
-                        .getCurrentPanchangState()
-                )
-            }
-
-        moonState = result.first
-        sunState = result.second
-        panchangState = result.third
+            moonState = result.first
+            sunState = result.second
+            panchangState = result.third
+            loadError = null
+        } catch (t: Throwable) {
+            loadError = t.message ?: t.javaClass.simpleName
+        }
     }
 
     if (
@@ -212,7 +220,10 @@ LaunchedEffect(Unit) {
                 )
 
                 Text(
-                    text = "पंचांग लोड होत आहे…",
+                    text = if (loadError == null)
+                        "पंचांग लोड होत आहे…"
+                    else
+                        "पंचांग गणनेत त्रुटी",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -224,7 +235,7 @@ LaunchedEffect(Unit) {
                 )
 
                 Text(
-                    text = "LIVE गणना सुरू आहे",
+                    text = loadError ?: "LIVE गणना सुरू आहे",
                     color = Color.LightGray,
                     fontSize = 13.sp
                 )
@@ -233,6 +244,15 @@ LaunchedEffect(Unit) {
 
         return
     }
+
+    ChandraSuryaHomeContent(
+        moonState = moonState!!,
+        sunState = sunState!!,
+        panchangState = panchangState!!,
+        onTestRashi = onTestRashi,
+        onTestNakshatra = onTestNakshatra,
+        onTestCharan = onTestCharan
+    )
 }
 
 @Composable
